@@ -72,10 +72,12 @@
     <input type="text" class="form-control" id="complemento" placeholder="Complemento do imóvel" name="complemento"
       v-model="complemento">
   </div>
-  <button type="submit" class="btn btn-primary">Submit</button>
+  <button type="submit" class="btn btn-primary" @click="onComplete">Submit</button>
 </template>
 <script>
 import axios from 'axios'
+//import { mapActions } from 'vuex'
+import { mapGetters } from 'vuex'
 
 export default {
   name: 'FormularioImovel',
@@ -92,7 +94,6 @@ export default {
       cidade: '',
       estado: '',
       complemento: '',
-      dataCadastro: '',
     }
 
   },
@@ -106,10 +107,50 @@ export default {
             this.bairro = response.data['bairro'];
             this.estado = response.data['uf'];
             this.cidade = response.data['localidade'];
+            console.log(this.displayNomeImovel)
           })
           .catch(error => console.log(error))
       }
+    },
+
+    async onComplete() {
+
+      let imovel = {
+        nome: this.nome,
+        descricao: this.descricao,
+        preco: this.preco,
+        cep: this.cep,
+        rua: this.rua,
+        bairro: this.bairro,
+        numero: this.numero,
+        cidade: this.cidade,
+        estado: this.estado,
+        complemento: this.complemento,
+        data_cadastro: this.getNow(),
+      }
+      await this.$store.dispatch('createImovel', imovel)
+        .then(response => {
+          console.log(response.data)
+        }).catch(error => console.log(error))
+
+        // dando erro de cors. arrumando isso, o que vai acontecer é postar uma mensagem de console no console e o nome do imovel no state vai mudar
+        //vamos ver. por hoje deu, amanhã vejo isso do cors de novo.
+
+
+    },
+
+    getNow() {
+      const today = new Date();
+      const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+      const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+      const dateTime = date + ' ' + time;
+      return dateTime;
     }
   },
+  computed: {
+            ...mapGetters([
+                'displayNomeImovel'
+            ]),
+        },
 }
 </script>

@@ -1,12 +1,20 @@
 <template>
- <FormularioImovel></FormularioImovel>
+
+  <div>
+    <NavBar></NavBar>
+    <div class="container-fluid">
+          <router-view></router-view>
+
+    </div>
+  </div>
+
 </template>
 
 <script>
-import FormularioImovel from './components/FormularioImovel.vue'
+import NavBar from './components/Utils/NavBar.vue'
 export default {
   name: 'App',
-  components: {FormularioImovel}
+  components: {  NavBar,  }
 }
 </script>
 

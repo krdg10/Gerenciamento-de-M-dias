@@ -133,8 +133,14 @@ export default {
           console.log(response.data)
         }).catch(error => console.log(error))
 
-        // dando erro de cors. arrumando isso, o que vai acontecer é postar uma mensagem de console no console e o nome do imovel no state vai mudar
-        //vamos ver. por hoje deu, amanhã vejo isso do cors de novo.
+      /*
+        - fazer layout. header e tal
+        - validação dos dados
+        - apagar depois do submit
+        - fazer mais de uma página
+        - dar mais uma lida na ideia pra ver o que precisa fazer
+
+      */
 
 
     },
@@ -148,9 +154,9 @@ export default {
     }
   },
   computed: {
-            ...mapGetters([
-                'displayNomeImovel'
-            ]),
-        },
+    ...mapGetters([
+      'displayNomeImovel'
+    ]),
+  },
 }
 </script>

@@ -19,7 +19,21 @@ const createImovel = async ({ commit }, imovel) => {
         })
 };
 
+const loadImoveis = async ({ commit }) => {
+
+    return await axios({ url: imovelUrl, method: 'GET' })
+        .then(response => {
+            const payloadImoveis = response.data;
+            commit('imoveis', payloadImoveis);
+
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 
 export default {
-    createImovel
+    createImovel,
+    loadImoveis
 };

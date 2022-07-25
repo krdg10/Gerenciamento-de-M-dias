@@ -132,7 +132,7 @@ export default {
             this.bairro = response.data['bairro'];
             this.estado = response.data['uf'];
             this.cidade = response.data['localidade'];
-            console.log(this.displayNomeImovel)
+            //console.log(this.displayNomeImovel)
           })
           .catch(error => console.log(error))
       }
@@ -158,7 +158,16 @@ export default {
           console.log(response.data)
         }).catch(error => console.log(error))
 
-     
+      /*
+        - fazer layout. header e tal
+        - validação dos dados -- https://vee-validate.logaretm.com/v4/ -- ver um jeito de fazer um arquivo com as validações
+        pra não precisar poluir o código + só fazer uma vez.
+        VALIDAÇÃO CREIO QUE FEITA. Só verificar regras certinho + mudar cor da mensagem
+        - apagar depois do submit
+        - fazer mais de uma página
+        - dar mais uma lida na ideia pra ver o que precisa fazer
+
+      */
 
 
     },
@@ -184,10 +193,10 @@ export default {
         cep: 'required|numeric|digits:8',
         rua: 'required|max:50',
         bairro: 'required|max:50',
-        numero: 'required|max:50',
+        numero: 'max:50',
         cidade: 'required|max:50',
         estado: 'required|max:2',
-        complemento: 'required|max:50'
+        complemento: 'max:50'
       }
       return simpleSchema;
     },

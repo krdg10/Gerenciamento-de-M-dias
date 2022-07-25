@@ -5,12 +5,15 @@ const typeUser = state => state.auth.user.role;
 */
 
 const displayNomeImovel = state => {
-
   return state.imovelNome
+}
+
+const displayListaImoveis = state => {
+  return state.imoveis;
 
 }
 
-
 export default {
-    displayNomeImovel
+  displayNomeImovel,
+  displayListaImoveis
 };

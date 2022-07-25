@@ -1,7 +1,9 @@
 import * as VueRouter from 'vue-router';
 import FormularioImovel from './components/Forms/FormularioImovel.vue'
-import MyDashboard from './components/Utils/MyDashboard.vue'
+import MyDashboard from './components/Dashboards/MyDashboard.vue'
 import DeuRuim from './components/Utils/DeuRuim.vue'
+import ListaImoveis from './components/Lists/ListaImoveis.vue'
+
 
 //const Dashboard = () => import('./components/Dashboards/Dashboard.vue');
 
@@ -9,6 +11,7 @@ import DeuRuim from './components/Utils/DeuRuim.vue'
 const routes = [
     { path: '', name: 'dash', component: MyDashboard },
     { path: '/novoImovel', name: 'novoImovel', component: FormularioImovel },
+    { path: '/listaImoveis', name: 'listaImoveis', component: ListaImoveis },
 
     { path: '/:pathMatch(.*)*', component: DeuRuim }
 

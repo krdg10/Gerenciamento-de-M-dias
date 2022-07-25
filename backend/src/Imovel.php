@@ -7,12 +7,14 @@ class Imovel
     private $db;
     private $requestMethod;
     private $imovelId;
+    private $busca;
 
-    public function __construct($db, $requestMethod, $imovelId)
+    public function __construct($db, $requestMethod, $imovelId, $busca)
     {
         $this->db = $db;
         $this->requestMethod = $requestMethod;
         $this->imovelId = $imovelId;
+        $this->busca = $busca;
     }
 
     public function processRequest()
@@ -21,6 +23,9 @@ class Imovel
             case 'GET':
                 if ($this->imovelId) {
                     $response = $this->getImovel($this->imovelId);
+                  
+                } else if ($this->busca) {
+                    $response = $this->getImoveisByName($this->busca);
                 } else {
                     $response = $this->getAllImovels();
                 };
@@ -51,6 +56,27 @@ class Imovel
           *
       FROM
           imoveis;
+    ";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result);
+        return $response;
+    }
+
+    private function getImoveisByName($busca)
+    {
+        $query = "
+      SELECT
+          *
+      FROM
+          imoveis where LOWER(nome) LIKE LOWER('%$busca%');
     ";
 
         try {
@@ -99,7 +125,7 @@ class Imovel
       VALUES
       (:nome, :data_cadastro, :descricao, :preco, :cep, :rua, :bairro, :numero, :cidade, :estado, :complemento, :tags_id);
       ";
-////////// fazer pegar a data de cadastro automaticamente. current hora e tal. também colocar um formulario de edição
+        ////////// fazer pegar a data de cadastro automaticamente. current hora e tal. também colocar um formulario de edição
         try {
             $statement = $this->db->prepare($queryImovel);
             $statement->execute(array(

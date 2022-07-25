@@ -3,6 +3,8 @@ import axios from 'axios';
 
 //  const imoveis = 'http://localhost:8000/imoveis'; 
 const imovelUrl = 'http://localhost:8000/imovel';
+const buscaUrl = 'http://localhost:8000/busca';
+
 
 const createImovel = async ({ commit }, imovel) => {
 
@@ -32,8 +34,22 @@ const loadImoveis = async ({ commit }) => {
         })
 };
 
+const buscaImovel = async ({ commit }, busca) => {
+
+    return await axios({ url: buscaUrl + '/' + busca, method: 'GET' })
+        .then(response => {
+            const payloadImoveis = response.data;
+            commit('imoveis', payloadImoveis);
+
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 
 export default {
     createImovel,
-    loadImoveis
+    loadImoveis,
+    buscaImovel
 };

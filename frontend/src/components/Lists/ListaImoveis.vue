@@ -1,8 +1,8 @@
 <template>
     <div class="container">
         <div class="row">
-            <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca" />
-            <button class="btn btn-sm btn-success">Buscar</button>
+            <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca" v-model="keywords" />
+            <button class="btn btn-sm btn-success" @click="procuraImovel">Buscar</button>
         </div>
     </div>
     <div class="row">
@@ -28,12 +28,26 @@ import CardImovel from "../Utils/CardImovel.vue";
 import { mapActions, mapGetters } from "vuex";
 
 // Além disso... arrumar design, fazer busca. Imovel data pra mostrar dados do imovel individualmente e editar.
+/// busca funcionando... só colocar mensagem de 0 caso vazia
 export default {
+    data() {
+        return {
+            keywords: '',
+        }
+    },
 
     components: { CardImovel },
 
     methods: {
-        ...mapActions(["loadImoveis"]),
+        ...mapActions(["loadImoveis", "buscaImovel"]),
+
+        async procuraImovel() {
+            this.$store.dispatch('buscaImovel', this.keywords)
+                .then(response => {
+                    console.log(response)
+
+                }).catch(error => console.log(error))
+        },
     },
 
     computed: {

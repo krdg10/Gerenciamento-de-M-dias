@@ -3,23 +3,25 @@ import FormularioImovel from './components/Forms/FormularioImovel.vue'
 import MyDashboard from './components/Dashboards/MyDashboard.vue'
 import DeuRuim from './components/Utils/DeuRuim.vue'
 import ListaImoveis from './components/Lists/ListaImoveis.vue'
+import Imovel from './components/Lists/ImovelData.vue'
 
 
 //const Dashboard = () => import('./components/Dashboards/Dashboard.vue');
 
 
 const routes = [
-    { path: '', name: 'dash', component: MyDashboard },
-    { path: '/novoImovel', name: 'novoImovel', component: FormularioImovel },
-    { path: '/listaImoveis', name: 'listaImoveis', component: ListaImoveis },
+  { path: '', name: 'dash', component: MyDashboard },
+  { path: '/novoImovel', name: 'novoImovel', component: FormularioImovel },
+  { path: '/listaImoveis', name: 'listaImoveis', component: ListaImoveis },
+  { path: '/imovel', name: 'imovel', component: Imovel, props: true },
 
-    { path: '/:pathMatch(.*)*', component: DeuRuim }
+  { path: '/:pathMatch(.*)*', component: DeuRuim }
 
 ];
 
 const router = VueRouter.createRouter({
-    history: VueRouter.createWebHashHistory(),
-    routes: routes,
+  history: VueRouter.createWebHashHistory(),
+  routes: routes,
 })
 
 /*router.beforeEach((to, from, next) => {

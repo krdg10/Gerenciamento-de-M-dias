@@ -13,7 +13,13 @@ const displayListaImoveis = state => {
 
 }
 
+const displayImovel = state => {
+  return state.imovel;
+
+}
+
 export default {
   displayNomeImovel,
-  displayListaImoveis
+  displayListaImoveis,
+  displayImovel
 };

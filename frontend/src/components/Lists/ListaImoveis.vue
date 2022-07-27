@@ -5,7 +5,10 @@
             <button class="btn btn-sm btn-success" @click="procuraImovel">Buscar</button>
         </div>
     </div>
-    <div class="row">
+    <div class="container" v-if="displayListaImoveis.length == 0">
+        <h4>Sem imóveis cadastrados</h4>
+    </div>
+    <div class="row" v-else>
         <CardImovel class="col-sm-6" v-for="imovel in displayListaImoveis" :key="imovel.id" :id="imovel.id">
             <template v-slot:card-header>
                 <h3 class="card-title" style="color: #4E73DF;">{{ imovel.nome }} </h3>
@@ -17,7 +20,7 @@
                 : {{ imovel.preco }} <br><br>
             </template>
             <template v-slot:card-footer>
-                <button class="btn btn-sm btn-success">Detalhes</button>
+                <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
             </template>
         </CardImovel>
     </div>
@@ -28,7 +31,6 @@ import CardImovel from "../Utils/CardImovel.vue";
 import { mapActions, mapGetters } from "vuex";
 
 // Além disso... arrumar design, fazer busca. Imovel data pra mostrar dados do imovel individualmente e editar.
-/// busca funcionando... só colocar mensagem de 0 caso vazia
 export default {
     data() {
         return {
@@ -48,6 +50,15 @@ export default {
 
                 }).catch(error => console.log(error))
         },
+
+        redirect(imovel) {
+            let id = imovel.id;
+            this.$store.commit('imovel', imovel);
+
+
+            this.$router.push({ name: 'imovel', params: { id: id } })
+            // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
+        }
     },
 
     computed: {

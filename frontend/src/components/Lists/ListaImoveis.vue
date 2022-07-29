@@ -55,8 +55,8 @@ export default {
             let id = imovel.id;
             this.$store.commit('imovel', imovel);
 
+            this.$router.push({ name: 'novoImovel', params: { id: id } })
 
-            this.$router.push({ name: 'imovel', params: { id: id } })
             // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
         }
     },

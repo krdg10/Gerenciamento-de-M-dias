@@ -37,14 +37,16 @@ $uri = explode('/', $uri);
 if ($uri[1] !== 'imovel') {
     if ($uri[1] !== 'imoveis') {
         if ($uri[1] !== 'busca') {
-            header("HTTP/1.1 404 Not Found");
-            exit();
+            if ($uri[1] !== 'deleteImovel') {
+                header("HTTP/1.1 404 Not Found");
+                exit();
+            }
         }
     }
 }
 
 // endpoints starting with `/posts` for POST/PUT/DELETE results in a 404 Not Found
-if (($uri[1] == 'imoveis' and isset($uri[2])) || ($uri[1] == 'busca' and !isset($uri[2]))) {
+if (($uri[1] == 'imoveis' and isset($uri[2])) || ($uri[1] == 'busca' and !isset($uri[2])) || ($uri[1] == 'deleteImovel' and !isset($uri[2]))) {
     header("HTTP/1.1 404 Not Found");
     exit();
 }
@@ -54,7 +56,7 @@ $postId = null;
 $busca = null;
 
 // the post id is, of course, optional and must be a number
-if ($uri[1] == 'imovel') {
+if ($uri[1] == 'imovel' || $uri[1] == 'deleteImovel') {
     if (isset($uri[2])) {
         $postId = (int) $uri[2];
     }
@@ -64,6 +66,6 @@ if ($uri[1] == 'imovel') {
     }
 }
 
-// pass the request method and post ID to the Post and process the HTTP request:
-$controller = new Imovel($dbConnection, $requestMethod, $postId, $busca);
+//otimizar isso aqui assim: mandar url pro controller e ai ele ve o que fazer com ela e deu.
+$controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[1]);
 $controller->processRequest();

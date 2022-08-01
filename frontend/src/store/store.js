@@ -14,7 +14,6 @@ app.use(Vuex)
 
 export const store = new Vuex.Store({
   state: {
-    imovelNome: '',
     imoveis: [],
     imovel: {}
   },

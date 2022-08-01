@@ -8,13 +8,15 @@ class Imovel
     private $requestMethod;
     private $imovelId;
     private $busca;
+    private $url;
 
-    public function __construct($db, $requestMethod, $imovelId, $busca)
+    public function __construct($db, $requestMethod, $imovelId, $busca, $url)
     {
         $this->db = $db;
         $this->requestMethod = $requestMethod;
         $this->imovelId = $imovelId;
         $this->busca = $busca;
+        $this->url = $url;
     }
 
     public function processRequest()
@@ -23,7 +25,6 @@ class Imovel
             case 'GET':
                 if ($this->imovelId) {
                     $response = $this->getImovel($this->imovelId);
-                  
                 } else if ($this->busca) {
                     $response = $this->getImoveisByName($this->busca);
                 } else {
@@ -34,10 +35,13 @@ class Imovel
                 $response = $this->createImovel();
                 break;
             case 'PUT':
-                $response = $this->updateImovel($this->imovelId);
+                if ($this->url == 'deleteImovel') {
+                    $response = $this->deleteImovel($this->imovelId);
+                } else {
+                    $response = $this->updateImovel($this->imovelId);
+                }
                 break;
             case 'DELETE':
-                $response = $this->deleteImovel($this->imovelId);
                 break;
             default:
                 $response = $this->notFoundResponse();
@@ -55,7 +59,7 @@ class Imovel
       SELECT
           *
       FROM
-          imoveis;
+          imoveis where ativo = 'A';
     ";
 
         try {
@@ -76,7 +80,7 @@ class Imovel
       SELECT
           *
       FROM
-          imoveis where LOWER(nome) LIKE LOWER('%$busca%');
+          imoveis where LOWER(nome) LIKE LOWER('%$busca%') and ativo = 'A';
     ";
 
         try {
@@ -92,7 +96,7 @@ class Imovel
     }
 
     private function getImovel($id)
-    {
+    { ///////// ver aqui pra verificar se tá ativo
         $result = $this->find($id);
         if (!$result) {
             return $this->notFoundResponse();
@@ -105,16 +109,18 @@ class Imovel
     private function createImovel()
     {
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-        if (!$this->validateImovel($input)) {
+        if (!$this->validateImovel($input, 'POST')) {
             return $this->unprocessableEntityResponse();
         }
 
-        $queryTag = "INSERT INTO tags VALUES();";
+        $queryTag = "INSERT INTO tags (data_criacao) VALUES(:data_criacao);";
 
         try {
-            $statement = $this->db;
-            $statement->exec($queryTag);
-            $lastInsert = $statement->lastInsertId('tags');
+            $statement = $this->db->prepare($queryTag);
+            $statement->execute(array(
+                'data_criacao'  => $input['data_cadastro'],
+            ));
+            $lastInsert = $this->db->lastInsertId('tags');
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
@@ -165,7 +171,7 @@ class Imovel
             return $this->notFoundResponse();
         }
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-        if (!$this->validateImovel($input)) {
+        if (!$this->validateImovel($input, 'PUT')) {
             return $this->unprocessableEntityResponse();
         }
 
@@ -173,7 +179,6 @@ class Imovel
       UPDATE imoveis
       SET
         nome = :nome,
-        data_cadastro  = :data_cadastro,
         descricao = :descricao,
         preco = :preco,
         cep = :cep,
@@ -182,7 +187,8 @@ class Imovel
         numero = :numero,
         cidade = :cidade,
         estado = :estado,
-        complemento = :complemento
+        complemento = :complemento,
+        data_edicao = :data_edicao
       WHERE id = :id;
     ";
 
@@ -190,7 +196,6 @@ class Imovel
             $statement = $this->db->prepare($statement);
             $statement->execute(array(
                 'nome' => $input['nome'],
-                'data_cadastro'  => $input['data_cadastro'],
                 'descricao' => $input['descricao'],
                 'preco' => $input['preco'],
                 'cep' => $input['cep'],
@@ -200,6 +205,7 @@ class Imovel
                 'cidade' => $input['cidade'],
                 'estado' => $input['estado'],
                 'complemento' => $input['complemento'],
+                'data_edicao' => $input['data_edicao'],
                 'id' => $id
             ));
             $statement->rowCount();
@@ -219,7 +225,9 @@ class Imovel
         }
 
         $query = "
-      DELETE FROM imoveis
+      UPDATE imoveis
+      set
+      ativo = 'I'
       WHERE id = :id;
     ";
 
@@ -242,7 +250,7 @@ class Imovel
           *
       FROM
           imoveis
-      WHERE id = :id;
+      WHERE id = :id and ativo = 'A';
     ";
 
         try {
@@ -255,14 +263,24 @@ class Imovel
         }
     }
 
-    private function validateImovel($input)
+    private function validateImovel($input, $tipo)
     {
-        if (
-            !isset($input['nome']) || !isset($input['data_cadastro']) || !isset($input['descricao']) || !isset($input['preco'])  || !isset($input['cep'])
-            || !isset($input['rua'])  || !isset($input['bairro'])  || !isset($input['cidade'])  || !isset($input['estado'])
-        ) {
-            return false;
+        if ($tipo == 'POST') {
+            if (
+                !isset($input['nome']) || !isset($input['data_cadastro']) || !isset($input['descricao']) || !isset($input['preco'])  || !isset($input['cep'])
+                || !isset($input['rua'])  || !isset($input['bairro'])  || !isset($input['cidade'])  || !isset($input['estado'])
+            ) {
+                return false;
+            }
+        } else if ($tipo == 'PUT') {
+            if (
+                !isset($input['nome']) || !isset($input['data_edicao']) || !isset($input['descricao']) || !isset($input['preco'])  || !isset($input['cep'])
+                || !isset($input['rua'])  || !isset($input['bairro'])  || !isset($input['cidade'])  || !isset($input['estado'])
+            ) {
+                return false;
+            }
         }
+
 
 
         return true;

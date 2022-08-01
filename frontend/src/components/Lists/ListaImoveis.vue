@@ -21,6 +21,8 @@
             </template>
             <template v-slot:card-footer>
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
+                <button class="btn btn-sm btn-danger" @click="apagarImovel(imovel.id)">Apagar</button>
+
             </template>
         </CardImovel>
     </div>
@@ -47,6 +49,14 @@ export default {
             this.$store.dispatch('buscaImovel', this.keywords)
                 .then(response => {
                     console.log(response)
+
+                }).catch(error => console.log(error))
+        },
+
+        async apagarImovel(id) {
+            this.$store.dispatch('apagarImovel', id)
+                .then(response => {
+                    console.log(response.data)
 
                 }).catch(error => console.log(error))
         },

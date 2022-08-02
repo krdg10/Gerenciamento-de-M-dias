@@ -35,7 +35,7 @@ class Imovel
                 $response = $this->createImovel();
                 break;
             case 'PUT':
-                if ($this->url == 'deleteImovel') {
+                if ($this->url == 'deletarImovel') {
                     $response = $this->deleteImovel($this->imovelId);
                 } else {
                     $response = $this->updateImovel($this->imovelId);

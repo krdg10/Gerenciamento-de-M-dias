@@ -32,40 +32,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = explode('/', $uri);
-// endpoints starting with `/post` or `/posts` for GET shows all posts
-// everything else results in a 404 Not Found
-if ($uri[1] !== 'imovel') {
-    if ($uri[1] !== 'imoveis') {
-        if ($uri[1] !== 'busca') {
-            if ($uri[1] !== 'deleteImovel') {
-                header("HTTP/1.1 404 Not Found");
-                exit();
-            }
-        }
-    }
-}
 
-// endpoints starting with `/posts` for POST/PUT/DELETE results in a 404 Not Found
-if (($uri[1] == 'imoveis' and isset($uri[2])) || ($uri[1] == 'busca' and !isset($uri[2])) || ($uri[1] == 'deleteImovel' and !isset($uri[2]))) {
+
+
+if ($uri[1] == 'imovel') {
+
+    $requestMethod = $_SERVER["REQUEST_METHOD"];
+    $postId = null;
+    $busca = null;
+    if ($uri[2] == 'novo') {
+    } else if ($uri[2] == 'editar') {
+        if (!isset($uri[3])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $postId = (int) $uri[3];
+    } else if ($uri[2] == 'deletarImovel') {
+        if (!isset($uri[3])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $postId = (int) $uri[3];
+    } else  if ($uri[2] == 'buscarTodos') {
+    } else if ($uri[2] == 'busca') {
+        if (!isset($uri[3])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $busca = $uri[3];
+    } else {
+        header("HTTP/1.1 404 Not Found");
+        exit();
+    }
+    $controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
+    $controller->processRequest();
+} else {
     header("HTTP/1.1 404 Not Found");
     exit();
 }
-
-$requestMethod = $_SERVER["REQUEST_METHOD"];
-$postId = null;
-$busca = null;
-
-// the post id is, of course, optional and must be a number
-if ($uri[1] == 'imovel' || $uri[1] == 'deleteImovel') {
-    if (isset($uri[2])) {
-        $postId = (int) $uri[2];
-    }
-} else if ($uri[1] == 'busca') {
-    if (isset($uri[2])) {
-        $busca = $uri[2];
-    }
-}
-
-//otimizar isso aqui assim: mandar url pro controller e ai ele ve o que fazer com ela e deu.
-$controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[1]);
-$controller->processRequest();

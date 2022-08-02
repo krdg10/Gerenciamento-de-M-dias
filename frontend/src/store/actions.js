@@ -2,13 +2,12 @@ import axios from 'axios';
 //import * as Cookies from 'js-cookie'
 
 //  const imoveis = 'http://localhost:8000/imoveis'; 
-const imovelUrl = 'http://localhost:8000/imovel';
-const buscaUrl = 'http://localhost:8000/busca';
-const deleteUrl = 'http://localhost:8000/deleteImovel';
+const imovelUrl = 'http://localhost:8000/imovel/';
+
 
 //https://stackoverflow.com/questions/52630866/vuex-actions-that-do-not-need-to-commit-a-mutation
 const createImovel = async (_, imovel) => {
-    return await axios({ url: imovelUrl, data: imovel, method: 'POST' })
+    return await axios({ url: imovelUrl + 'novo', data: imovel, method: 'POST' })
         .then(response => {
             return response
         }).catch(error => {
@@ -17,7 +16,7 @@ const createImovel = async (_, imovel) => {
 };
 
 const loadImoveis = async ({ commit }) => {
-    return await axios({ url: imovelUrl, method: 'GET' })
+    return await axios({ url: imovelUrl + 'buscarTodos', method: 'GET' })
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
@@ -28,7 +27,7 @@ const loadImoveis = async ({ commit }) => {
 };
 
 const buscaImovel = async ({ commit }, busca) => {
-    return await axios({ url: buscaUrl + '/' + busca, method: 'GET' })
+    return await axios({ url: imovelUrl + 'busca' + '/' + busca, method: 'GET' })
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
@@ -39,7 +38,7 @@ const buscaImovel = async ({ commit }, busca) => {
 };
 
 const updateImovel = async ({ commit }, imovel) => {
-    return await axios({ url: imovelUrl + '/' + imovel.id, data: imovel, method: 'PUT' })
+    return await axios({ url: imovelUrl + 'editar' + '/' + imovel.id, data: imovel, method: 'PUT' })
         .then(response => {
             const payload = imovel;
             commit('imovel', payload)
@@ -51,7 +50,7 @@ const updateImovel = async ({ commit }, imovel) => {
 
 const apagarImovel = async (_, id) => {
     console.log(id);
-    return await axios({ url: deleteUrl + '/' + id, method: 'PUT' })
+    return await axios({ url: imovelUrl + 'deletarImovel' + '/' + id, method: 'PUT' })
         .then(response => {
             return response
         }).catch(error => {

@@ -21,10 +21,20 @@
             </template>
             <template v-slot:card-footer>
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
-                <button class="btn btn-sm btn-danger" @click="apagarImovel(imovel.id)">Apagar</button>
-
+                <button class="btn btn-sm btn-danger" @click="toggleModal">Apagar</button>
+                <!--<button class="btn btn-sm btn-danger" @click="apagarImovel(imovel.id)">Apagar</button>-->
+                <Modal @close="toggleModal" :modalActive="modalActive">
+                    <div class="modal-content">
+                        <h1>Deseja realmente apagar o imóvel?</h1>
+                        <button class="btn btn-sm btn-danger" @click="apagarImovel(imovel.id)">Apagar</button>
+                    </div>
+                </Modal>
             </template>
+
+
         </CardImovel>
+
+
     </div>
 </template>
 
@@ -32,7 +42,13 @@
 import CardImovel from "../Utils/CardImovel.vue";
 import { mapActions, mapGetters } from "vuex";
 
-// Além disso... arrumar design, fazer busca. Imovel data pra mostrar dados do imovel individualmente e editar.
+
+import Modal from "../Utils/ModalDefault.vue";
+import { ref } from "vue";
+/// https://mdbootstrap.com/docs/vue/components/modal/
+// proxima ação: fazer modal generico e usar aqui pra confirmar delete. talvez usar link acima mas de preferencia não
+// https://www.youtube.com/watch?v=NFdvWBh-D6k esse video aqui pode ser uma boa. mais que o link de cima. mas puta preguiça agora...
+// mas ver ele inteiro pra ver as explicações e os carai
 export default {
     data() {
         return {
@@ -40,7 +56,15 @@ export default {
         }
     },
 
-    components: { CardImovel },
+    components: { CardImovel, Modal },
+
+    setup() {
+        const modalActive = ref(false);
+        const toggleModal = () => {
+            modalActive.value = !modalActive.value;
+        };
+        return { modalActive, toggleModal };
+    },
 
     methods: {
         ...mapActions(["loadImoveis", "buscaImovel"]),
@@ -55,8 +79,9 @@ export default {
 
         async apagarImovel(id) {
             this.$store.dispatch('apagarImovel', id)
-                .then(response => {
-                    console.log(response.data)
+                .then(() => {
+                    this.loadImoveis();
+                    this.toggleModal();
 
                 }).catch(error => console.log(error))
         },
@@ -85,3 +110,31 @@ export default {
 
 
 </script>
+
+<style lang="scss" scoped>
+.home {
+    background-color: rgba(0, 176, 234, 0.5);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .modal-content {
+        display: flex;
+        flex-direction: column;
+
+        h1,
+        p {
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 32px;
+        }
+
+        p {
+            font-size: 18px;
+        }
+    }
+}
+</style>

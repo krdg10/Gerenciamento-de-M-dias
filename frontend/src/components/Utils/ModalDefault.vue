@@ -1,6 +1,6 @@
 <template>
   <transition name="modal-animation">
-    <div v-show="modalActive" class="modal" @click.self="$emit('close')">
+    <div v-show="modalActive" class="modal" @click.self="close">
       <transition name="modal-animation-inner">
         <div v-show="modalActive" class="modal-inner">
           <i @click="close" class="far fa-times-circle"></i>
@@ -15,10 +15,18 @@
 
 <script>
 export default {
-  props: ["modalActive"],
+  props: {
+    modalActive: Boolean,
+    redirectToAnotherPage: Function
+  },
+
   setup(props, { emit }) {
     const close = () => {
       emit("close");
+      if (props.redirectToAnotherPage) {
+        props.redirectToAnotherPage({ name: 'listaImoveis' });
+      }
+
     };
     return { close };
   },

@@ -13,8 +13,14 @@
       <FormulariodeImovel ref="formulario" :imovel="displayImovel"></FormulariodeImovel>
       <button type="submit" class="btn btn-primary">Submit</button>
     </Form>
-
   </div>
+
+  <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push">
+    <div class="modal-content">
+      <h1 v-if="!id">Imóvel Criado Com Sucesso</h1>
+      <h1 v-else>Imóvel Editado Com Sucesso</h1>
+    </div>
+  </Modal>
 </template>
 
 
@@ -22,12 +28,23 @@
 import { mapGetters } from 'vuex'
 import { Form } from 'vee-validate';
 import FormulariodeImovel from '../Utils/FormulariodeImovel.vue'
+import Modal from "../Utils/ModalDefault.vue";
+import { ref } from "vue";
+
 
 export default {
 
   name: 'FormularioImovel',
 
-  components: { Form, FormulariodeImovel },
+  components: { Form, FormulariodeImovel, Modal },
+
+  setup() {
+    const modalActive = ref(false);
+    const toggleModal = () => {
+      modalActive.value = !modalActive.value;
+    };
+    return { modalActive, toggleModal };
+  },
 
   props: {
     id: String
@@ -51,6 +68,7 @@ export default {
       }
       await this.$store.dispatch('createImovel', imovel)
         .then(response => {
+          this.toggleModal();
           console.log(response.data)
         }).catch(error => console.log(error))
     },
@@ -73,6 +91,7 @@ export default {
       }
       await this.$store.dispatch('updateImovel', imovel)
         .then(response => {
+          this.toggleModal();
           console.log(response.data)
         }).catch(error => console.log(error))
     },

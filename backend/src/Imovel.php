@@ -57,9 +57,9 @@ class Imovel
     {
         $query = "
       SELECT
-          *
+          imovel.*, tag.favorito, tag.importante, tag.urgente
       FROM
-          imoveis where ativo = 'A';
+          imoveis imovel, tags tag where imovel.ativo = 'A' and imovel.id = tag.id;
     ";
 
         try {
@@ -78,10 +78,12 @@ class Imovel
     {
         $query = "
       SELECT
-          *
+      imovel.*, tag.favorito, tag.importante, tag.urgente
       FROM
-          imoveis where LOWER(nome) LIKE LOWER('%$busca%') and ativo = 'A';
+      imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$busca%') and imovel.ativo = 'A' and imovel.id = tag.id;
     ";
+
+
 
         try {
             $statement = $this->db->query($query);

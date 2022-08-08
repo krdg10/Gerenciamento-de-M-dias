@@ -1,8 +1,17 @@
 <template>
-    <div class="container">
+    <div class="container d-flex justify-content-center margin-barra">
         <div class="row">
-            <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca" v-model="keywords" />
-            <button class="btn btn-sm btn-success" @click="procuraImovel">Buscar</button>
+            <div class="input-group margin-bottom-40">
+                <div class="input-group-btn barra">
+                    <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
+                        v-model="keywords" />
+                    <span>
+                        <button type="submit" class="btn colors" @click="procuraImovel">
+                            <font-awesome-icon icon="fa-solid fa-search" />
+                        </button>
+                    </span>
+                </div>
+            </div>
         </div>
     </div>
     <div class="container" v-if="displayListaImoveis.length == 0">
@@ -11,7 +20,18 @@
     <div class="row" v-else>
         <CardImovel class="col-sm-6" v-for="imovel in displayListaImoveis" :key="imovel.id" :id="imovel.id">
             <template v-slot:card-header>
-                <h3 class="card-title" style="color: #4E73DF;">{{ imovel.nome }} </h3>
+
+                <h3 class="card-title" style="color: #4E73DF;" @click="redirect(imovel)">{{ imovel.nome }} {{
+                        imovel.id
+                }}</h3>
+                <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
+                    v-bind:class="{ 'impIcon': imovel.importante == 1 }"
+                    @click="addTag(imovel.id, 'importante', imovel.importante)" />
+                <font-awesome-icon icon="fa fa-star" class="static" v-bind:class="{ 'favIcon': imovel.favorito == 1 }"
+                    @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
+                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
+                    v-bind:class="{ 'urgIcon': imovel.urgente == 1 }"
+                    @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
             </template>
             <template v-slot:card-body>
                 <strong>Cidade</strong>
@@ -21,19 +41,18 @@
             </template>
             <template v-slot:card-footer>
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
-                <button class="btn btn-sm btn-danger" @click="toggleModal">Apagar</button>
-                <!--<button class="btn btn-sm btn-danger" @click="apagarImovel(imovel.id)">Apagar</button>-->
-                <Modal @close="toggleModal" :modalActive="modalActive">
-                    <div class="modal-content">
-                        <h1>Deseja realmente apagar o imóvel?</h1>
-                        <button class="btn btn-sm btn-danger" @click="apagarImovel(imovel.id)">Apagar</button>
-                    </div>
-                </Modal>
+                <button class="btn btn-sm btn-danger" @click="openModal(imovel)">Apagar</button>
             </template>
-
-
         </CardImovel>
-
+        <Modal @close="toggleModal" :modalActive="modalActive">
+            <div class="modal-content" v-if="confirmation">
+                <h1>Imóvel apagado com sucesso</h1>
+            </div>
+            <div class="modal-content" v-else>
+                <h1>Deseja realmente apagar o imóvel {{ imovelNome }}? {{ imovelId }}</h1>
+                <button class="btn btn-sm btn-danger" @click="apagarImovel(imovelId)">Apagar</button>
+            </div>
+        </Modal>
 
     </div>
 </template>
@@ -42,21 +61,27 @@
 import CardImovel from "../Utils/CardImovel.vue";
 import { mapActions, mapGetters } from "vuex";
 
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSearch, faStar, faExclamation, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+library.add(faSearch, faStar, faExclamation, faTriangleExclamation)
+// adicionar isso no X do modal e tirar o link do fontawesome do index
+// ver de mudar cor do icons e tornálos clicáveis pra fazer os botões de tag. 
 
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
-/// https://mdbootstrap.com/docs/vue/components/modal/
-// proxima ação: fazer modal generico e usar aqui pra confirmar delete. talvez usar link acima mas de preferencia não
-// https://www.youtube.com/watch?v=NFdvWBh-D6k esse video aqui pode ser uma boa. mais que o link de cima. mas puta preguiça agora...
-// mas ver ele inteiro pra ver as explicações e os carai
+
 export default {
     data() {
         return {
             keywords: '',
+            confirmation: false,
+            imovelId: '',
+            imovelNome: ''
         }
     },
 
-    components: { CardImovel, Modal },
+    components: { CardImovel, Modal, FontAwesomeIcon },
 
     setup() {
         const modalActive = ref(false);
@@ -77,13 +102,27 @@ export default {
                 }).catch(error => console.log(error))
         },
 
+        openModal(imovel) {
+            this.imovelId = imovel.id;
+            this.imovelNome = imovel.nome;
+            this.confirmation = false;
+            this.toggleModal();
+
+        },
+
+        /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
+
         async apagarImovel(id) {
+            console.log(id);
             this.$store.dispatch('apagarImovel', id)
                 .then(() => {
                     this.loadImoveis();
-                    this.toggleModal();
-
+                    this.confirmation = true;
                 }).catch(error => console.log(error))
+        },
+
+        async addTag(id, type, value) {
+            console.log(id + type + value)
         },
 
         redirect(imovel) {
@@ -105,6 +144,7 @@ export default {
 
     async created() {
         await this.loadImoveis();
+        console.log(this.displayListaImoveis);
     },
 }
 
@@ -136,5 +176,31 @@ export default {
             font-size: 18px;
         }
     }
+}
+
+.barra {
+    display: flex;
+}
+
+.colors {
+    background-color: #198754;
+    color: white;
+}
+
+.favIcon {
+    color: yellow
+}
+
+.urgIcon {
+    color: red
+}
+
+.impIcon {
+    color: red;
+}
+
+.margin-barra {
+    margin-top: 1%;
+    margin-bottom: 1%;
 }
 </style>

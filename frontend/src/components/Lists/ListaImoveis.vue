@@ -122,7 +122,29 @@ export default {
         },
 
         async addTag(id, type, value) {
-            console.log(id + type + value)
+            let payload = { id: id, type: type, value: this.changeTagValue(value), hora: this.getNow() }
+
+            this.$store.dispatch('alterarTag', payload)
+                .then(response => {
+                    console.log(response.data)
+                }).catch(error => console.log(error))
+        },
+
+        changeTagValue(value) {
+            if (value == 0) {
+                return 1
+            }
+            else {
+                return 0
+            }
+        },
+
+        getNow() {
+            const today = new Date();
+            const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+            const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+            const dateTime = date + ' ' + time;
+            return dateTime;
         },
 
         redirect(imovel) {

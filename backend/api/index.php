@@ -60,6 +60,12 @@ if ($uri[1] == 'imovel') {
             exit();
         }
         $busca = $uri[3];
+    } else if ($uri[2] == 'alterarTag') {
+        if (!isset($uri[3])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $postId = (int) $uri[3];
     } else {
         header("HTTP/1.1 404 Not Found");
         exit();

@@ -58,10 +58,21 @@ const apagarImovel = async (_, id) => {
         })
 };
 
+const alterarTag = async ({ commit }, payload) => {
+    return await axios({ url: imovelUrl + 'alterarTag' + '/' + payload.id, data: payload, method: 'PUT' })
+        .then(response => {
+            commit('alterTag', payload);
+            return response
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 export default {
     createImovel,
     loadImoveis,
     buscaImovel,
     updateImovel,
-    apagarImovel
+    apagarImovel,
+    alterarTag
 };

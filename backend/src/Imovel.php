@@ -37,6 +37,8 @@ class Imovel
             case 'PUT':
                 if ($this->url == 'deletarImovel') {
                     $response = $this->deleteImovel($this->imovelId);
+                } else if ($this->url == 'alterarTag') {
+                    $response = $this->updateTag($this->imovelId);
                 } else {
                     $response = $this->updateImovel($this->imovelId);
                 }
@@ -216,6 +218,55 @@ class Imovel
         }
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode(array('message' => 'Imovel Updated!'));
+        return $response;
+    }
+
+    private function updateTag($id)
+    {
+        $result = $this->find($id);
+        if (!$result) {
+            return $this->notFoundResponse();
+        }
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+        // validar o input
+        if ($input['type'] == 'urgente') {
+            $statement = "
+            UPDATE tags
+            SET
+            urgente = :value,
+            data_edicao = :hora
+            WHERE id = :id;
+          ";
+        } else if ($input['type'] == 'importante') {
+            $statement = "
+            UPDATE tags
+            SET
+            importante = :value,
+            data_edicao = :hora
+            WHERE id = :id;
+          ";
+        } else {
+            $statement = "
+            UPDATE tags
+            SET
+            favorito = :value,
+            data_edicao = :hora
+            WHERE id = :id;
+          ";
+        }
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                'value' => $input['value'],
+                'hora' => $input['hora'],
+                'id' => $id
+            ));
+            $statement->rowCount();
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode(array('message' => 'Tag Updated!'));
         return $response;
     }
 

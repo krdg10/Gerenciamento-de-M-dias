@@ -12,7 +12,10 @@
                     <router-link class="nav-link active" to="/listaImoveis">Imoveis</router-link>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link disabled" href="#">Disabled</a>
+                    <router-link class="nav-link active" to="/listaArquivos">Arquivos</router-link>
+                </li>
+                <li class="nav-item">
+                    <router-link class="nav-link active" to="/novoArquivo">Novo Arquivo</router-link>
                 </li>
             </ul>
         </div>

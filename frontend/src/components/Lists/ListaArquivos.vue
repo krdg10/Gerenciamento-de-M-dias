@@ -1,0 +1,215 @@
+<template>
+    <div class="container d-flex justify-content-center margin-barra">
+        <div class="row">
+            <div class="input-group margin-bottom-40">
+                <div class="input-group-btn barra">
+                    <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
+                        v-model="keywords" />
+                    <span>
+                        <button type="submit" class="btn colors">
+                            <font-awesome-icon icon="fa-solid fa-search" />
+                        </button>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <h4>Sem arquivos cadastrados</h4>
+    </div>
+    <div class="row">
+        <CardImovel class="col-sm-6">
+            <template v-slot:card-header>
+                <h3 class="card-title" style="color: #4E73DF;"></h3>
+            </template>
+            <template v-slot:card-body>
+                <strong>Cidade</strong>
+                : {{ imovel.cidade }} <br><br>
+                <strong>Preço</strong>
+                : {{ imovel.preco }} <br><br>
+            </template>
+            <template v-slot:card-footer>
+            </template>
+        </CardImovel>
+        <Modal @close="toggleModal" :modalActive="modalActive">
+            <div class="modal-content" v-if="confirmation">
+                <h1>Imóvel apagado com sucesso</h1>
+            </div>
+            <div class="modal-content" v-else>
+                <h1>Deseja realmente apagar o imóvel </h1>
+                <button class="btn btn-sm btn-danger">Apagar</button>
+            </div>
+        </Modal>
+
+    </div>
+</template>
+
+<script>
+import CardImovel from "../Utils/CardImovel.vue";
+import { mapActions, mapGetters } from "vuex";
+import Modal from "../Utils/ModalDefault.vue";
+import { ref } from "vue";
+
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import { faSearch } from '@fortawesome/free-solid-svg-icons'
+library.add(faSearch)
+
+export default {
+    data() {
+        return {
+            keywords: '',
+            confirmation: false,
+            imovelId: '',
+            imovelNome: ''
+        }
+    },
+
+    components: { CardImovel, Modal, FontAwesomeIcon },
+
+    setup() {
+        const modalActive = ref(false);
+        const toggleModal = () => {
+            modalActive.value = !modalActive.value;
+        };
+        return { modalActive, toggleModal };
+    },
+
+    methods: {
+        ...mapActions(["loadImoveis", "buscaImovel"]),
+
+        async procuraImovel() {
+            this.$store.dispatch('buscaImovel', this.keywords)
+                .then(response => {
+                    console.log(response)
+
+                }).catch(error => console.log(error))
+        },
+
+        openModal(imovel) {
+            this.imovelId = imovel.id;
+            this.imovelNome = imovel.nome;
+            this.confirmation = false;
+            this.toggleModal();
+
+        },
+
+        /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
+
+        async apagarImovel(id) {
+            console.log(id);
+            this.$store.dispatch('apagarImovel', id)
+                .then(() => {
+                    this.loadImoveis();
+                    this.confirmation = true;
+                }).catch(error => console.log(error))
+        },
+
+        async addTag(id, type, value) {
+            let payload = { id: id, type: type, value: this.changeTagValue(value), hora: this.getNow() }
+
+            this.$store.dispatch('alterarTag', payload)
+                .then(response => {
+                    console.log(response.data)
+                }).catch(error => console.log(error))
+        },
+
+        changeTagValue(value) {
+            if (value == 0) {
+                return 1
+            }
+            else {
+                return 0
+            }
+        },
+
+        /// fazer pagina das midias. pesquisar como faz upload tanto no vue quanto no php.
+        // pesquisar sobre paginação no php
+
+        getNow() {
+            const today = new Date();
+            const date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+            const time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+            const dateTime = date + ' ' + time;
+            return dateTime;
+        },
+
+        redirect(imovel) {
+            let id = imovel.id;
+            this.$store.commit('imovel', imovel);
+
+            this.$router.push({ name: 'novoImovel', params: { id: id } })
+
+            // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
+        }
+    },
+
+    computed: {
+        ...mapGetters([
+            "displayListaImoveis"
+        ]),
+
+    },
+
+    async created() {
+        await this.loadImoveis();
+        console.log(this.displayListaImoveis);
+    },
+}
+
+
+</script>
+
+<style lang="scss" scoped>
+.home {
+    background-color: rgba(0, 176, 234, 0.5);
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .modal-content {
+        display: flex;
+        flex-direction: column;
+
+        h1,
+        p {
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 32px;
+        }
+
+        p {
+            font-size: 18px;
+        }
+    }
+}
+
+.barra {
+    display: flex;
+}
+
+.colors {
+    background-color: #198754;
+    color: white;
+}
+
+.favIcon {
+    color: yellow
+}
+
+.urgIcon {
+    color: red
+}
+
+.impIcon {
+    color: red;
+}
+
+.margin-barra {
+    margin-top: 1%;
+    margin-bottom: 1%;
+}
+</style>

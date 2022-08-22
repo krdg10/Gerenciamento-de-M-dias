@@ -15,7 +15,7 @@
     </Form>
   </div>
 
-  <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push">
+  <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push" pageToRedirect="listaImoveis">
     <div class="modal-content">
       <h1 v-if="!id">Imóvel Criado Com Sucesso</h1>
       <h1 v-else>Imóvel Editado Com Sucesso</h1>

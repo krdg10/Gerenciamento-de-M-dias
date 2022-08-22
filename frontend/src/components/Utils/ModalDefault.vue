@@ -17,14 +17,15 @@
 export default {
   props: {
     modalActive: Boolean,
-    redirectToAnotherPage: Function
+    redirectToAnotherPage: Function,
+    pageToRedirect: String
   },
 
   setup(props, { emit }) {
     const close = () => {
       emit("close");
       if (props.redirectToAnotherPage) {
-        props.redirectToAnotherPage({ name: 'listaImoveis' });
+        props.redirectToAnotherPage({ name: props.pageToRedirect });
       }
 
     };

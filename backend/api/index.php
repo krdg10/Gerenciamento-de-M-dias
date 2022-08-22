@@ -2,6 +2,7 @@
 require "../start.php";
 
 use Src\Imovel;
+use Src\Arquivo;
 
 /*header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
@@ -33,13 +34,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $uri = explode('/', $uri);
 
-
+$requestMethod = $_SERVER["REQUEST_METHOD"];
+$postId = null;
+$busca = null;
 
 if ($uri[1] == 'imovel') {
 
-    $requestMethod = $_SERVER["REQUEST_METHOD"];
-    $postId = null;
-    $busca = null;
+
     if ($uri[2] == 'novo') {
     } else if ($uri[2] == 'editar') {
         if (!isset($uri[3])) {
@@ -72,6 +73,18 @@ if ($uri[1] == 'imovel') {
     }
     $controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
     $controller->processRequest();
+} else if ($uri[1] == 'arquivo') {
+    if ($uri[2] == 'novoArquivo') {
+        if (isset($_FILES['uploadedFile']) && $_FILES['uploadedFile']['error'] === UPLOAD_ERR_OK) {
+            $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
+            $controller->processRequest();
+        } else {
+            $message = 'There is some error in the file upload. Please check the following error.<br>';
+            $message .= 'Error:' . $_FILES['uploadedFile']['error'];
+            echo $message;
+            exit();
+        }
+    }
 } else {
     header("HTTP/1.1 404 Not Found");
     exit();

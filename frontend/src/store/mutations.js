@@ -1,6 +1,9 @@
-
 const imoveis = (state, payloadImoveis) => {
   state.imoveis = Object.values(payloadImoveis);
+}
+
+const arquivos = (state, payloadArquivos) => {
+  state.arquivos = Object.values(payloadArquivos);
 }
 
 const imovel = (state, payloadImovel) => {
@@ -39,5 +42,6 @@ const alterTag = (state, payload) => {
 export default {
   imoveis,
   imovel,
-  alterTag
+  alterTag,
+  arquivos
 };

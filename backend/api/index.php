@@ -75,16 +75,34 @@ if ($uri[1] == 'imovel') {
     $controller->processRequest();
 } else if ($uri[1] == 'arquivo') {
     if ($uri[2] == 'novoArquivo') {
-        if (isset($_FILES['uploadedFile']) && $_FILES['uploadedFile']['error'] === UPLOAD_ERR_OK) {
-            $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
-            $controller->processRequest();
-        } else {
+        if (!isset($_FILES['uploadedFile']) || $_FILES['uploadedFile']['error'] !== UPLOAD_ERR_OK) {
             $message = 'There is some error in the file upload. Please check the following error.<br>';
             $message .= 'Error:' . $_FILES['uploadedFile']['error'];
             echo $message;
             exit();
         }
+    } else if ($uri[2] == 'editar') {
+        if (!isset($uri[3])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $postId = (int) $uri[3];
+    } else if ($uri[2] == 'deletarArquivo') {
+        if (!isset($uri[3])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $postId = (int) $uri[3];
+    } else if ($uri[2] == 'buscarTodos') {
+    } else if ($uri[2] == 'busca') {
+        if (!isset($uri[3])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $busca = $uri[3];
     }
+    $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
+    $controller->processRequest();
 } else {
     header("HTTP/1.1 404 Not Found");
     exit();

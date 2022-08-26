@@ -11,11 +11,11 @@ class Arquivo
     private $busca;
     private $url;
 
-    public function __construct($db, $requestMethod, $imovelId, $busca, $url)
+    public function __construct($db, $requestMethod, $arquivoId, $busca, $url)
     {
         $this->db = $db;
         $this->requestMethod = $requestMethod;
-        $this->arquivoId = $imovelId;
+        $this->arquivoId = $arquivoId;
         $this->busca = $busca;
         $this->url = $url;
     }
@@ -24,12 +24,23 @@ class Arquivo
     {
         switch ($this->requestMethod) {
             case 'GET':
-                $response = $this->createArquivo();
+                if ($this->imovelId) {
+                    $response = $this->getArquivo($this->arquivoId);
+                } else if ($this->busca) {
+                    $response = $this->getArquivosByName($this->busca);
+                } else {
+                    $response = $this->getAllArquivos();
+                }
                 break;
             case 'POST':
                 $response = $this->createArquivo();
                 break;
             case 'PUT':
+                if ($this->url == 'deletarArquivo') {
+                    $response = $this->deleteArquivo($this->arquivoId);
+                } else {
+                    $response = $this->updateImovel($this->arquivoId);
+                }
                 break;
             case 'DELETE':
                 break;
@@ -45,6 +56,26 @@ class Arquivo
     private function getAllArquivos()
     {
         $query = "SELECT * FROM arquivos where ativo = 'A';";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result);
+        return $response;
+    }
+
+    private function getArquivosByName($busca)
+    {
+        $query = "
+      SELECT *
+            FROM
+      arquivos where LOWER(nome) LIKE LOWER('%$busca%') and ativo = 'A';
+    ";
 
         try {
             $statement = $this->db->query($query);
@@ -137,6 +168,54 @@ class Arquivo
         // https://code.tutsplus.com/tutorials/how-to-upload-a-file-in-php-with-example--cms-31763
         $response['status_code_header'] = 'HTTP/1.1 201 Created';
         $response['body'] = json_encode(array('message' => 'Arquivo Created'));
+        return $response;
+    }
+
+    private function deleteArquivo($id)
+    {
+        $result = $this->find($id);
+        if (!$result) {
+            return $this->notFoundResponse();
+        }
+        $query = "UPDATE arquivos set ativo = 'I' WHERE id = :id;";
+
+        try {
+            $statement = $this->db->prepare($query);
+            $statement->execute(array('id' => $id));
+            $statement->rowCount();
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode(array('message' => 'Arquivo Deleted!'));
+        return $response;
+    }
+
+    private function updateImovel($id)
+    {
+        $result = $this->find($id);
+        if (!$result) {
+            return $this->notFoundResponse();
+        }
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+        // botar um validate
+
+        $statement = "UPDATE arquivos SET nome = :nome, imovel_id = :imovel, data_edicao = :data_edicao WHERE id = :id;";
+
+        try {
+            $statement = $this->db->prepare($statement);
+            $statement->execute(array(
+                'nome' => $input['nome'],
+                'imovel' => $input['imovel'],
+                'data_edicao' => $input['data_edicao'],
+                'id' => $id
+            ));
+            $statement->rowCount();
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode(array('message' => 'Arquivo Updated!'));
         return $response;
     }
 

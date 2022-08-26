@@ -7,37 +7,63 @@
                         v-model="keywords" />
                     <span>
                         <button type="submit" class="btn colors">
-                            <font-awesome-icon icon="fa-solid fa-search" />
+                            <font-awesome-icon icon="fa-solid fa-search" @click="procuraArquivo()" />
                         </button>
                     </span>
                 </div>
             </div>
         </div>
     </div>
-    <div class="container">
+    <div class="container" v-if="displayListaArquivos.length == 0">
         <h4>Sem arquivos cadastrados</h4>
     </div>
-    <div class="row">
-        <CardImovel class="col-sm-6">
+    <div class="row" v-else>
+        <CardImovel class="col-sm-6" v-for="arquivo in displayListaArquivos" :key="arquivo.id" :id="arquivo.id">
             <template v-slot:card-header>
                 <h3 class="card-title" style="color: #4E73DF;"></h3>
             </template>
             <template v-slot:card-body>
-                <strong>Cidade</strong>
-                : {{ imovel.cidade }} <br><br>
-                <strong>Preço</strong>
-                : {{ imovel.preco }} <br><br>
+                {{ arquivo }}
             </template>
             <template v-slot:card-footer>
+                <button class="btn btn-sm btn-success" @click="openModalEditar(arquivo)">Editar</button>
+                <button class="btn btn-sm btn-danger" @click="openModalApagar(arquivo)">Apagar</button>
             </template>
         </CardImovel>
         <Modal @close="toggleModal" :modalActive="modalActive">
-            <div class="modal-content" v-if="confirmation">
-                <h1>Imóvel apagado com sucesso</h1>
+            <div v-if="modalDelete">
+                <div class="modal-content" v-if="confirmation">
+                    <h1>Arquivo apagado com sucesso</h1>
+                </div>
+                <div class="modal-content" v-else>
+                    <h1>Deseja realmente apagar o arquivo {{ arquivoNome }}? {{ arquivoId }}</h1>
+                    <button class="btn btn-sm btn-danger" @click="apagarArquivo(arquivoId)">Apagar</button>
+                </div>
             </div>
-            <div class="modal-content" v-else>
-                <h1>Deseja realmente apagar o imóvel </h1>
-                <button class="btn btn-sm btn-danger">Apagar</button>
+            <div v-else class="modal-content">
+                <Form @submit="onCompleteEdit()" :validation-schema="schema" v-if="edit">
+                    <div class="mb-3 mt-3">
+                        <label for="nome" class="form-label">Nome:</label>
+                        <Field type="text" class="form-control" id="nome" placeholder="Nome do Arquivo" name="nome"
+                            v-model="arquivoNome" required />
+                        <ErrorMessage name="nome" />
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label for="imovel" class="form-label">Imóvel:</label>
+                        <Field as="select" class="form-control" id="imovel" placeholder="Imóvel associado ao arquivo"
+                            name="imovel" v-model="arquivoImovel">
+                            <option v-for="imovel in displayListaImoveis" :value="imovel.id" :key="imovel.id">
+                                {{ imovel.id }} - {{ imovel.nome }}
+                            </option>
+                        </Field>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </Form>
+                <div class="modal-content" v-else>
+                    <h1>Arquivo Editado Com Sucesso</h1>
+                </div>
+
             </div>
         </Modal>
 
@@ -49,7 +75,7 @@ import CardImovel from "../Utils/CardImovel.vue";
 import { mapActions, mapGetters } from "vuex";
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
-
+import { Form, Field, ErrorMessage } from 'vee-validate';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
@@ -60,12 +86,15 @@ export default {
         return {
             keywords: '',
             confirmation: false,
-            imovelId: '',
-            imovelNome: ''
+            arquivoId: '',
+            arquivoNome: '',
+            modalDelete: false,
+            arquivoImovel: '',
+            edit: false
         }
     },
 
-    components: { CardImovel, Modal, FontAwesomeIcon },
+    components: { CardImovel, Modal, FontAwesomeIcon, Field, ErrorMessage, Form, },
 
     setup() {
         const modalActive = ref(false);
@@ -76,55 +105,50 @@ export default {
     },
 
     methods: {
-        ...mapActions(["loadImoveis", "buscaImovel"]),
+        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveis"]),
 
-        async procuraImovel() {
-            this.$store.dispatch('buscaImovel', this.keywords)
-                .then(response => {
-                    console.log(response)
+        async procuraArquivo() {
+            if (this.keywords.length == 0) {
+                await this.loadArquivos();
+            }
+            else {
+                this.$store.dispatch('buscaArquivo', this.keywords)
+                    .then(response => {
+                        console.log(response)
 
-                }).catch(error => console.log(error))
+                    }).catch(error => console.log(error))
+            }
+
         },
 
-        openModal(imovel) {
-            this.imovelId = imovel.id;
-            this.imovelNome = imovel.nome;
+        openModalApagar(arquivo) {
+            this.arquivoId = arquivo.id;
+            this.arquivoNome = arquivo.nome;
             this.confirmation = false;
+            this.modalDelete = true;
             this.toggleModal();
+        },
 
+        async openModalEditar(arquivo) {
+            this.edit = true;
+            this.modalDelete = false;
+            this.arquivoNome = arquivo.nome;
+            await this.loadImoveis();
+            this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
+            this.arquivoId = arquivo.id;
+            this.toggleModal();
         },
 
         /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
 
-        async apagarImovel(id) {
+        async apagarArquivo(id) {
             console.log(id);
-            this.$store.dispatch('apagarImovel', id)
+            this.$store.dispatch('apagarArquivo', id)
                 .then(() => {
-                    this.loadImoveis();
+                    this.loadArquivos();
                     this.confirmation = true;
                 }).catch(error => console.log(error))
         },
-
-        async addTag(id, type, value) {
-            let payload = { id: id, type: type, value: this.changeTagValue(value), hora: this.getNow() }
-
-            this.$store.dispatch('alterarTag', payload)
-                .then(response => {
-                    console.log(response.data)
-                }).catch(error => console.log(error))
-        },
-
-        changeTagValue(value) {
-            if (value == 0) {
-                return 1
-            }
-            else {
-                return 0
-            }
-        },
-
-        /// fazer pagina das midias. pesquisar como faz upload tanto no vue quanto no php.
-        // pesquisar sobre paginação no php
 
         getNow() {
             const today = new Date();
@@ -141,19 +165,42 @@ export default {
             this.$router.push({ name: 'novoImovel', params: { id: id } })
 
             // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
-        }
+        },
+
+        async onCompleteEdit() {
+            let arquivo = {
+                id: this.arquivoId,
+                nome: this.arquivoNome,
+                imovel: this.arquivoImovel,
+                data_edicao: this.getNow(),
+            }
+
+            await this.$store.dispatch('updateArquivo', arquivo)
+                .then(() => {
+                    this.loadArquivos();
+                    this.edit = false;
+                }).catch(error => console.log(error))
+        },
     },
 
     computed: {
         ...mapGetters([
+            "displayListaArquivos",
             "displayListaImoveis"
         ]),
+
+        schema() {
+            const simpleSchema = {
+                nome: 'required|max:50'
+            }
+            return simpleSchema;
+        },
 
     },
 
     async created() {
-        await this.loadImoveis();
-        console.log(this.displayListaImoveis);
+        await this.loadArquivos();
+        console.log(this.displayListaArquivos);
     },
 }
 

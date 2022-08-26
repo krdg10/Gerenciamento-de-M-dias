@@ -15,7 +15,8 @@ app.use(Vuex)
 export const store = new Vuex.Store({
   state: {
     imoveis: [],
-    imovel: {}
+    imovel: {},
+    arquivos: []
   },
 
 

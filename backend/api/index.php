@@ -94,7 +94,7 @@ if ($uri[1] == 'imovel') {
         }
         $postId = (int) $uri[3];
     } else if ($uri[2] == 'buscarTodos') {
-    } else if ($uri[2] == 'busca') {
+    } else if ($uri[2] == 'buscaNome' || $uri[2] == 'buscaImovel') {
         if (!isset($uri[3])) {
             header("HTTP/1.1 404 Not Found");
             exit();

@@ -27,7 +27,11 @@ class Arquivo
                 if ($this->arquivoId) {
                     $response = $this->getArquivo($this->arquivoId);
                 } else if ($this->busca) {
-                    $response = $this->getArquivosByName($this->busca);
+                    if ($this->url == 'buscaNome') {
+                        $response = $this->getArquivosByName($this->busca);
+                    } else {
+                        $response = $this->getArquivosByImovel($this->busca);
+                    }
                 } else {
                     $response = $this->getAllArquivos();
                 }
@@ -75,6 +79,26 @@ class Arquivo
       SELECT *
             FROM
       arquivos where LOWER(nome) LIKE LOWER('%$busca%') and ativo = 'A';
+    ";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result);
+        return $response;
+    }
+
+    private function getArquivosByImovel($busca)
+    {
+        $query = "
+      SELECT *
+            FROM
+      arquivos where imovel_id = $busca and ativo = 'A';
     ";
 
         try {

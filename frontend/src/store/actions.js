@@ -50,7 +50,14 @@ const buscaImovel = async ({ commit }, busca) => {
 };
 
 const buscaArquivo = async ({ commit }, busca) => {
-    return await axios({ url: arquivoUrl + 'busca' + '/' + busca, method: 'GET' })
+    let url;
+    if (busca.tipo == 'nome') {
+        url = 'buscaNome';
+    }
+    else {
+        url = 'buscaImovel';
+    }
+    return await axios({ url: arquivoUrl + url + '/' + busca.keywords, method: 'GET' })
         .then(response => {
             const payloadArquivos = response.data;
             commit('arquivos', payloadArquivos);

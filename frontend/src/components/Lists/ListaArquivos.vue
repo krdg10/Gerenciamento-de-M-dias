@@ -3,8 +3,20 @@
         <div class="row">
             <div class="input-group margin-bottom-40">
                 <div class="input-group-btn barra">
+                    <select class="form-control" name="tipoBusca" id="tipoBusca" v-model="tipoBusca"
+                        @change="keywords = ''">
+                        <option value="nome" selected>Nomes</option>
+                        <option value="imovel">Imovel</option>
+                    </select>
                     <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
-                        v-model="keywords" />
+                        v-model="keywords" v-if="tipoBusca == 'nome'" />
+                    <select class="form-control" id="busca" placeholder="Imóvel associado ao arquivo" name="busca"
+                        v-model="keywords" v-else>
+                        <option value="" selected>Selecione o imóvel</option>
+                        <option v-for="imovel in displayListaImoveis" :value="imovel.id" :key="imovel.id">
+                            {{ imovel.id }} - {{ imovel.nome }}
+                        </option>
+                    </select>
                     <span>
                         <button type="submit" class="btn colors">
                             <font-awesome-icon icon="fa-solid fa-search" @click="procuraArquivo()" />
@@ -81,7 +93,8 @@ export default {
             modalDelete: false,
             arquivoImovel: '',
             edit: false,
-            imovelProps: true
+            imovelProps: true,
+            tipoBusca: 'nome'
         }
     },
 
@@ -103,7 +116,9 @@ export default {
                 await this.loadArquivos();
             }
             else {
-                this.$store.dispatch('buscaArquivo', this.keywords)
+                let payload = { keywords: this.keywords, tipo: this.tipoBusca }
+
+                this.$store.dispatch('buscaArquivo', payload)
                     .then(response => {
                         console.log(response)
 
@@ -193,6 +208,8 @@ export default {
 
     async created() {
         await this.loadArquivos();
+        await this.loadImoveis();
+
         console.log(this.displayListaArquivos);
     },
 }

@@ -41,25 +41,15 @@
                 </div>
             </div>
             <div v-else class="modal-content">
-                <Form @submit="onCompleteEdit()" :validation-schema="schema" v-if="edit">
-                    <div class="mb-3 mt-3">
-                        <label for="nome" class="form-label">Nome:</label>
-                        <Field type="text" class="form-control" id="nome" placeholder="Nome do Arquivo" name="nome"
-                            v-model="arquivoNome" required />
-                        <ErrorMessage name="nome" />
-                    </div>
-                    <div class="mb-3 mt-3">
-                        <label for="imovel" class="form-label">Imóvel:</label>
-                        <Field as="select" class="form-control" id="imovel" placeholder="Imóvel associado ao arquivo"
-                            name="imovel" v-model="arquivoImovel">
-                            <option v-for="imovel in displayListaImoveis" :value="imovel.id" :key="imovel.id">
-                                {{ imovel.id }} - {{ imovel.nome }}
-                            </option>
-                        </Field>
-                    </div>
+                <div v-if="edit">
+                    <UploadArquivo :imovelProps="imovelProps" ref="formulario">
+                        <template v-slot:button-submit>
+                            <button class="btn btn-primary" @click="onCompleteEdit()">Submit</button>
+                        </template>
+                    </UploadArquivo>
 
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                </Form>
+                </div>
+
                 <div class="modal-content" v-else>
                     <h1>Arquivo Editado Com Sucesso</h1>
                 </div>
@@ -75,10 +65,10 @@ import CardImovel from "../Utils/CardImovel.vue";
 import { mapActions, mapGetters } from "vuex";
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
-import { Form, Field, ErrorMessage } from 'vee-validate';
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch } from '@fortawesome/free-solid-svg-icons'
+import UploadArquivo from '../Forms/UploadArquivos.vue'
 library.add(faSearch)
 
 export default {
@@ -90,11 +80,12 @@ export default {
             arquivoNome: '',
             modalDelete: false,
             arquivoImovel: '',
-            edit: false
+            edit: false,
+            imovelProps: true
         }
     },
 
-    components: { CardImovel, Modal, FontAwesomeIcon, Field, ErrorMessage, Form, },
+    components: { CardImovel, Modal, FontAwesomeIcon, UploadArquivo },
 
     setup() {
         const modalActive = ref(false);
@@ -136,6 +127,8 @@ export default {
             await this.loadImoveis();
             this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
             this.arquivoId = arquivo.id;
+            this.$refs.formulario.nome = arquivo.nome;
+            this.$refs.formulario.imovel = this.arquivoImovel;
             this.toggleModal();
         },
 
@@ -170,8 +163,8 @@ export default {
         async onCompleteEdit() {
             let arquivo = {
                 id: this.arquivoId,
-                nome: this.arquivoNome,
-                imovel: this.arquivoImovel,
+                nome: this.$refs.formulario.nome,
+                imovel: this.$refs.formulario.imovel,
                 data_edicao: this.getNow(),
             }
 

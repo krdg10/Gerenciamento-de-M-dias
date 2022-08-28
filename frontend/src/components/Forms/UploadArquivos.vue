@@ -1,7 +1,6 @@
 <template>
     <div class="container">
         <Form @submit="onCompleteCreate" :validation-schema="schema">
-            <h1>DropZone</h1>
             <div class="mb-3 mt-3">
                 <label for="nome" class="form-label">Nome:</label>
                 <Field type="text" class="form-control" id="nome" placeholder="Nome do Imóvel" name="nome"
@@ -18,15 +17,14 @@
                     </option>
                 </Field>
             </div>
-
-            <DropZone @drop.prevent="drop" @change="selectedFile" :file="dropzoneFile.name" ref="arquivo" />
-
-            <button type="submit" class="btn btn-primary">Submit</button>
+            <DropZone @drop.prevent="drop" @change="selectedFile" :file="dropzoneFile.name" ref="arquivo"
+                v-if="!imovelProps" />
+            <button type="submit" class="btn btn-primary" v-if="!imovelProps">Submit</button>
         </Form>
+        <slot name="button-submit"></slot>
     </div>
-
-
-    <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push" pageToRedirect="listaArquivos">
+    <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
+        pageToRedirect="listaArquivos">
         <div class="modal-content">
             <h1>Arquivo Criado Com Sucesso</h1>
         </div>
@@ -51,6 +49,8 @@ import Modal from "../Utils/ModalDefault.vue";
 
 
 export default {
+    name: 'UploadArquivo',
+
     data() {
         return {
             nome: '',
@@ -62,8 +62,11 @@ export default {
         DropZone, Field, ErrorMessage, Form, Modal
     },
 
-    setup() {
+    props: {
+        imovelProps: Boolean
+    },
 
+    setup() {
         const modalActive = ref(false);
         const toggleModal = () => {
             modalActive.value = !modalActive.value;
@@ -133,4 +136,3 @@ export default {
     },
 };
 </script>
-

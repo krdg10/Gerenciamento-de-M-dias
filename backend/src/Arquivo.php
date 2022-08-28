@@ -24,7 +24,7 @@ class Arquivo
     {
         switch ($this->requestMethod) {
             case 'GET':
-                if ($this->imovelId) {
+                if ($this->arquivoId) {
                     $response = $this->getArquivo($this->arquivoId);
                 } else if ($this->busca) {
                     $response = $this->getArquivosByName($this->busca);

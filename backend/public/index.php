@@ -103,6 +103,10 @@ if ($uri[1] == 'imovel') {
     }
     $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
     $controller->processRequest();
+} else if ($uri[1] == 'public') {
+
+    var_dump($_SERVER['DOCUMENT_ROOT']);
+    exit();
 } else {
     header("HTTP/1.1 404 Not Found");
     exit();

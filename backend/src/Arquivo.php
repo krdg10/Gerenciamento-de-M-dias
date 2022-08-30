@@ -160,10 +160,10 @@ class Arquivo
 
         $newFileName = md5(time() . $fileName) . '.' . $fileExtension;
 
-        $uploadFileDir = '../public/';
+        $uploadFileDir = 'files/';
         $dest_path = $uploadFileDir . $newFileName;
 
-        $allowedfileExtensions = array('jpg', 'gif', 'png', 'zip', 'txt', 'xls', 'doc', 'pdf');
+        $allowedfileExtensions = array('jpg', 'jpeg', 'png', 'xlsx', 'xls', 'doc', 'docx', 'pdf');
 
         if (in_array($fileExtension, $allowedfileExtensions)) {
             if (!move_uploaded_file($fileTmpPath, $dest_path)) {
@@ -177,7 +177,7 @@ class Arquivo
                 $statement->execute(array(
                     'nome'  => $_POST['nome'],
                     'data_upload'  => $_POST['data_upload'],
-                    'caminho' => end(explode("../", $dest_path)),
+                    'caminho' => $dest_path,
                     'nome_salvo'  => $newFileName,
                     'imovel_id'  => $_POST['imovel_id'],
                     'nome_original'  => $fileName

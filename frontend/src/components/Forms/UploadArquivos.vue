@@ -97,6 +97,12 @@ export default {
             formData.append('imovel_id', this.imovel);
 
             const headers = { 'Content-Type': 'multipart/form-data' };
+            const allowedfileExtensions = ['jpg', 'jpeg', 'png', 'xlsx', 'xls', 'doc', 'docx', 'pdf'];
+            if (!allowedfileExtensions.includes(arquivoUploaded.name.split('.')[1])) {
+                console.log('Formato não aceito');
+                return;
+            }
+
 
             await axios({ url: 'http://localhost:8000/arquivo/novoArquivo', data: formData, method: 'POST', headers: headers })
                 .then(response => {

@@ -32,10 +32,26 @@
     <div class="row" v-else>
         <CardImovel class="col-sm-6" v-for="arquivo in displayListaArquivos" :key="arquivo.id" :id="arquivo.id">
             <template v-slot:card-header>
-                <h3 class="card-title" style="color: #4E73DF;"></h3>
+                <h3 class="card-title">{{ arquivo.nome }}</h3>
             </template>
             <template v-slot:card-body>
+                <div class="container">
+                    <a :href="baseUrl + arquivo.caminho" download>
+                        <font-awesome-icon icon="fa-solid fa-image" size="6x" class="justify-content-center"
+                            v-if="imageTypes.includes(arquivo.caminho.split('.')[1])" />
+                        <font-awesome-icon icon="fa-solid fa-file-word" size="6x" class="justify-content-center"
+                            v-if="arquivo.caminho.split('.')[1] == 'doc' || arquivo.caminho.split('.')[1] == 'docx'" />
+                        <font-awesome-icon icon="fa-solid fa-file-excel" size="6x" class="justify-content-center"
+                            v-if="arquivo.caminho.split('.')[1] == 'xls' || arquivo.caminho.split('.')[1] == 'xlsx'" />
+                        <font-awesome-icon icon="fa-solid fa-file-pdf" size="6x" class="justify-content-center"
+                            v-if="arquivo.caminho.split('.')[1] == 'pdf'" />
+                    </a>
+
+                </div>
+                <br>
+                {{ arquivo.caminho.split(".")[1] }}
                 {{ arquivo }}
+
             </template>
             <template v-slot:card-footer>
                 <button class="btn btn-sm btn-success" @click="openModalEditar(arquivo)">Editar</button>
@@ -79,9 +95,9 @@ import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSearch } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faFilePdf, faImage, faFileWord, faFileExcel } from '@fortawesome/free-solid-svg-icons'
 import UploadArquivo from '../Forms/UploadArquivos.vue'
-library.add(faSearch)
+library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
 
 export default {
     data() {
@@ -94,7 +110,9 @@ export default {
             arquivoImovel: '',
             edit: false,
             imovelProps: true,
-            tipoBusca: 'nome'
+            tipoBusca: 'nome',
+            baseUrl: 'http://localhost:8000/',
+            imageTypes: ['png', 'jpg', 'jpeg']
         }
     },
 
@@ -107,6 +125,7 @@ export default {
         };
         return { modalActive, toggleModal };
     },
+    // https://stackoverflow.com/questions/53772331/vue-html-js-how-to-download-a-file-to-browser-using-the-download-tag
 
     methods: {
         ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveis"]),

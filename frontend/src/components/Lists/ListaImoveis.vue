@@ -17,7 +17,7 @@
     <div class="container" v-if="displayListaImoveis.length == 0">
         <h4>Sem imóveis cadastrados</h4>
     </div>
-    <div class="row" v-else>
+    <div class="row rowCard" v-else>
         <CardImovel class="col-sm-6" v-for="imovel in displayListaImoveis" :key="imovel.id" :id="imovel.id">
             <template v-slot:card-header>
 

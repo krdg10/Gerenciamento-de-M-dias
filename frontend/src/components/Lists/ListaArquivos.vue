@@ -29,7 +29,7 @@
     <div class="container" v-if="displayListaArquivos.length == 0">
         <h4>Sem arquivos cadastrados</h4>
     </div>
-    <div class="row" v-else>
+    <div class="row rowCard" v-else>
         <CardImovel class="col-sm-6" v-for="arquivo in displayListaArquivos" :key="arquivo.id" :id="arquivo.id">
             <template v-slot:card-header>
                 <h3 class="card-title">{{ arquivo.nome }}</h3>

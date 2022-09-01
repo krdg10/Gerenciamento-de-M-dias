@@ -1,21 +1,34 @@
 <template>
   <div class="container" v-if="!id">
-    <h4>Criar Novo Imóvel</h4>
+    <h4 class="my-3 text-center">Criar Novo Imóvel</h4>
     <Form @submit="onCompleteCreate" :validation-schema="schema">
       <FormulariodeImovel ref="formulario"></FormulariodeImovel>
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <div class="container my-5">
+        <div class="row">
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </div>
     </Form>
   </div>
 
   <div class="container" v-else>
-    <h4>Editar Imóvel</h4>
+    <h4 class="my-3 text-center">Editar Imóvel</h4>
     <Form @submit="onCompleteEdit" :validation-schema="schema">
       <FormulariodeImovel ref="formulario" :imovel="displayImovel"></FormulariodeImovel>
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <div class="container my-5">
+        <div class="row">
+          <div class="text-center">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+        </div>
+      </div>
     </Form>
   </div>
 
-  <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push" pageToRedirect="listaImoveis">
+  <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
+    pageToRedirect="listaImoveis">
     <div class="modal-content">
       <h1 v-if="!id">Imóvel Criado Com Sucesso</h1>
       <h1 v-else>Imóvel Editado Com Sucesso</h1>

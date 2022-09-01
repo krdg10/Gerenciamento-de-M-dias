@@ -7,7 +7,7 @@
                     v-model="nome" required />
                 <ErrorMessage name="nome" />
             </div>
-            <div class="mb-3 mt-3">
+            <div class="mb-3">
                 <label for="imovel" class="form-label">Imóvel:</label>
                 <Field as="select" class="form-control" id="imovel" placeholder="Imóvel associado ao arquivo"
                     name="imovel" v-model="imovel">
@@ -17,9 +17,19 @@
                     </option>
                 </Field>
             </div>
-            <DropZone @drop.prevent="drop" @change="selectedFile" :file="dropzoneFile.name" ref="arquivo"
-                v-if="!imovelProps" />
-            <button type="submit" class="btn btn-primary" v-if="!imovelProps">Submit</button>
+            <div class="container my-5">
+                <div class="row">
+                    <DropZone @drop.prevent="drop" @change="selectedFile" :file="dropzoneFile.name" ref="arquivo"
+                        class="col align-self-center" v-if="!imovelProps" />
+                </div>
+            </div>
+            <div class="container">
+                <div class="row">
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary" v-if="!imovelProps">Submit</button>
+                    </div>
+                </div>
+            </div>
         </Form>
         <slot name="button-submit"></slot>
     </div>

@@ -64,7 +64,7 @@
                     v-if="arquivo.imovel_id"><strong>Imovel
                         Associado</strong>: {{
                                 displayImovelById(arquivo.imovel_id).nome
-                        }} </a>
+                        }} <br></a>
                 <div v-else><strong>Associado</strong>: Nenhum</div>
                 <strong>Tipo do Arquivo</strong>: {{ arquivo.caminho.split(".")[1] }} <br><br>
 

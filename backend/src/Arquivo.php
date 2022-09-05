@@ -51,7 +51,7 @@ class Arquivo
                 if ($this->url == 'deletarArquivo') {
                     $response = $this->deleteArquivo($this->arquivoId);
                 } else {
-                    $response = $this->updateImovel($this->arquivoId);
+                    $response = $this->updateArquivo($this->arquivoId);
                 }
                 break;
             case 'DELETE':
@@ -190,10 +190,10 @@ class Arquivo
         if (!$_POST || !$_FILES) {
             return $this->notFoundResponse();
         }
-        if ($_POST['imovel_id'] == ''){
+        if ($_POST['imovel_id'] == '') {
             $_POST['imovel_id'] = null;
         }
-        
+
 
         $fileTmpPath = $_FILES['uploadedFile']['tmp_name'];
         $fileName = $_FILES['uploadedFile']['name'];
@@ -259,7 +259,7 @@ class Arquivo
         return $response;
     }
 
-    private function updateImovel($id)
+    private function updateArquivo($id)
     {
         $result = $this->find($id);
         if (!$result) {
@@ -269,6 +269,10 @@ class Arquivo
         // botar um validate
 
         $statement = "UPDATE arquivos SET nome = :nome, imovel_id = :imovel, data_edicao = :data_edicao WHERE id = :id;";
+
+        if ($input['imovel'] == '') {
+            $input['imovel'] = null;
+        }
 
         try {
             $statement = $this->db->prepare($statement);

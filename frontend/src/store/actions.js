@@ -117,6 +117,65 @@ const updateArquivo = async (_, payload) => {
         })
 };
 
+const loadQuantidadeImoveisInativos = async ({ commit }) => {
+    return await axios({ url: imovelUrl + 'numeroDeAtivos', method: 'GET' })
+        .then(response => {
+            const payloadImoveisAtivos = response.data.numero;
+            commit('quantidadeImoveisAtivos', payloadImoveisAtivos);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
+const loadQuantidadeImoveisAtivos = async ({ commit }) => {
+    return await axios({ url: imovelUrl + 'numeroDeInativos', method: 'GET' })
+        .then(response => {
+            const payloadImoveisInativos = response.data.numero;
+
+            commit('quantidadeImoveisInativos', payloadImoveisInativos);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
+const loadQuantidadeArquivosAtivos = async ({ commit }) => {
+    return await axios({ url: arquivoUrl + 'numeroDeAtivos', method: 'GET' })
+        .then(response => {
+            const payloadArquivosAtivos = response.data.numero;
+            commit('quantidadeArquivosAtivos', payloadArquivosAtivos);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
+const loadQuantidadeArquivosInativos = async ({ commit }) => {
+    return await axios({ url: arquivoUrl + 'numeroDeInativos', method: 'GET' })
+        .then(response => {
+            const payloadArquivosInativos = response.data.numero;
+
+            commit('quantidadeArquivosInativos', payloadArquivosInativos);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
+const loadQuantidadeArquivosSemImovel = async ({ commit }) => {
+    return await axios({ url: arquivoUrl + 'numeroSemImovel', method: 'GET' })
+        .then(response => {
+            console.log(response.data)
+            const payloadArquivosSemImovel = response.data.numero;
+
+            commit('quantidadeArquivosSemImovel', payloadArquivosSemImovel);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 export default {
     createImovel,
     loadImoveis,
@@ -127,5 +186,10 @@ export default {
     loadArquivos,
     buscaArquivo,
     apagarArquivo,
-    updateArquivo
+    updateArquivo,
+    loadQuantidadeImoveisInativos,
+    loadQuantidadeImoveisAtivos,
+    loadQuantidadeArquivosInativos,
+    loadQuantidadeArquivosAtivos,
+    loadQuantidadeArquivosSemImovel
 };

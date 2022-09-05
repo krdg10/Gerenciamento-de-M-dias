@@ -33,7 +33,15 @@ class Arquivo
                         $response = $this->getArquivosByImovel($this->busca);
                     }
                 } else {
-                    $response = $this->getAllArquivos();
+                    if ($this->url == 'buscarTodos') {
+                        $response = $this->getAllArquivos();
+                    } else if ($this->url == 'numeroDeAtivos') {
+                        $response = $this->getNumeroArquivosAtivosOuInativos('A');
+                    } else if ($this->url == 'numeroDeInativos') {
+                        $response = $this->getNumeroArquivosAtivosOuInativos('I');
+                    } else {
+                        $response = $this->getNumeroArquivosSemImovel();
+                    }
                 }
                 break;
             case 'POST':
@@ -72,6 +80,39 @@ class Arquivo
         $response['body'] = json_encode($result);
         return $response;
     }
+
+    private function getNumeroArquivosAtivosOuInativos($status)
+    {
+        $query = "SELECT count(*) numero FROM arquivos where ativo = '$status';";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result[0]);
+        return $response;
+    }
+
+    private function getNumeroArquivosSemImovel()
+    {
+        $query = "SELECT count(*) numero FROM arquivos where ativo = 'A' and imovel_id IS NULL;";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result[0]);
+        return $response;
+    }
+
 
     private function getArquivosByName($busca)
     {
@@ -149,7 +190,10 @@ class Arquivo
         if (!$_POST || !$_FILES) {
             return $this->notFoundResponse();
         }
-
+        if ($_POST['imovel_id'] == ''){
+            $_POST['imovel_id'] = null;
+        }
+        
 
         $fileTmpPath = $_FILES['uploadedFile']['tmp_name'];
         $fileName = $_FILES['uploadedFile']['name'];

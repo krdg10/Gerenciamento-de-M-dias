@@ -6,7 +6,6 @@
           <i @click="close" class="far fa-times-circle"></i>
           <!-- Modal Content -->
           <slot />
-          <button @click="close" class="btn btn-sm btn-success">Sair</button>
         </div>
       </transition>
     </div>
@@ -93,15 +92,6 @@ export default {
       }
     }
 
-    /*
-    button {
-      padding: 20px 30px;
-      border: none;
-      font-size: 16px;
-      background-color: crimson;
-      color: #fff;
-      cursor: pointer;
-    }*/
   }
 }
 </style>

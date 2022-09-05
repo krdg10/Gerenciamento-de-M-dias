@@ -16,7 +16,12 @@ export const store = new Vuex.Store({
   state: {
     imoveis: [],
     imovel: {},
-    arquivos: []
+    arquivos: [],
+    quantidadeDeImoveisAtivos: 0,
+    quantidadeDeImoveisInativos: 0,
+    quantidadeDeArquivosAtivos: 0,
+    quantidadeDeArquivosInativos: 0,
+    quantidadeDeArquivosSemImovel: 0
   },
 
 

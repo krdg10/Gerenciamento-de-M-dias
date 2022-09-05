@@ -28,7 +28,13 @@ class Imovel
                 } else if ($this->busca) {
                     $response = $this->getImoveisByName($this->busca);
                 } else {
-                    $response = $this->getAllImovels();
+                    if ($this->url == 'buscarTodos') {
+                        $response = $this->getAllImovels();
+                    } else if ($this->url == 'numeroDeAtivos') {
+                        $response = $this->getNumeroImoveisAtivosOuInativos('A');
+                    } else { //numeros de inativos
+                        $response = $this->getNumeroImoveisAtivosOuInativos('I');
+                    }
                 };
                 break;
             case 'POST':
@@ -75,6 +81,23 @@ class Imovel
         $response['body'] = json_encode($result);
         return $response;
     }
+
+    private function getNumeroImoveisAtivosOuInativos($status)
+    {
+        $query = "SELECT count(*) numero FROM imoveis where ativo = '$status';";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result[0]);
+        return $response;
+    }
+
 
     private function getImoveisByName($busca)
     {

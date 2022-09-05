@@ -1,27 +1,37 @@
 <template>
-    <div class="container d-flex justify-content-center margin-barra">
+    <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
-            <div class="input-group margin-bottom-40">
-                <div class="input-group-btn barra">
-                    <select class="form-control" name="tipoBusca" id="tipoBusca" v-model="tipoBusca"
-                        @change="keywords = ''">
-                        <option value="nome" selected>Nomes</option>
-                        <option value="imovel">Imovel</option>
-                    </select>
-                    <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
-                        v-model="keywords" v-if="tipoBusca == 'nome'" />
-                    <select class="form-control" id="busca" placeholder="Imóvel associado ao arquivo" name="busca"
-                        v-model="keywords" v-else>
-                        <option value="" selected>Selecione o imóvel</option>
-                        <option v-for="imovel in displayListaImoveis" :value="imovel.id" :key="imovel.id">
-                            {{ imovel.id }} - {{ imovel.nome }}
-                        </option>
-                    </select>
-                    <span>
-                        <button type="submit" class="btn colors">
-                            <font-awesome-icon icon="fa-solid fa-search" @click="procuraArquivo()" />
-                        </button>
-                    </span>
+            <div class="input-group paddingZeroLeft margin-bottom-40">
+                <div class="input-group-btn barra container">
+                    <div class="row">
+                        <div class="col-4 paddingZero">
+                            <select class="form-control" name="tipoBusca" id="tipoBusca" v-model="tipoBusca"
+                                @change="keywords = ''">
+                                <option value="nome" selected>Nomes</option>
+                                <option value="imovel">Imovel</option>
+                            </select>
+                        </div>
+                        <div class="col-7 paddingZero">
+                            <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
+                                v-model="keywords" v-if="tipoBusca == 'nome'" />
+                            <select class="form-control" id="busca" placeholder="Imóvel associado ao arquivo"
+                                name="busca" v-model="keywords" v-else>
+                                <option value="" selected>Selecione o imóvel</option>
+                                <option v-for="imovel in displayListaImoveis" :value="imovel.id" :key="imovel.id">
+                                    {{ imovel.id }} - {{ imovel.nome }}
+                                </option>
+                            </select>
+                        </div>
+                        <div class="col-1 paddingZero">
+                            <span>
+                                <button type="submit" class="btn colors">
+                                    <font-awesome-icon icon="fa-solid fa-search" @click="procuraArquivo()" />
+                                </button>
+                            </span>
+                        </div>
+
+
+                    </div>
                 </div>
             </div>
         </div>
@@ -30,27 +40,33 @@
         <h4>Sem arquivos cadastrados</h4>
     </div>
     <div class="row rowCard" v-else>
-        <CardImovel class="col-sm-6" v-for="arquivo in displayListaArquivos" :key="arquivo.id" :id="arquivo.id">
+        <CardImovel class="col-sm-6 paddingZero" v-for="arquivo in displayListaArquivos" :key="arquivo.id"
+            :id="arquivo.id">
             <template v-slot:card-header>
                 <h3 class="card-title">{{ arquivo.nome }}</h3>
             </template>
             <template v-slot:card-body>
-                <div class="container">
-                    <a :href="baseUrl + arquivo.caminho" download>
-                        <font-awesome-icon icon="fa-solid fa-image" size="6x" class="justify-content-center"
+                <div class="container-fluid justify-content-center d-flex mb-4">
+                    <a :href="baseUrl + arquivo.caminho" class="color-black" download>
+                        <font-awesome-icon icon="fa-solid fa-image" size="6x"
                             v-if="imageTypes.includes(arquivo.caminho.split('.')[1])" />
-                        <font-awesome-icon icon="fa-solid fa-file-word" size="6x" class="justify-content-center"
+                        <font-awesome-icon icon="fa-solid fa-file-word" size="6x"
                             v-if="arquivo.caminho.split('.')[1] == 'doc' || arquivo.caminho.split('.')[1] == 'docx'" />
-                        <font-awesome-icon icon="fa-solid fa-file-excel" size="6x" class="justify-content-center"
+                        <font-awesome-icon icon="fa-solid fa-file-excel" size="6x"
                             v-if="arquivo.caminho.split('.')[1] == 'xls' || arquivo.caminho.split('.')[1] == 'xlsx'" />
-                        <font-awesome-icon icon="fa-solid fa-file-pdf" size="6x" class="justify-content-center"
+                        <font-awesome-icon icon="fa-solid fa-file-pdf" size="6x"
                             v-if="arquivo.caminho.split('.')[1] == 'pdf'" />
                     </a>
-
                 </div>
-                <br>
-                {{ arquivo.caminho.split(".")[1] }}
-                {{ arquivo }}
+                <strong>Nome do Arquivo</strong>: {{ arquivo.nome }} <br>
+                <strong>Nome Original</strong>: {{ arquivo.nome_original.split(".")[0] }} <br>
+                <a @click="redirect(displayImovelById(arquivo.imovel_id))" class="color-black"
+                    v-if="arquivo.imovel_id"><strong>Imovel
+                        Associado</strong>: {{
+                                displayImovelById(arquivo.imovel_id).nome
+                        }} </a>
+                <div v-else><strong>Associado</strong>: Nenhum</div>
+                <strong>Tipo do Arquivo</strong>: {{ arquivo.caminho.split(".")[1] }} <br><br>
 
             </template>
             <template v-slot:card-footer>
@@ -64,24 +80,28 @@
                     <h1>Arquivo apagado com sucesso</h1>
                 </div>
                 <div class="modal-content" v-else>
-                    <h1>Deseja realmente apagar o arquivo {{ arquivoNome }}? {{ arquivoId }}</h1>
+                    <h1>Deseja realmente apagar o arquivo {{ arquivoNome }}?</h1>
                     <button class="btn btn-sm btn-danger" @click="apagarArquivo(arquivoId)">Apagar</button>
                 </div>
             </div>
             <div v-else class="modal-content">
                 <div v-if="edit">
+                    <h3 class="text-center">Editar arquivo <b>{{ arquivoNome }}</b></h3>
                     <UploadArquivo :imovelProps="imovelProps" ref="formulario">
                         <template v-slot:button-submit>
-                            <button class="btn btn-primary" @click="onCompleteEdit()">Submit</button>
+                            <div class="container mt-4">
+                                <div class="row">
+                                    <div class="text-center">
+                                        <button class="btn btn-primary" @click="onCompleteEdit()">Submit</button>
+                                    </div>
+                                </div>
+                            </div>
                         </template>
                     </UploadArquivo>
-
                 </div>
-
                 <div class="modal-content" v-else>
                     <h1>Arquivo Editado Com Sucesso</h1>
                 </div>
-
             </div>
         </Modal>
 
@@ -208,12 +228,20 @@ export default {
                     this.edit = false;
                 }).catch(error => console.log(error))
         },
+
+        edirect(imovel) {
+            let id = imovel.id;
+            this.$store.commit('imovel', imovel);
+            this.$router.push({ name: 'novoImovel', params: { id: id } })
+            // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
+        }
     },
 
     computed: {
         ...mapGetters([
             "displayListaArquivos",
-            "displayListaImoveis"
+            "displayListaImoveis",
+            "displayImovelById"
         ]),
 
         schema() {
@@ -226,9 +254,8 @@ export default {
     },
 
     async created() {
-        await this.loadArquivos();
         await this.loadImoveis();
-
+        await this.loadArquivos();
         console.log(this.displayListaArquivos);
     },
 }

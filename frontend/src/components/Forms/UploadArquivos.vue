@@ -17,16 +17,16 @@
                     </option>
                 </Field>
             </div>
-            <div class="container my-5">
+            <div class="container my-5" v-if="!imovelProps">
                 <div class="row">
                     <DropZone @drop.prevent="drop" @change="selectedFile" :file="dropzoneFile.name" ref="arquivo"
-                        class="col align-self-center" v-if="!imovelProps" />
+                        class="col align-self-center" />
                 </div>
             </div>
-            <div class="container">
+            <div class="container" v-if="!imovelProps">
                 <div class="row">
                     <div class="text-center">
-                        <button type="submit" class="btn btn-primary" v-if="!imovelProps">Submit</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
                     </div>
                 </div>
             </div>
@@ -112,7 +112,7 @@ export default {
                 console.log('Formato não aceito');
                 return;
             }
-
+            console.log(this.imovel)
 
             await axios({ url: 'http://localhost:8000/arquivo/novoArquivo', data: formData, method: 'POST', headers: headers })
                 .then(response => {

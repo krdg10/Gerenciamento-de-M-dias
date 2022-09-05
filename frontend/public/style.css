@@ -1,25 +1,49 @@
 @media (min-width: 915px) {
-    .rowCard {
-        padding-left: 50px;
-        padding-right: 50px;
-    }
+  .rowCard {
+    padding-left: 50px;
+    padding-right: 50px;
+  }
 
-    .card {
-        margin-bottom: 1%;
-    }
+  .card {
+    margin-bottom: 1%;
+  }
 
-    .me-5-lg {
-        margin-right: 1.5rem !important;
-    }
+  .me-5-lg {
+    margin-right: 1.5rem !important;
+  }
 
 }
 
 #iconNav {
-    color: white !important;
-    text-decoration: none !important;
+  color: white !important;
+  text-decoration: none !important;
 }
 
 .navbar-nav .nav-link.active,
 .navbar-nav .show>.nav-link {
-    color: black !important;
+  color: black !important;
+}
+
+.modal-content {
+  border: none !important;
+}
+
+.paddingZero {
+  padding-right: 0px !important;
+  padding-left: 0px !important;
+}
+
+
+.paddingZeroLeft {
+  padding-left: 0px !important;
+}
+
+.color-black {
+  color: black !important;
+  text-decoration: none !important;
+}
+
+.color-black:hover {
+  color: gray !important;
+  text-decoration: none !important;
 }

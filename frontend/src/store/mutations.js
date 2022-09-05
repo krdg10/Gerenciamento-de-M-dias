@@ -38,10 +38,35 @@ const alterTag = (state, payload) => {
   }
 }
 
+const quantidadeImoveisAtivos = (state, payloadImoveisAtivos) => {
+  state.quantidadeDeImoveisAtivos = payloadImoveisAtivos;
+}
+
+const quantidadeImoveisInativos = (state, payloadImoveisInativos) => {
+  state.quantidadeDeImoveisInativos = payloadImoveisInativos;
+}
+
+const quantidadeArquivosAtivos = (state, payloadArquivosAtivos) => {
+  state.quantidadeDeArquivosAtivos = payloadArquivosAtivos;
+}
+
+const quantidadeArquivosInativos = (state, payloadArquivosInativos) => {
+  state.quantidadeDeArquivosInativos = payloadArquivosInativos;
+}
+
+const quantidadeArquivosSemImovel = (state, payloadArquivosSemImovel) => {
+  state.quantidadeDeArquivosSemImovel = payloadArquivosSemImovel;
+}
+
 
 export default {
   imoveis,
   imovel,
   alterTag,
-  arquivos
+  arquivos,
+  quantidadeImoveisAtivos,
+  quantidadeImoveisInativos,
+  quantidadeArquivosAtivos,
+  quantidadeArquivosInativos,
+  quantidadeArquivosSemImovel
 };

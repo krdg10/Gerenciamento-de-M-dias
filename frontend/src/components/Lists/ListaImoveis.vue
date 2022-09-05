@@ -1,5 +1,5 @@
 <template>
-    <div class="container d-flex justify-content-center margin-barra">
+    <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
             <div class="input-group margin-bottom-40">
                 <div class="input-group-btn barra">
@@ -18,26 +18,31 @@
         <h4>Sem imóveis cadastrados</h4>
     </div>
     <div class="row rowCard" v-else>
-        <CardImovel class="col-sm-6" v-for="imovel in displayListaImoveis" :key="imovel.id" :id="imovel.id">
+        <CardImovel class="col-sm-6 paddingZero" v-for="imovel in displayListaImoveis" :key="imovel.id" :id="imovel.id">
             <template v-slot:card-header>
-
-                <h3 class="card-title" style="color: #4E73DF;" @click="redirect(imovel)">{{ imovel.nome }} {{
-                        imovel.id
-                }}</h3>
-                <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
-                    v-bind:class="{ 'impIcon': imovel.importante == 1 }"
-                    @click="addTag(imovel.id, 'importante', imovel.importante)" />
-                <font-awesome-icon icon="fa fa-star" class="static" v-bind:class="{ 'favIcon': imovel.favorito == 1 }"
-                    @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
-                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
-                    v-bind:class="{ 'urgIcon': imovel.urgente == 1 }"
-                    @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                <div class="container">
+                    <div class="row">
+                        <div class="col-9">
+                            <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)">{{ imovel.nome
+                            }}</h3>
+                        </div>
+                        <div class="col-3">
+                            <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
+                                v-bind:class="{ 'impIcon': imovel.importante == 1 }"
+                                @click="addTag(imovel.id, 'importante', imovel.importante)" />
+                            <font-awesome-icon icon="fa fa-star" class="static"
+                                v-bind:class="{ 'favIcon': imovel.favorito == 1 }"
+                                @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
+                            <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
+                                v-bind:class="{ 'urgIcon': imovel.urgente == 1 }"
+                                @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                        </div>
+                    </div>
+                </div>
             </template>
             <template v-slot:card-body>
-                <strong>Cidade</strong>
-                : {{ imovel.cidade }} <br><br>
-                <strong>Preço</strong>
-                : {{ imovel.preco }} <br><br>
+                <strong>Cidade</strong>: {{ imovel.cidade }}-{{ imovel.estado }} <br><br>
+                <strong>Preço</strong>: R$ {{ imovel.preco }} <br><br>
             </template>
             <template v-slot:card-footer>
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
@@ -49,7 +54,7 @@
                 <h1>Imóvel apagado com sucesso</h1>
             </div>
             <div class="modal-content" v-else>
-                <h1>Deseja realmente apagar o imóvel {{ imovelNome }}? {{ imovelId }}</h1>
+                <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>?</h1>
                 <button class="btn btn-sm btn-danger" @click="apagarImovel(imovelId)">Apagar</button>
             </div>
         </Modal>

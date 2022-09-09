@@ -92,7 +92,8 @@
                     </div>
                     <div class="modal-content" v-else>
                         <h1>Deseja realmente apagar o arquivo {{ arquivoNome }}?</h1>
-                        <button class="btn btn-sm btn-danger" @click="apagarArquivo(arquivoId)">Apagar</button>
+                        <button class="btn btn-sm btn-danger"
+                            @click="apagarArquivo(arquivoId, 'Arquivo')">Apagar</button>
                     </div>
                 </div>
                 <div v-else>
@@ -102,7 +103,7 @@
                     <div class="modal-content" v-else>
                         <h1>Deseja realmente apagar o arquivo {{ arquivoNome }} permanentemente?</h1>
                         <button class="btn btn-sm btn-danger"
-                            @click="apagarArquivoPermanentemente(arquivoId)">Apagar</button>
+                            @click="apagarArquivo(arquivoId, 'ArquivoPermanentemente')">Apagar</button>
                     </div>
                 </div>
             </div>
@@ -232,18 +233,15 @@ export default {
 
         },
 
-        async apagarArquivoPermanentemente(id) {
-            await this.$store.dispatch('deletarArquivoPermanentemente', id)
+        async apagarArquivo(id, tipo) {
+            await this.$store.dispatch('apagar' + tipo, id)
                 .then(() => {
-                    this.loadArquivosInvalidos();
-                    this.confirmation = true;
-                }).catch(error => console.log(error))
-        },
-
-        async apagarArquivo(id) {
-            await this.$store.dispatch('apagarArquivo', id)
-                .then(() => {
-                    this.loadArquivos();
+                    if (tipo == 'Arquivo') {
+                        this.loadArquivos();
+                    }
+                    else {
+                        this.loadArquivosInvalidos();
+                    }
                     this.confirmation = true;
                 }).catch(error => console.log(error))
         },

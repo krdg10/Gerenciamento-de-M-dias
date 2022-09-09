@@ -218,7 +218,7 @@ const reativarImovel = async (_, id) => {
 };
 
 
-const deletarArquivoPermanentemente = async (_, id) => {
+const apagarArquivoPermanentemente = async (_, id) => {
     return await axios({ url: arquivoUrl + 'deletarArquivoPermanente' + '/' + id, method: 'DELETE' })
         .then(response => {
             return response
@@ -256,6 +256,6 @@ export default {
     loadImoveisInvalidos,
     reativarArquivo,
     reativarImovel,
-    deletarArquivoPermanentemente,
+    apagarArquivoPermanentemente,
     apagarImovelPermanentemente
 };

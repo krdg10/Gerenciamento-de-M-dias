@@ -1,6 +1,12 @@
 <template>
     <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
+                    v-model="invalidesOrNot" @click="changeList()">
+                <label class="form-check-label" for="flexSwitchCheckDefault" v-if="invalidesOrNot">Ativos</label>
+                <label class="form-check-label" for="flexSwitchCheckDefault" v-else>Inativos</label>
+            </div>
             <div class="input-group margin-bottom-40">
                 <div class="input-group-btn barra">
                     <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
@@ -15,7 +21,8 @@
         </div>
     </div>
     <div class="container" v-if="displayListaImoveis.length == 0">
-        <h4>Sem imóveis cadastrados</h4>
+        <h4 v-if="invalidesOrNot">Sem imóveis cadastrados</h4>
+        <h4 v-else>Sem imóveis inativos</h4>
     </div>
     <div class="row rowCard" v-else>
         <CardImovel class="col-sm-6 paddingZero" v-for="imovel in displayListaImoveis" :key="imovel.id" :id="imovel.id">
@@ -26,7 +33,7 @@
                             <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)">{{ imovel.nome
                             }}</h3>
                         </div>
-                        <div class="col-3">
+                        <div class="col-3" v-if="invalidesOrNot">
                             <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
                                 v-bind:class="{ 'impIcon': imovel.importante == 1 }"
                                 @click="addTag(imovel.id, 'importante', imovel.importante)" />
@@ -44,18 +51,46 @@
                 <strong>Cidade</strong>: {{ imovel.cidade }}-{{ imovel.estado }} <br><br>
                 <strong>Preço</strong>: R$ {{ imovel.preco }} <br><br>
             </template>
-            <template v-slot:card-footer>
+            <template v-slot:card-footer v-if="invalidesOrNot">
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
-                <button class="btn btn-sm btn-danger" @click="openModal(imovel)">Apagar</button>
+                <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')">Apagar</button>
+            </template>
+            <template v-slot:card-footer v-else>
+                <button class="btn btn-sm btn-success" @click="openModal(imovel, 'reativar')">Reativar</button>
+                <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')">Apagar
+                    Definitivamente</button>
             </template>
         </CardImovel>
         <Modal @close="toggleModal" :modalActive="modalActive">
-            <div class="modal-content" v-if="confirmation">
-                <h1>Imóvel apagado com sucesso</h1>
+            <div v-if="modalDelete">
+                <div v-if="invalidesOrNot">
+                    <div class="modal-content" v-if="confirmation">
+                        <h1>Imóvel apagado com sucesso</h1>
+                    </div>
+                    <div class="modal-content" v-else>
+                        <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>?</h1>
+                        <button class="btn btn-sm btn-danger" @click="apagarImovel(imovelId, 'Imovel')">Apagar</button>
+                    </div>
+                </div>
+                <div v-else>
+                    <div class="modal-content" v-if="confirmation">
+                        <h1>Imóvel apagado definitivamente com sucesso</h1>
+                    </div>
+                    <div class="modal-content" v-else>
+                        <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b> definitivamente?</h1>
+                        <button class="btn btn-sm btn-danger"
+                            @click="apagarImovel(imovelId, 'ImovelPermanentemente')">Apagar</button>
+                    </div>
+                </div>
             </div>
-            <div class="modal-content" v-else>
-                <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>?</h1>
-                <button class="btn btn-sm btn-danger" @click="apagarImovel(imovelId)">Apagar</button>
+            <div v-else>
+                <div class="modal-content" v-if="confirmation">
+                    <h1>Imóvel reativado com sucesso</h1>
+                </div>
+                <div class="modal-content" v-else>
+                    <h1 class="mb-5">Deseja realmente reativar o imóvel <b>{{ imovelNome }}</b>?</h1>
+                    <button class="btn btn-sm btn-success" @click="reativarImovel(imovelId)">Reativar</button>
+                </div>
             </div>
         </Modal>
 
@@ -82,7 +117,10 @@ export default {
             keywords: '',
             confirmation: false,
             imovelId: '',
-            imovelNome: ''
+            imovelNome: '',
+            invalidesOrNot: true,
+            modalDelete: false,
+            modalReativar: false
         }
     },
 
@@ -97,7 +135,7 @@ export default {
     },
 
     methods: {
-        ...mapActions(["loadImoveis", "buscaImovel"]),
+        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos"]),
 
         async procuraImovel() {
             this.$store.dispatch('buscaImovel', this.keywords)
@@ -107,21 +145,44 @@ export default {
                 }).catch(error => console.log(error))
         },
 
-        openModal(imovel) {
+        openModal(imovel, tipo) {
+            this.modalDelete = false;
+            this.modalReativar = false;
+            this.confirmation = false;
+
+            if (tipo == 'delete') {
+                this.modalDelete = true;
+            }
+            else {
+                this.modalReativar = true;
+
+            }
             this.imovelId = imovel.id;
             this.imovelNome = imovel.nome;
-            this.confirmation = false;
             this.toggleModal();
 
         },
 
         /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
 
-        async apagarImovel(id) {
+        async apagarImovel(id, tipo) {
             console.log(id);
-            this.$store.dispatch('apagarImovel', id)
+            await this.$store.dispatch('apagar' + tipo, id)
                 .then(() => {
-                    this.loadImoveis();
+                    if (tipo == 'Imovel') {
+                        this.loadImoveis();
+                    }
+                    else {
+                        this.loadImoveisInvalidos();
+                    }
+                    this.confirmation = true;
+                }).catch(error => console.log(error))
+        },
+
+        async reativarImovel(id) {
+            await this.$store.dispatch('reativarImovel', id)
+                .then(() => {
+                    this.loadImoveisInvalidos();
                     this.confirmation = true;
                 }).catch(error => console.log(error))
         },
@@ -129,7 +190,7 @@ export default {
         async addTag(id, type, value) {
             let payload = { id: id, type: type, value: this.changeTagValue(value), hora: this.getNow() }
 
-            this.$store.dispatch('alterarTag', payload)
+            await this.$store.dispatch('alterarTag', payload)
                 .then(response => {
                     console.log(response.data)
                 }).catch(error => console.log(error))
@@ -159,6 +220,14 @@ export default {
             this.$router.push({ name: 'novoImovel', params: { id: id } })
 
             // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
+        },
+        async changeList() {
+            if (this.invalidesOrNot) {
+                await this.loadImoveisInvalidos();
+            }
+            else {
+                await this.loadImoveis();
+            }
         }
     },
 

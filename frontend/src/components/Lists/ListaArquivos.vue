@@ -4,6 +4,13 @@
             <div class="input-group paddingZeroLeft margin-bottom-40">
                 <div class="input-group-btn barra container">
                     <div class="row">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
+                                v-model="invalidesOrNot" @click="changeList()">
+                            <label class="form-check-label" for="flexSwitchCheckDefault"
+                                v-if="invalidesOrNot">Ativos</label>
+                            <label class="form-check-label" for="flexSwitchCheckDefault" v-else>Inativos</label>
+                        </div>
                         <div class="col-4 paddingZero">
                             <select class="form-control" name="tipoBusca" id="tipoBusca" v-model="tipoBusca"
                                 @change="keywords = ''">
@@ -29,15 +36,14 @@
                                 </button>
                             </span>
                         </div>
-
-
                     </div>
                 </div>
             </div>
         </div>
     </div>
     <div class="container" v-if="displayListaArquivos.length == 0">
-        <h4>Sem arquivos cadastrados</h4>
+        <h4 v-if="invalidesOrNot">Sem arquivos cadastrados</h4>
+        <h4 v-else>Sem nenhum arquivo inativo</h4>
     </div>
     <div class="row rowCard" v-else>
         <CardImovel class="col-sm-6 paddingZero" v-for="arquivo in displayListaArquivos" :key="arquivo.id"
@@ -63,44 +69,72 @@
                 <a @click="redirect(displayImovelById(arquivo.imovel_id))" class="color-black"
                     v-if="arquivo.imovel_id"><strong>Imovel
                         Associado</strong>: {{
-                                displayImovelById(arquivo.imovel_id).nome
+                        displayImovelById(arquivo.imovel_id).nome
                         }} <br></a>
                 <div v-else><strong>Associado</strong>: Nenhum</div>
                 <strong>Tipo do Arquivo</strong>: {{ arquivo.caminho.split(".")[1] }} <br><br>
 
             </template>
-            <template v-slot:card-footer>
+            <template v-slot:card-footer v-if="invalidesOrNot">
                 <button class="btn btn-sm btn-success" @click="openModalEditar(arquivo)">Editar</button>
                 <button class="btn btn-sm btn-danger" @click="openModalApagar(arquivo)">Apagar</button>
+            </template>
+            <template v-slot:card-footer v-else>
+                <button class="btn btn-sm btn-success" @click="openModalEditar(arquivo)">Reativar</button>
+                <button class="btn btn-sm btn-danger" @click="openModalApagar(arquivo)">Apagar Definitivamente</button>
             </template>
         </CardImovel>
         <Modal @close="toggleModal" :modalActive="modalActive">
             <div v-if="modalDelete">
-                <div class="modal-content" v-if="confirmation">
-                    <h1>Arquivo apagado com sucesso</h1>
+                <div v-if="invalidesOrNot">
+                    <div class="modal-content" v-if="confirmation">
+                        <h1>Arquivo apagado com sucesso</h1>
+                    </div>
+                    <div class="modal-content" v-else>
+                        <h1>Deseja realmente apagar o arquivo {{ arquivoNome }}?</h1>
+                        <button class="btn btn-sm btn-danger" @click="apagarArquivo(arquivoId)">Apagar</button>
+                    </div>
                 </div>
-                <div class="modal-content" v-else>
-                    <h1>Deseja realmente apagar o arquivo {{ arquivoNome }}?</h1>
-                    <button class="btn btn-sm btn-danger" @click="apagarArquivo(arquivoId)">Apagar</button>
+                <div v-else>
+                    <div class="modal-content" v-if="confirmation">
+                        <h1>Arquivo apagado permanentemente com sucesso</h1>
+                    </div>
+                    <div class="modal-content" v-else>
+                        <h1>Deseja realmente apagar o arquivo {{ arquivoNome }} permanentemente?</h1>
+                        <button class="btn btn-sm btn-danger"
+                            @click="apagarArquivoPermanentemente(arquivoId)">Apagar</button>
+                    </div>
                 </div>
             </div>
             <div v-else class="modal-content">
-                <div v-if="edit">
-                    <h3 class="text-center">Editar arquivo <b>{{ arquivoNome }}</b></h3>
-                    <UploadArquivo :imovelProps="imovelProps" ref="formulario">
-                        <template v-slot:button-submit>
-                            <div class="container mt-4">
-                                <div class="row">
-                                    <div class="text-center">
-                                        <button class="btn btn-primary" @click="onCompleteEdit()">Submit</button>
+                <div v-if="invalidesOrNot">
+                    <div v-if="edit">
+                        <h3 class="text-center">Editar arquivo <b>{{ arquivoNome }}</b></h3>
+                        <UploadArquivo :imovelProps="imovelProps" ref="formulario">
+                            <template v-slot:button-submit>
+                                <div class="container mt-4">
+                                    <div class="row">
+                                        <div class="text-center">
+                                            <button class="btn btn-primary" @click="onCompleteEdit()">Submit</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </template>
-                    </UploadArquivo>
+                            </template>
+                        </UploadArquivo>
+                    </div>
+                    <div class="modal-content" v-else>
+                        <h1>Arquivo Editado Com Sucesso</h1>
+                    </div>
                 </div>
-                <div class="modal-content" v-else>
-                    <h1>Arquivo Editado Com Sucesso</h1>
+                <div v-else>
+                    <div v-if="confirmation">
+                        <h1>Arquivo reativado com sucesso</h1>
+                    </div>
+                    <div v-else>
+                        <h1>Deseja realmente reativar o arquivo {{ arquivoNome }}?</h1>
+                        <button class="btn btn-sm btn-success" @click="reativarArquivo(arquivoId)">Reativar</button>
+                    </div>
+
                 </div>
             </div>
         </Modal>
@@ -118,7 +152,10 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faFilePdf, faImage, faFileWord, faFileExcel } from '@fortawesome/free-solid-svg-icons'
 import UploadArquivo from '../Forms/UploadArquivos.vue'
 library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
-
+// Arquivo mostrando invalidos e reativando. Mostrando com um switch
+// fazer delete permanenetnte aqui e depois fazer o mesmo na lista imoveis.
+// ver se consigo juntar coisas em mais de uma função tbm
+// mano isso ta ficando mto grande kk cada dia aumenta. Não posso esquecer do flutter. Mas é isso... vue, php e flutter. 
 export default {
     data() {
         return {
@@ -132,7 +169,8 @@ export default {
             imovelProps: true,
             tipoBusca: 'nome',
             baseUrl: 'http://localhost:8000/',
-            imageTypes: ['png', 'jpg', 'jpeg']
+            imageTypes: ['png', 'jpg', 'jpeg'],
+            invalidesOrNot: true
         }
     },
 
@@ -148,7 +186,7 @@ export default {
     // https://stackoverflow.com/questions/53772331/vue-html-js-how-to-download-a-file-to-browser-using-the-download-tag
 
     methods: {
-        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveis"]),
+        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveis", "loadArquivosInvalidos"]),
 
         async procuraArquivo() {
             if (this.keywords.length == 0) {
@@ -175,24 +213,45 @@ export default {
         },
 
         async openModalEditar(arquivo) {
-            this.edit = true;
             this.modalDelete = false;
+            this.confirmation = false;
             this.arquivoNome = arquivo.nome;
-            await this.loadImoveis();
-            this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
             this.arquivoId = arquivo.id;
-            this.$refs.formulario.nome = arquivo.nome;
-            this.$refs.formulario.imovel = this.arquivoImovel;
+            if (this.invalidesOrNot) {
+                this.edit = true;
+                await this.loadImoveis();
+                this.$refs.formulario.imovel = null;
+                if (arquivo.imovel_id) {
+                    this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
+                    this.$refs.formulario.imovel = this.arquivoImovel;
+                }
+                this.$refs.formulario.nome = arquivo.nome;
+            }
+
             this.toggleModal();
+
         },
 
-        /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
+        async apagarArquivoPermanentemente(id) {
+            await this.$store.dispatch('deletarArquivoPermanentemente', id)
+                .then(() => {
+                    this.loadArquivosInvalidos();
+                    this.confirmation = true;
+                }).catch(error => console.log(error))
+        },
 
         async apagarArquivo(id) {
-            console.log(id);
-            this.$store.dispatch('apagarArquivo', id)
+            await this.$store.dispatch('apagarArquivo', id)
                 .then(() => {
                     this.loadArquivos();
+                    this.confirmation = true;
+                }).catch(error => console.log(error))
+        },
+
+        async reativarArquivo(id) {
+            await this.$store.dispatch('reativarArquivo', id)
+                .then(() => {
+                    this.loadArquivosInvalidos();
                     this.confirmation = true;
                 }).catch(error => console.log(error))
         },
@@ -234,6 +293,15 @@ export default {
             this.$store.commit('imovel', imovel);
             this.$router.push({ name: 'novoImovel', params: { id: id } })
             // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
+        },
+
+        async changeList() {
+            if (this.invalidesOrNot) {
+                await this.loadArquivosInvalidos();
+            }
+            else {
+                await this.loadArquivos();
+            }
         }
     },
 
@@ -256,7 +324,6 @@ export default {
     async created() {
         await this.loadImoveis();
         await this.loadArquivos();
-        console.log(this.displayListaArquivos);
     },
 }
 

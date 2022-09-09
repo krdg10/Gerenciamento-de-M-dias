@@ -33,8 +33,10 @@ class Arquivo
                         $response = $this->getArquivosByImovel($this->busca);
                     }
                 } else {
-                    if ($this->url == 'buscarTodos') {
-                        $response = $this->getAllArquivos();
+                    if ($this->url == 'buscarTodosValidos') {
+                        $response = $this->getAllArquivos('A');
+                    } else if ($this->url == 'buscarTodosInvalidos') {
+                        $response = $this->getAllArquivos('I');
                     } else if ($this->url == 'numeroDeAtivos') {
                         $response = $this->getNumeroArquivosAtivosOuInativos('A');
                     } else if ($this->url == 'numeroDeInativos') {
@@ -49,12 +51,15 @@ class Arquivo
                 break;
             case 'PUT':
                 if ($this->url == 'deletarArquivo') {
-                    $response = $this->deleteArquivo($this->arquivoId);
+                    $response = $this->deletarOuReativarArquivo('I', $this->arquivoId);
+                } else if ($this->url == 'reativarArquivo') {
+                    $response = $this->deletarOuReativarArquivo('A', $this->arquivoId);
                 } else {
                     $response = $this->updateArquivo($this->arquivoId);
                 }
                 break;
             case 'DELETE':
+                $response = $this->deletePermanente($this->arquivoId);
                 break;
             default:
                 break;
@@ -65,9 +70,9 @@ class Arquivo
         }
     }
 
-    private function getAllArquivos()
+    private function getAllArquivos($status)
     {
-        $query = "SELECT * FROM arquivos where ativo = 'A';";
+        $query = "SELECT * FROM arquivos where ativo = '$status';";
 
         try {
             $statement = $this->db->query($query);
@@ -239,13 +244,16 @@ class Arquivo
         return $response;
     }
 
-    private function deleteArquivo($id)
+    private function deletarOuReativarArquivo($tipo, $id)
     {
-        $result = $this->find($id);
-        if (!$result) {
-            return $this->notFoundResponse();
+        if ($tipo == 'I') {
+            $result = $this->find($id);
+            if (!$result) {
+                return $this->notFoundResponse();
+            }
         }
-        $query = "UPDATE arquivos set ativo = 'I' WHERE id = :id;";
+
+        $query = "UPDATE arquivos set ativo = '$tipo' WHERE id = :id;";
 
         try {
             $statement = $this->db->prepare($query);
@@ -288,6 +296,22 @@ class Arquivo
         }
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode(array('message' => 'Arquivo Updated!'));
+        return $response;
+    }
+
+    private function deletePermanente($id)
+    {
+        $query = "DELETE FROM arquivos WHERE id = $id";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode('Arquivo deletado permanentemente com sucesso');
         return $response;
     }
 

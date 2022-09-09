@@ -28,8 +28,10 @@ class Imovel
                 } else if ($this->busca) {
                     $response = $this->getImoveisByName($this->busca);
                 } else {
-                    if ($this->url == 'buscarTodos') {
-                        $response = $this->getAllImovels();
+                    if ($this->url == 'buscarTodosValidos') {
+                        $response = $this->getAllImovels('A');
+                    } else if ($this->url == 'buscarTodosInvalidos') {
+                        $response = $this->getAllImovels('I');
                     } else if ($this->url == 'numeroDeAtivos') {
                         $response = $this->getNumeroImoveisAtivosOuInativos('A');
                     } else { //numeros de inativos
@@ -42,7 +44,9 @@ class Imovel
                 break;
             case 'PUT':
                 if ($this->url == 'deletarImovel') {
-                    $response = $this->deleteImovel($this->imovelId);
+                    $response = $this->deletarOuReativarImovel('I', $this->imovelId);
+                } else if ($this->url == 'reativarImovel') {
+                    $response = $this->deletarOuReativarImovel('A', $this->imovelId);
                 } else if ($this->url == 'alterarTag') {
                     $response = $this->updateTag($this->imovelId);
                 } else {
@@ -50,6 +54,7 @@ class Imovel
                 }
                 break;
             case 'DELETE':
+                $response = $this->deletePermanente($this->imovelId);
                 break;
             default:
                 $response = $this->notFoundResponse();
@@ -61,13 +66,13 @@ class Imovel
         }
     }
 
-    private function getAllImovels()
+    private function getAllImovels($status)
     {
         $query = "
       SELECT
           imovel.*, tag.favorito, tag.importante, tag.urgente
       FROM
-          imoveis imovel, tags tag where imovel.ativo = 'A' and imovel.id = tag.id;
+          imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.id = tag.id;
     ";
 
         try {
@@ -293,19 +298,16 @@ class Imovel
         return $response;
     }
 
-    private function deleteImovel($id)
+    private function deletarOuReativarImovel($tipo, $id)
     {
-        $result = $this->find($id);
-        if (!$result) {
-            return $this->notFoundResponse();
+        if ($tipo == 'I') {
+            $result = $this->find($id);
+            if (!$result) {
+                return $this->notFoundResponse();
+            }
         }
 
-        $query = "
-      UPDATE imoveis
-      set
-      ativo = 'I'
-      WHERE id = :id;
-    ";
+        $query = "UPDATE imoveis set ativo = '$tipo' WHERE id = :id;";
 
         try {
             $statement = $this->db->prepare($query);
@@ -360,6 +362,22 @@ class Imovel
 
 
         return true;
+    }
+
+    private function deletePermanente($id)
+    {
+        $query = "DELETE FROM imoveis WHERE id = $id";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode('Imóvel deletado permanentemente com sucesso');
+        return $response;
     }
 
     private function unprocessableEntityResponse()

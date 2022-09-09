@@ -27,6 +27,18 @@ const loadArquivos = async ({ commit }) => {
         })
 };
 
+const loadArquivosSemImoveis = async ({ commit }) => {
+    return await axios({ url: arquivoUrl + 'ativosSemImovel', method: 'GET' })
+        .then(response => {
+            const payloadArquivos = response.data;
+            console.log(payloadArquivos)
+            commit('arquivos', payloadArquivos);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 const loadImoveis = async ({ commit }) => {
     return await axios({ url: imovelUrl + 'buscarTodosValidos', method: 'GET' })
         .then(response => {
@@ -258,5 +270,6 @@ export default {
     reativarArquivo,
     reativarImovel,
     apagarArquivoPermanentemente,
-    apagarImovelPermanentemente
+    apagarImovelPermanentemente,
+    loadArquivosSemImoveis
 };

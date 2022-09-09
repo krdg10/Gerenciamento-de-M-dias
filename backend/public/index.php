@@ -91,7 +91,7 @@ if ($uri[1] == 'imovel') {
             exit();
         }
         $postId = (int) $uri[3];
-    } else if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos' || $uri[2] == 'numeroSemImovel') {
+    } else if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos' || $uri[2] == 'numeroSemImovel' || $uri[2] == 'ativosSemImovel') {
     } else if ($uri[2] == 'buscaNome' || $uri[2] == 'buscaImovel') {
         if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");

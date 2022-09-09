@@ -37,6 +37,8 @@ class Arquivo
                         $response = $this->getAllArquivos('A');
                     } else if ($this->url == 'buscarTodosInvalidos') {
                         $response = $this->getAllArquivos('I');
+                    } else if ($this->url == 'ativosSemImovel') {
+                        $response = $this->getArquivosAtivosSemImovel();
                     } else if ($this->url == 'numeroDeAtivos') {
                         $response = $this->getNumeroArquivosAtivosOuInativos('A');
                     } else if ($this->url == 'numeroDeInativos') {
@@ -142,6 +144,22 @@ class Arquivo
         $keywords = $busca[0];
         $status = $busca[1];
         $query = "SELECT * FROM arquivos where imovel_id = $keywords and ativo = '$status';";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($result);
+        return $response;
+    }
+
+    private function getArquivosAtivosSemImovel()
+    {
+        $query = "SELECT * FROM arquivos where ativo = 'A' AND imovel_id IS NULL;";
 
         try {
             $statement = $this->db->query($query);

@@ -13,7 +13,7 @@ const routes = [
   { path: '', name: 'dash', component: MyDashboard },
   { path: '/novoImovel', name: 'novoImovel', component: FormularioImovel, props: true },
   { path: '/listaImoveis', name: 'listaImoveis', component: ListaImoveis },
-  { path: '/listaArquivos', name: 'listaArquivos', component: ListaArquivos },
+  { path: '/listaArquivos', name: 'listaArquivos', component: ListaArquivos, props: true  },
   { path: '/novoArquivo', name: 'novoArquivo', component: FormularioArquivo },
   { path: '/:pathMatch(.*)*', component: DeuRuim }
 

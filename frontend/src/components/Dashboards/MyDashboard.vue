@@ -4,7 +4,9 @@
         <div class="row">
             <CardImovel class="border-left-warning shadow h-100 col-sm-6">
                 <template v-slot:card-header>
-                    <h3>Imoveis</h3>
+                    <router-link to="/listaImoveis" class="color-black">
+                        <h3>Imoveis</h3>
+                    </router-link>
                 </template>
                 <template v-slot:card-body>
                     <strong>Imóveis Ativos:</strong> {{ displayQuantidadeDeImoveisAtivos }} <br>
@@ -18,7 +20,9 @@
             </CardImovel>
             <CardImovel class="border-left-danger shadow h-100 col-sm-6">
                 <template v-slot:card-header>
-                    <h3>Arquivos</h3>
+                    <router-link to="/listaArquivos" class="color-black">
+                        <h3>Arquivos</h3>
+                    </router-link>
                 </template>
                 <template v-slot:card-body>
                     <strong>Arquivos Ativos:</strong> {{ displayQuantidadeDeArquivossAtivos }} <br>
@@ -32,14 +36,17 @@
             </CardImovel>
             <CardImovel class="border-left-primary shadow h-100 col-sm-12">
                 <template v-slot:card-header>
-                    <h3>Arquivos Ativos Sem Imóvel Associado</h3>
+                    <router-link :to="{ name: 'listaArquivos', params: {propsSemImovel: true } }" class="color-black">
+                        <h3>Arquivos Ativos Sem Imóvel Associado</h3>
+                    </router-link>
+
                 </template>
                 <template v-slot:card-body>
                     <h2 class="text-center my-3">{{ displayQuantidadeDeArquivosSemImovel }}</h2>
                 </template>
                 <template v-slot:card-footer>
-                    <router-link to="/listaArquivos" class="btn btn-lg btn-primary">Ver Mais<span
-                            class="fa fa-eye"></span>
+                    <router-link :to="{ name: 'listaArquivos', params: {propsSemImovel: true } }"
+                        class="btn btn-lg btn-primary">Ver Mais<span class="fa fa-eye"></span>
                     </router-link>
                 </template>
             </CardImovel>

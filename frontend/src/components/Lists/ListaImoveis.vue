@@ -138,11 +138,28 @@ export default {
         ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos"]),
 
         async procuraImovel() {
-            this.$store.dispatch('buscaImovel', this.keywords)
-                .then(response => {
-                    console.log(response)
+            if (this.keywords.length == 0) {
+                if (this.invalidesOrNot) {
+                    await this.loadImoveis();
+                }
+                else {
+                    await this.loadImoveisInvalidos();
+                }
+            }
+            let status;
+            if (this.invalidesOrNot) {
+                status = 'A';
+            }
+            else {
+                status = 'I'
+            }
 
-                }).catch(error => console.log(error))
+            let payload = {
+                keywords: this.keywords,
+                status: status
+            }
+
+            this.$store.dispatch('buscaImovel', payload).catch(error => console.log(error))
         },
 
         openModal(imovel, tipo) {
@@ -166,7 +183,6 @@ export default {
         /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
 
         async apagarImovel(id, tipo) {
-            console.log(id);
             await this.$store.dispatch('apagar' + tipo, id)
                 .then(() => {
                     if (tipo == 'Imovel') {
@@ -190,10 +206,7 @@ export default {
         async addTag(id, type, value) {
             let payload = { id: id, type: type, value: this.changeTagValue(value), hora: this.getNow() }
 
-            await this.$store.dispatch('alterarTag', payload)
-                .then(response => {
-                    console.log(response.data)
-                }).catch(error => console.log(error))
+            await this.$store.dispatch('alterarTag', payload).catch(error => console.log(error))
         },
 
         changeTagValue(value) {
@@ -222,6 +235,7 @@ export default {
             // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
         },
         async changeList() {
+            this.keywords = '';
             if (this.invalidesOrNot) {
                 await this.loadImoveisInvalidos();
             }
@@ -240,7 +254,6 @@ export default {
 
     async created() {
         await this.loadImoveis();
-        console.log(this.displayListaImoveis);
     },
 }
 

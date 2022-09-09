@@ -121,11 +121,9 @@ class Arquivo
 
     private function getArquivosByName($busca)
     {
-        $query = "
-      SELECT *
-            FROM
-      arquivos where LOWER(nome) LIKE LOWER('%$busca%') and ativo = 'A';
-    ";
+        $keywords = $busca[0];
+        $status = $busca[1];
+        $query = "SELECT * FROM arquivos where LOWER(nome) LIKE LOWER('%$keywords%') and ativo = '$status';";
 
         try {
             $statement = $this->db->query($query);
@@ -141,11 +139,9 @@ class Arquivo
 
     private function getArquivosByImovel($busca)
     {
-        $query = "
-      SELECT *
-            FROM
-      arquivos where imovel_id = $busca and ativo = 'A';
-    ";
+        $keywords = $busca[0];
+        $status = $busca[1];
+        $query = "SELECT * FROM arquivos where imovel_id = $keywords and ativo = '$status';";
 
         try {
             $statement = $this->db->query($query);

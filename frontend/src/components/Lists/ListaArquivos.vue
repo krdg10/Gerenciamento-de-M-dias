@@ -76,12 +76,13 @@
 
             </template>
             <template v-slot:card-footer v-if="invalidesOrNot">
-                <button class="btn btn-sm btn-success" @click="openModalEditar(arquivo)">Editar</button>
-                <button class="btn btn-sm btn-danger" @click="openModalApagar(arquivo)">Apagar</button>
+                <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')">Editar</button>
+                <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar</button>
             </template>
             <template v-slot:card-footer v-else>
-                <button class="btn btn-sm btn-success" @click="openModalEditar(arquivo)">Reativar</button>
-                <button class="btn btn-sm btn-danger" @click="openModalApagar(arquivo)">Apagar Definitivamente</button>
+                <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')">Reativar</button>
+                <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar
+                    Definitivamente</button>
             </template>
         </CardImovel>
         <Modal @close="toggleModal" :modalActive="modalActive">
@@ -191,46 +192,56 @@ export default {
 
         async procuraArquivo() {
             if (this.keywords.length == 0) {
-                await this.loadArquivos();
+                if (this.invalidesOrNot) {
+                    await this.loadArquivos();
+                }
+                else {
+                    await this.loadArquivosInvalidos();
+                }
             }
             else {
-                let payload = { keywords: this.keywords, tipo: this.tipoBusca }
+                let status;
+                if (this.invalidesOrNot) {
+                    status = 'A';
+                }
+                else {
+                    status = 'I'
+                }
 
-                this.$store.dispatch('buscaArquivo', payload)
-                    .then(response => {
-                        console.log(response)
+                let payload = { keywords: this.keywords, tipo: this.tipoBusca, status: status }
 
-                    }).catch(error => console.log(error))
+                this.$store.dispatch('buscaArquivo', payload).catch(error => console.log(error))
             }
 
         },
 
-        openModalApagar(arquivo) {
-            this.arquivoId = arquivo.id;
-            this.arquivoNome = arquivo.nome;
-            this.confirmation = false;
-            this.modalDelete = true;
-            this.toggleModal();
-        },
-
-        async openModalEditar(arquivo) {
+        async openModal(arquivo, tipo) {
             this.modalDelete = false;
             this.confirmation = false;
-            this.arquivoNome = arquivo.nome;
+            this.edit = false;
             this.arquivoId = arquivo.id;
-            if (this.invalidesOrNot) {
+            this.arquivoNome = arquivo.nome;
+
+            if (tipo == 'delete') {
+                this.modalDelete = true;
+            }
+            else {
                 this.edit = true;
-                await this.loadImoveis();
-                this.$refs.formulario.imovel = null;
-                if (arquivo.imovel_id) {
-                    this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
-                    this.$refs.formulario.imovel = this.arquivoImovel;
-                }
-                this.$refs.formulario.nome = arquivo.nome;
             }
 
+            if (this.invalidesOrNot) {
+                if (this.edit) {
+                    this.edit = true;
+                    await this.loadImoveis();
+                    this.$refs.formulario.imovel = null;
+                    if (arquivo.imovel_id) {
+                        this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
+                        this.$refs.formulario.imovel = this.arquivoImovel;
+                    }
+                    this.$refs.formulario.nome = arquivo.nome;
+                }
+            }
             this.toggleModal();
-
         },
 
         async apagarArquivo(id, tipo) {
@@ -294,6 +305,7 @@ export default {
         },
 
         async changeList() {
+            this.keywords = '';
             if (this.invalidesOrNot) {
                 await this.loadArquivosInvalidos();
             }

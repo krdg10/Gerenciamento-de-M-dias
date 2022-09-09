@@ -106,11 +106,15 @@ class Imovel
 
     private function getImoveisByName($busca)
     {
+
+        $keywords = $busca[0];
+        $status = $busca[1];
+
         $query = "
       SELECT
       imovel.*, tag.favorito, tag.importante, tag.urgente
       FROM
-      imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$busca%') and imovel.ativo = 'A' and imovel.id = tag.id;
+      imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.id = tag.id;
     ";
 
 

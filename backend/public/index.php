@@ -39,8 +39,6 @@ $postId = null;
 $busca = null;
 
 if ($uri[1] == 'imovel') {
-
-
     if ($uri[2] == 'novo') {
     } else if ($uri[2] == 'editar') {
         if (!isset($uri[3])) {
@@ -56,11 +54,11 @@ if ($uri[1] == 'imovel') {
         $postId = (int) $uri[3];
     } else  if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos') {
     } else if ($uri[2] == 'busca') {
-        if (!isset($uri[3])) {
+        if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");
             exit();
         }
-        $busca = $uri[3];
+        $busca = [$uri[3], $uri[4]];
     } else if ($uri[2] == 'alterarTag') {
         if (!isset($uri[3])) {
             header("HTTP/1.1 404 Not Found");
@@ -95,11 +93,11 @@ if ($uri[1] == 'imovel') {
         $postId = (int) $uri[3];
     } else if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos' || $uri[2] == 'numeroSemImovel') {
     } else if ($uri[2] == 'buscaNome' || $uri[2] == 'buscaImovel') {
-        if (!isset($uri[3])) {
+        if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");
             exit();
         }
-        $busca = $uri[3];
+        $busca = [$uri[3], $uri[4]];
     }
     $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
     $controller->processRequest();

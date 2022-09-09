@@ -39,7 +39,8 @@ const loadImoveis = async ({ commit }) => {
 };
 
 const buscaImovel = async ({ commit }, busca) => {
-    return await axios({ url: imovelUrl + 'busca' + '/' + busca, method: 'GET' })
+
+    return await axios({ url: imovelUrl + 'busca' + '/' + busca.keywords + '/' + busca.status, method: 'GET' })
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
@@ -57,7 +58,7 @@ const buscaArquivo = async ({ commit }, busca) => {
     else {
         url = 'buscaImovel';
     }
-    return await axios({ url: arquivoUrl + url + '/' + busca.keywords, method: 'GET' })
+    return await axios({ url: arquivoUrl + url + '/' + busca.keywords + '/' + busca.status, method: 'GET' })
         .then(response => {
             const payloadArquivos = response.data;
             commit('arquivos', payloadArquivos);

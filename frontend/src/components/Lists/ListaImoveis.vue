@@ -68,12 +68,12 @@
                     <div class="modal-content" v-if="confirmation">
                         <h1>Imóvel apagado com sucesso</h1>
                     </div>
-                    <div class="modal-content" v-else>
-                        <div v-if="!tipoDeDelete">
+                    <div v-else>
+                        <div v-if="!tipoDeDelete" class="modal-content">
                             <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>?</h1>
                             <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
                         </div>
-                        <div v-else>
+                        <div v-else class="modal-content">
                             <h1 class="mb-5">Deseja:</h1>
                             <button class="btn btn-sm btn-danger"
                                 @click="apagarImovel(imovelId, 'Imovel', 'deleteDocumentos')">Apagar Todos
@@ -88,13 +88,13 @@
                     <div class="modal-content" v-if="confirmation">
                         <h1>Imóvel apagado definitivamente com sucesso</h1>
                     </div>
-                    <div class="modal-content" v-else>
-                        <div v-if="!tipoDeDelete">
+                    <div v-else>
+                        <div v-if="!tipoDeDelete" class="modal-content">
                             <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b> definitivamente?
                             </h1>
                             <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
                         </div>
-                        <div v-else>
+                        <div v-else class="modal-content">
                             <h1 class="mb-5">Deseja:</h1>
                             <button class="btn btn-sm btn-danger"
                                 @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'deleteDocumentos')">Apagar

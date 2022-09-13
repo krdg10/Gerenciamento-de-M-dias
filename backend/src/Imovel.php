@@ -32,6 +32,8 @@ class Imovel
                         $response = $this->getAllImovels('A');
                     } else if ($this->url == 'buscarTodosInvalidos') {
                         $response = $this->getAllImovels('I');
+                    } else if ($this->url == 'buscarTodosValidosEInvalidos') {
+                        $response = $this->getAllImovels(null);
                     } else if ($this->url == 'numeroDeAtivos') {
                         $response = $this->getNumeroImoveisAtivosOuInativos('A');
                     } else { //numeros de inativos
@@ -68,12 +70,11 @@ class Imovel
 
     private function getAllImovels($status)
     {
-        $query = "
-      SELECT
-          imovel.*, tag.favorito, tag.importante, tag.urgente
-      FROM
-          imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.id = tag.id;
-    ";
+        $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.id = tag.id;";
+
+        if (!isset($status)) {
+            $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.id = tag.id;";
+        }
 
         try {
             $statement = $this->db->query($query);
@@ -309,6 +310,14 @@ class Imovel
             if (!$result) {
                 return $this->notFoundResponse();
             }
+
+            $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+
+            if ($input["tipoDelete"] == "desassociaDocumentos") {
+                $this->desassociaDocumentos($id);
+            } else {
+                $this->deletaDocumentos($id, 'inativar');
+            }
         }
 
         $query = "UPDATE imoveis set ativo = '$tipo' WHERE id = :id;";
@@ -370,7 +379,15 @@ class Imovel
 
     private function deletePermanente($id)
     {
-        $query = "DELETE FROM imoveis WHERE id = $id";
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+
+        if ($input["tipoDelete"] == "desassociaDocumentos") {
+            $this->desassociaDocumentos($id);
+        } else {
+            $this->deletaDocumentos($id, 'permanente');
+        }
+
+        $query = "DELETE FROM imoveis WHERE id = $id;";
 
         try {
             $statement = $this->db->query($query);
@@ -382,6 +399,38 @@ class Imovel
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode('Imóvel deletado permanentemente com sucesso');
         return $response;
+    }
+
+    private function desassociaDocumentos($id)
+    {
+        $query = "UPDATE arquivos set imovel_id = null WHERE imovel_id = $id;";
+
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    private function deletaDocumentos($id, $tipo)
+    {
+        if ($tipo == 'permanente') {
+            $query = "DELETE FROM arquivos WHERE imovel_id = $id;";
+        } else {
+            $query = "UPDATE arquivos SET ativo = 'I' WHERE imovel_id = $id;";
+        }
+        var_dump($query);
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
     }
 
     private function unprocessableEntityResponse()

@@ -72,11 +72,20 @@
                 <strong>Nome do Arquivo</strong>: {{ arquivo.nome }} <br>
                 <strong>Nome Original</strong>: {{ arquivo.nome_original.split(".")[0] }} <br>
                 <a @click="redirect(displayImovelById(arquivo.imovel_id))" class="color-black"
-                    v-if="arquivo.imovel_id"><strong>Imovel
+                    v-if="arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'A'"><strong>Imovel
                         Associado</strong>: {{
                         displayImovelById(arquivo.imovel_id).nome
                         }} <br></a>
-                <div v-else><strong>Associado</strong>: Nenhum</div>
+                <div v-else>
+                    <a class="color-black color-black-without-hover" v-if="!arquivo.imovel_id">
+                        <strong>Imovel Associado</strong>: Nenhum
+                    </a>
+                    <a class="color-black color-black-without-hover" v-else>
+                        <strong>Imovel Associado</strong>: {{
+                        displayImovelById(arquivo.imovel_id).nome
+                        }} <strong>(Deletado)</strong><br>
+                    </a>
+                </div>
                 <strong>Tipo do Arquivo</strong>: {{ arquivo.caminho.split(".")[1] }} <br><br>
 
             </template>
@@ -85,7 +94,9 @@
                 <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar</button>
             </template>
             <template v-slot:card-footer v-else>
-                <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')">Reativar</button>
+                <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')"
+                    v-if="!(arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'I')">Reativar</button>
+                <!-- botar um v-if aqui pra nao aparecer quando imovel = deletado-->
                 <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar
                     Definitivamente</button>
             </template>
@@ -159,10 +170,9 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faFilePdf, faImage, faFileWord, faFileExcel } from '@fortawesome/free-solid-svg-icons'
 import UploadArquivo from '../Forms/UploadArquivos.vue'
 library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
-// Arquivo mostrando invalidos e reativando. Mostrando com um switch
-// fazer delete permanenetnte aqui e depois fazer o mesmo na lista imoveis.
-// ver se consigo juntar coisas em mais de uma função tbm
-// mano isso ta ficando mto grande kk cada dia aumenta. Não posso esquecer do flutter. Mas é isso... vue, php e flutter. 
+
+
+
 export default {
     data() {
         return {
@@ -198,7 +208,7 @@ export default {
     // https://stackoverflow.com/questions/53772331/vue-html-js-how-to-download-a-file-to-browser-using-the-download-tag
 
     methods: {
-        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveis", "loadArquivosInvalidos", "loadArquivosSemImoveis"]),
+        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveisValidosEInvalidos", "loadArquivosInvalidos", "loadArquivosSemImoveis"]),
 
         async procuraArquivo() {
             if (this.keywords.length == 0) {
@@ -242,7 +252,7 @@ export default {
             if (this.invalidesOrNot) {
                 if (this.edit) {
                     this.edit = true;
-                    await this.loadImoveis();
+                    await this.loadImoveisValidosEInvalidos();
                     this.$refs.formulario.imovel = null;
                     if (arquivo.imovel_id) {
                         this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
@@ -312,13 +322,6 @@ export default {
                 }).catch(error => console.log(error))
         },
 
-        edirect(imovel) {
-            let id = imovel.id;
-            this.$store.commit('imovel', imovel);
-            this.$router.push({ name: 'novoImovel', params: { id: id } })
-            // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
-        },
-
         async changeList() {
             this.keywords = '';
             if (this.invalidesOrNot) {
@@ -362,7 +365,7 @@ export default {
     },
 
     async created() {
-        await this.loadImoveis();
+        await this.loadImoveisValidosEInvalidos();
         if (this.propsSemImovel) {
             this.semImovel = true;
             await this.loadArquivosSemImoveis();

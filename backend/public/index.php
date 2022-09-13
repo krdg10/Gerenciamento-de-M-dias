@@ -52,7 +52,7 @@ if ($uri[1] == 'imovel') {
             exit();
         }
         $postId = (int) $uri[3];
-    } else  if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos') {
+    } else  if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'buscarTodosValidosEInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos') {
     } else if ($uri[2] == 'busca') {
         if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");

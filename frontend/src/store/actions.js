@@ -50,6 +50,18 @@ const loadImoveis = async ({ commit }) => {
         })
 };
 
+const loadImoveisValidosEInvalidos = async ({ commit }) => {
+    return await axios({ url: imovelUrl + 'buscarTodosValidosEInvalidos', method: 'GET' })
+        .then(response => {
+            const payloadImoveis = response.data;
+            commit('imoveis', payloadImoveis);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
+
 const buscaImovel = async ({ commit }, busca) => {
 
     return await axios({ url: imovelUrl + 'busca' + '/' + busca.keywords + '/' + busca.status, method: 'GET' })
@@ -91,9 +103,9 @@ const updateImovel = async ({ commit }, imovel) => {
         })
 };
 
-const apagarImovel = async (_, id) => {
-    console.log(id);
-    return await axios({ url: imovelUrl + 'deletarImovel' + '/' + id, method: 'PUT' })
+const apagarImovel = async (_, payload) => {
+    let id = payload.id;
+    return await axios({ url: imovelUrl + 'deletarImovel' + '/' + id, data: payload, method: 'PUT' })
         .then(response => {
             return response
         }).catch(error => {
@@ -240,8 +252,9 @@ const apagarArquivoPermanentemente = async (_, id) => {
         })
 };
 
-const apagarImovelPermanentemente = async (_, id) => {
-    return await axios({ url: imovelUrl + 'deletarImovelPermanente' + '/' + id, method: 'DELETE' })
+const apagarImovelPermanentemente = async (_, payload) => {
+    let id = payload.id;
+    return await axios({ url: imovelUrl + 'deletarImovelPermanente' + '/' + id, data: payload, method: 'DELETE' })
         .then(response => {
             return response
         }).catch(error => {
@@ -271,5 +284,6 @@ export default {
     reativarImovel,
     apagarArquivoPermanentemente,
     apagarImovelPermanentemente,
-    loadArquivosSemImoveis
+    loadArquivosSemImoveis,
+    loadImoveisValidosEInvalidos
 };

@@ -31,7 +31,8 @@
                     <div class="row">
                         <div class="col-9">
                             <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)">{{ imovel.nome
-                            }}</h3>
+                            }} {{ imovel.id
+                                }}</h3>
                         </div>
                         <div class="col-3" v-if="invalidesOrNot">
                             <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
@@ -68,8 +69,19 @@
                         <h1>Imóvel apagado com sucesso</h1>
                     </div>
                     <div class="modal-content" v-else>
-                        <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>?</h1>
-                        <button class="btn btn-sm btn-danger" @click="apagarImovel(imovelId, 'Imovel')">Apagar</button>
+                        <div v-if="!tipoDeDelete">
+                            <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>?</h1>
+                            <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
+                        </div>
+                        <div v-else>
+                            <h1 class="mb-5">Deseja:</h1>
+                            <button class="btn btn-sm btn-danger"
+                                @click="apagarImovel(imovelId, 'Imovel', 'deleteDocumentos')">Apagar Todos
+                                os Documentos Associados ao Imóvel</button>
+                            <button class="btn btn-sm btn-danger"
+                                @click="apagarImovel(imovelId, 'Imovel', 'desassociaDocumentos')">Desassociar
+                                Todos os Documentos Associados ao Imóvel</button>
+                        </div>
                     </div>
                 </div>
                 <div v-else>
@@ -77,9 +89,23 @@
                         <h1>Imóvel apagado definitivamente com sucesso</h1>
                     </div>
                     <div class="modal-content" v-else>
-                        <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b> definitivamente?</h1>
-                        <button class="btn btn-sm btn-danger"
-                            @click="apagarImovel(imovelId, 'ImovelPermanentemente')">Apagar</button>
+                        <div v-if="!tipoDeDelete">
+                            <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b> definitivamente?
+                            </h1>
+                            <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
+                        </div>
+                        <div v-else>
+                            <h1 class="mb-5">Deseja:</h1>
+                            <button class="btn btn-sm btn-danger"
+                                @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'deleteDocumentos')">Apagar
+                                Definitivamente
+                                Todos
+                                os Documentos Associados ao Imóvel</button>
+                            <button class="btn btn-sm btn-danger"
+                                @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'desassociaDocumentos')">Desassociar
+                                Todos os Documentos Associados ao Imóvel</button>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -127,11 +153,20 @@ export default {
     components: { CardImovel, Modal, FontAwesomeIcon },
 
     setup() {
+        const tipoDeDelete = ref(false);
+        const toggleDelete = () => {
+            tipoDeDelete.value = !tipoDeDelete.value;
+        };
+
         const modalActive = ref(false);
         const toggleModal = () => {
             modalActive.value = !modalActive.value;
+            if (tipoDeDelete.value) {
+                tipoDeDelete.value = !tipoDeDelete.value;
+            }
         };
-        return { modalActive, toggleModal };
+
+        return { modalActive, toggleModal, tipoDeDelete, toggleDelete };
     },
 
     methods: {
@@ -182,8 +217,9 @@ export default {
 
         /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
 
-        async apagarImovel(id, tipo) {
-            await this.$store.dispatch('apagar' + tipo, id)
+        async apagarImovel(id, tipo, tipoDelete) {
+            let payload = { id: id, tipoDelete: tipoDelete };
+            await this.$store.dispatch('apagar' + tipo, payload)
                 .then(() => {
                     if (tipo == 'Imovel') {
                         this.loadImoveis();

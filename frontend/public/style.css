@@ -47,3 +47,8 @@
   color: gray !important;
   text-decoration: none !important;
 }
+
+.color-black-without-hover:hover {
+  color: black !important;
+  text-decoration: none !important;
+}

@@ -28,7 +28,7 @@
   </div>
 
   <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
-    pageToRedirect="listaImoveis">
+    pageToRedirect="listaImoveis" :showCloseButton="true">
     <div class="modal-content">
       <h1 v-if="!id">Imóvel Criado Com Sucesso</h1>
       <h1 v-else>Imóvel Editado Com Sucesso</h1>

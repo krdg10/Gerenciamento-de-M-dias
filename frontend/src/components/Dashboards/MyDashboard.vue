@@ -1,4 +1,5 @@
 <template>
+    <LoadingSection v-if="isFetching"></LoadingSection>
     <div class="container-fluid">
         <h2 class="text-center my-3">Dashboard</h2>
         <div class="row">
@@ -36,17 +37,21 @@
             </CardImovel>
             <CardImovel class="border-left-primary shadow h-100 col-sm-12">
                 <template v-slot:card-header>
-                    <router-link :to="{ name: 'listaArquivos', params: {propsSemImovel: true } }" class="color-black">
+                    <router-link v-if="displayQuantidadeDeArquivosSemImovel>0"
+                        :to="{ name: 'listaArquivos', params: {propsSemImovel: true } }" class="color-black">
                         <h3>Arquivos Ativos Sem Imóvel Associado</h3>
                     </router-link>
+                    <h3 v-else class="color-black color-black-without-hover">Arquivos Ativos Sem Imóvel Associado</h3>
+
 
                 </template>
                 <template v-slot:card-body>
                     <h2 class="text-center my-3">{{ displayQuantidadeDeArquivosSemImovel }}</h2>
                 </template>
                 <template v-slot:card-footer>
-                    <router-link :to="{ name: 'listaArquivos', params: {propsSemImovel: true } }"
-                        class="btn btn-lg btn-primary">Ver Mais<span class="fa fa-eye"></span>
+                    <router-link v-if="displayQuantidadeDeArquivosSemImovel>0"
+                        :to="{ name: 'listaArquivos', params: {propsSemImovel: true } }" class="btn btn-lg btn-primary">
+                        Ver Mais<span class="fa fa-eye"></span>
                     </router-link>
                 </template>
             </CardImovel>
@@ -56,11 +61,12 @@
 
 <script>
 import CardImovel from "../Utils/CardImovel.vue";
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
+import LoadingSection from "../Utils/LoadingSection.vue";
 
 
 export default {
-    components: { CardImovel },
+    components: { CardImovel, LoadingSection },
 
     computed: {
         ...mapGetters([
@@ -69,6 +75,10 @@ export default {
             "displayQuantidadeDeArquivossAtivos",
             "displayQuantidadeDeArquivosInativos",
             "displayQuantidadeDeArquivosSemImovel"
+        ]),
+
+        ...mapState([
+            "isFetching",
         ]),
     },
     methods: {
@@ -82,11 +92,13 @@ export default {
     },
 
     async created() {
+        this.$store.commit('isFetching', true);
         await this.loadQuantidadeImoveisInativos();
         await this.loadQuantidadeImoveisAtivos();
         await this.loadQuantidadeArquivosInativos();
         await this.loadQuantidadeArquivosAtivos();
         await this.loadQuantidadeArquivosSemImovel();
+        this.$store.commit('isFetching', false);
     }
 
 

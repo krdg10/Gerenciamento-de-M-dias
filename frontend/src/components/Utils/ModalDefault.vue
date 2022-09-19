@@ -3,7 +3,7 @@
     <div v-show="modalActive" class="modal" @click.self="close">
       <transition name="modal-animation-inner">
         <div v-show="modalActive" class="modal-inner">
-          <i @click="close" class="far fa-times-circle"></i>
+          <i v-if="showCloseButton" @click="close" class="far fa-times-circle"></i>
           <!-- Modal Content -->
           <slot />
         </div>
@@ -16,6 +16,7 @@
 export default {
   props: {
     modalActive: Boolean,
+    showCloseButton: Boolean,
     redirectToAnotherPage: Function,
     pageToRedirect: String
   },
@@ -70,7 +71,7 @@ export default {
   position: fixed;
   top: 0;
   left: 0;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: #212529fa;
 
   .modal-inner {
     position: relative;

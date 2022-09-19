@@ -21,7 +21,8 @@ export const store = new Vuex.Store({
     quantidadeDeImoveisInativos: 0,
     quantidadeDeArquivosAtivos: 0,
     quantidadeDeArquivosInativos: 0,
-    quantidadeDeArquivosSemImovel: 0
+    quantidadeDeArquivosSemImovel: 0,
+    isFetching: true,
   },
 
 

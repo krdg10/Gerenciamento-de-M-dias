@@ -34,7 +34,7 @@
         <slot name="button-submit"></slot>
     </div>
     <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
-        pageToRedirect="listaArquivos">
+        pageToRedirect="listaArquivos" :showCloseButton="true">
         <div class="modal-content">
             <h1>Arquivo Criado Com Sucesso</h1>
         </div>

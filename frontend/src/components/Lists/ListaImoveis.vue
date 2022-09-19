@@ -1,4 +1,5 @@
 <template>
+    <LoadingSection v-if="isFetching"></LoadingSection>
     <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
             <div class="form-check form-switch">
@@ -30,7 +31,8 @@
                 <div class="container">
                     <div class="row">
                         <div class="col-9">
-                            <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)">{{ imovel.nome
+                            <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)">{{
+                            imovel.nome
                             }} {{ imovel.id
                                 }}</h3>
                         </div>
@@ -62,7 +64,7 @@
                     Definitivamente</button>
             </template>
         </CardImovel>
-        <Modal @close="toggleModal" :modalActive="modalActive">
+        <Modal @close="toggleModal" :modalActive="modalActive" :showCloseButton="true">
             <div v-if="modalDelete">
                 <div v-if="invalidesOrNot">
                     <div class="modal-content" v-if="confirmation">
@@ -74,7 +76,7 @@
                             <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
                         </div>
                         <div v-else class="modal-content">
-                            <h1 class="mb-5">Deseja:</h1>
+                            <h1 class="mb-5">Deseja, ao apagar:</h1>
                             <button class="btn btn-sm btn-danger"
                                 @click="apagarImovel(imovelId, 'Imovel', 'deleteDocumentos')">Apagar Todos
                                 os Documentos Associados ao Imóvel</button>
@@ -90,12 +92,13 @@
                     </div>
                     <div v-else>
                         <div v-if="!tipoDeDelete" class="modal-content">
-                            <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b> definitivamente?
+                            <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>
+                                definitivamente?
                             </h1>
                             <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
                         </div>
                         <div v-else class="modal-content">
-                            <h1 class="mb-5">Deseja:</h1>
+                            <h1 class="mb-5">Deseja, ao apagar:</h1>
                             <button class="btn btn-sm btn-danger"
                                 @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'deleteDocumentos')">Apagar
                                 Definitivamente
@@ -119,17 +122,18 @@
                 </div>
             </div>
         </Modal>
-
     </div>
 </template>
 
 <script>
 import CardImovel from "../Utils/CardImovel.vue";
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faStar, faExclamation, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+import LoadingSection from "../Utils/LoadingSection.vue";
+
 library.add(faSearch, faStar, faExclamation, faTriangleExclamation)
 // adicionar isso no X do modal e tirar o link do fontawesome do index
 // ver de mudar cor do icons e tornálos clicáveis pra fazer os botões de tag. 
@@ -150,7 +154,7 @@ export default {
         }
     },
 
-    components: { CardImovel, Modal, FontAwesomeIcon },
+    components: { CardImovel, Modal, FontAwesomeIcon, LoadingSection },
 
     setup() {
         const tipoDeDelete = ref(false);
@@ -173,6 +177,8 @@ export default {
         ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos"]),
 
         async procuraImovel() {
+            this.$store.commit('isFetching', true);
+
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
                     await this.loadImoveis();
@@ -272,6 +278,7 @@ export default {
         },
         async changeList() {
             this.keywords = '';
+            this.$store.commit('isFetching', true);
             if (this.invalidesOrNot) {
                 await this.loadImoveisInvalidos();
             }
@@ -286,9 +293,14 @@ export default {
             "displayListaImoveis"
         ]),
 
+        ...mapState([
+            "isFetching",
+        ]),
+
     },
 
     async created() {
+        this.$store.commit('isFetching', true);
         await this.loadImoveis();
     },
 }

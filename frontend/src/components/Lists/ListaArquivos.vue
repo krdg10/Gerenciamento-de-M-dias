@@ -1,5 +1,4 @@
 <template>
-    <LoadingSection v-if="isFetching"></LoadingSection>
     <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
             <div class="input-group paddingZeroLeft margin-bottom-40">
@@ -37,8 +36,8 @@
                         </div>
                         <div class="col-1 paddingZero" v-if="!semImovel">
                             <span>
-                                <button type="submit" class="btn colors" @click="procuraArquivo()">
-                                    <font-awesome-icon icon="fa-solid fa-search" />
+                                <button type="submit" class="btn colors">
+                                    <font-awesome-icon icon="fa-solid fa-search" @click="procuraArquivo()" />
                                 </button>
                             </span>
                         </div>
@@ -97,11 +96,12 @@
             <template v-slot:card-footer v-else>
                 <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')"
                     v-if="!(arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'I')">Reativar</button>
+                <!-- botar um v-if aqui pra nao aparecer quando imovel = deletado-->
                 <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar
                     Definitivamente</button>
             </template>
         </CardImovel>
-        <Modal @close="toggleModal" :modalActive="modalActive" :showCloseButton="true">
+        <Modal @close="toggleModal" :modalActive="modalActive">
             <div v-if="modalDelete">
                 <div v-if="invalidesOrNot">
                     <div class="modal-content" v-if="confirmation">
@@ -162,23 +162,16 @@
 
 <script>
 import CardImovel from "../Utils/CardImovel.vue";
-import { mapActions, mapGetters, mapState } from "vuex";
+import { mapActions, mapGetters } from "vuex";
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faFilePdf, faImage, faFileWord, faFileExcel } from '@fortawesome/free-solid-svg-icons'
 import UploadArquivo from '../Forms/UploadArquivos.vue'
-import LoadingSection from "../Utils/LoadingSection.vue";
-
 library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
-// pensar em regras sobre isso, certo abaixo:
 
-// isFetching funcionando no listaImoveis pra carregamento de cards. Colocar aqui também.
-// Pensar em como vai ficar na hora de carregar editar e na hora de sucesso, essas fitas.
-// fazer testes... e pensar numa solução daquelas coisas que sobrepoem a tela toda e fica carregando, meio transparante assim
-// fazer um utils só pra tela de isFetching, ai coloco o v-if e TALVEZ o v-else
-// colocar algo que sobrepoem tudo, tipo um modal... e ai talvez n precise de v-else. Colocar um filtro preto fora do modal content.
+
 
 export default {
     data() {
@@ -203,7 +196,7 @@ export default {
         propsSemImovel: Boolean
     },
 
-    components: { CardImovel, Modal, FontAwesomeIcon, UploadArquivo, LoadingSection },
+    components: { CardImovel, Modal, FontAwesomeIcon, UploadArquivo },
 
     setup() {
         const modalActive = ref(false);
@@ -218,7 +211,6 @@ export default {
         ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveisValidosEInvalidos", "loadArquivosInvalidos", "loadArquivosSemImoveis"]),
 
         async procuraArquivo() {
-            this.$store.commit('isFetching', true);
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
                     await this.loadArquivos();
@@ -260,9 +252,7 @@ export default {
             if (this.invalidesOrNot) {
                 if (this.edit) {
                     this.edit = true;
-                    this.$store.commit('isFetching', true);
                     await this.loadImoveisValidosEInvalidos();
-                    console.log(this.displayListaImoveis)
                     this.$refs.formulario.imovel = null;
                     if (arquivo.imovel_id) {
                         this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
@@ -275,7 +265,6 @@ export default {
         },
 
         async apagarArquivo(id, tipo) {
-            this.$store.commit('isFetching', true);
             await this.$store.dispatch('apagar' + tipo, id)
                 .then(() => {
                     if (tipo == 'Arquivo') {
@@ -285,12 +274,10 @@ export default {
                         this.loadArquivosInvalidos();
                     }
                     this.confirmation = true;
-
                 }).catch(error => console.log(error))
         },
 
         async reativarArquivo(id) {
-            this.$store.commit('isFetching', true);
             await this.$store.dispatch('reativarArquivo', id)
                 .then(() => {
                     this.loadArquivosInvalidos();
@@ -316,8 +303,6 @@ export default {
         },
 
         async onCompleteEdit() {
-            this.$store.commit('isFetching', true);
-
             let arquivo = {
                 id: this.arquivoId,
                 nome: this.$refs.formulario.nome,
@@ -339,8 +324,6 @@ export default {
 
         async changeList() {
             this.keywords = '';
-            this.$store.commit('isFetching', true);
-            await this.loadImoveisValidosEInvalidos();
             if (this.invalidesOrNot) {
                 await this.loadArquivosInvalidos();
             }
@@ -351,8 +334,6 @@ export default {
         // dar um jeito de fazer uma função só 
         async changeListSemImovel() {
             this.keywords = '';
-            this.$store.commit('isFetching', true);
-            await this.loadImoveisValidosEInvalidos();
             if (!this.semImovel) {
                 await this.loadArquivosSemImoveis();
             }
@@ -374,10 +355,6 @@ export default {
             "displayImovelById"
         ]),
 
-        ...mapState([
-            "isFetching",
-        ]),
-
         schema() {
             const simpleSchema = {
                 nome: 'required|max:50'
@@ -388,7 +365,6 @@ export default {
     },
 
     async created() {
-        this.$store.commit('isFetching', true);
         await this.loadImoveisValidosEInvalidos();
         if (this.propsSemImovel) {
             this.semImovel = true;

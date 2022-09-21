@@ -12,7 +12,7 @@
                 <Field as="select" class="form-control" id="imovel" placeholder="Imóvel associado ao arquivo"
                     name="imovel" v-model="imovel">
                     <option value="" selected>Selecione o imóvel</option>
-                    <option v-for="imovel in displayListaImoveis" :value="imovel.id" :key="imovel.id">
+                    <option v-for="imovel in displayListaImoveisAtivos" :value="imovel.id" :key="imovel.id">
                         {{ imovel.id }} - {{ imovel.nome }}
                     </option>
                 </Field>
@@ -136,7 +136,7 @@ export default {
 
     computed: {
         ...mapGetters([
-            "displayListaImoveis"
+            "displayListaImoveisAtivos"
         ]),
 
         schema() {
@@ -148,7 +148,10 @@ export default {
     },
 
     async created() {
-        await this.loadImoveis();
+        if (!this.imovelProps) {
+            console.log('entrou no props')
+            await this.loadImoveis();
+        }
     },
 };
 </script>

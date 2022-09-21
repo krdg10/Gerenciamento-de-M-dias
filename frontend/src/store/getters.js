@@ -10,7 +10,12 @@ const displayNomeImovel = state => {
 
 const displayListaImoveis = state => {
   return state.imoveis;
+}
 
+const displayListaImoveisAtivos = state => {
+  let imoveis = state.imoveis;
+  let imoveisAtivos = imoveis.filter((imoveisAtivos) => { return imoveisAtivos.ativo == 'A' })
+  return imoveisAtivos;
 }
 
 const displayListaArquivos = state => {
@@ -58,5 +63,6 @@ export default {
   displayQuantidadeDeImoveisInativos,
   displayQuantidadeDeArquivossAtivos,
   displayQuantidadeDeArquivosInativos,
-  displayQuantidadeDeArquivosSemImovel
+  displayQuantidadeDeArquivosSemImovel,
+  displayListaImoveisAtivos
 };

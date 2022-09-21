@@ -182,7 +182,7 @@ export default {
             arquivoNome: '',
             modalDelete: false,
             arquivoImovel: '',
-            edit: false,
+            edit: true,
             imovelProps: true,
             tipoBusca: 'nome',
             baseUrl: 'http://localhost:8000/',
@@ -235,7 +235,7 @@ export default {
 
         },
 
-        async openModal(arquivo, tipo) {
+        openModal(arquivo, tipo) {
             this.modalDelete = false;
             this.confirmation = false;
             this.edit = false;
@@ -252,8 +252,6 @@ export default {
             if (this.invalidesOrNot) {
                 if (this.edit) {
                     this.edit = true;
-                    await this.loadImoveisValidosEInvalidos();
-                    this.$refs.formulario.imovel = null;
                     if (arquivo.imovel_id) {
                         this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
                         this.$refs.formulario.imovel = this.arquivoImovel;
@@ -323,6 +321,7 @@ export default {
         },
 
         async changeList() {
+            console.log(this.displayListaImoveis);
             this.keywords = '';
             if (this.invalidesOrNot) {
                 await this.loadArquivosInvalidos();

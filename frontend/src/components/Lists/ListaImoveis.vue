@@ -201,6 +201,8 @@ export default {
             }
 
             this.$store.dispatch('buscaImovel', payload).catch(error => console.log(error))
+            this.$store.commit('isFetching', false);
+
         },
 
         openModal(imovel, tipo) {
@@ -285,6 +287,8 @@ export default {
             else {
                 await this.loadImoveis();
             }
+            this.$store.commit('isFetching', false);
+
         }
     },
 
@@ -302,6 +306,8 @@ export default {
     async created() {
         this.$store.commit('isFetching', true);
         await this.loadImoveis();
+        this.$store.commit('isFetching', false);
+
     },
 }
 

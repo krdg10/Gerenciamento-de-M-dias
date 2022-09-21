@@ -1,4 +1,5 @@
 <template>
+    <LoadingSection v-if="isFetching"></LoadingSection>
     <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
             <div class="input-group paddingZeroLeft margin-bottom-40">
@@ -36,8 +37,8 @@
                         </div>
                         <div class="col-1 paddingZero" v-if="!semImovel">
                             <span>
-                                <button type="submit" class="btn colors">
-                                    <font-awesome-icon icon="fa-solid fa-search" @click="procuraArquivo()" />
+                                <button type="submit" class="btn colors" @click="procuraArquivo()">
+                                    <font-awesome-icon icon="fa-solid fa-search"  />
                                 </button>
                             </span>
                         </div>
@@ -162,13 +163,15 @@
 
 <script>
 import CardImovel from "../Utils/CardImovel.vue";
-import { mapActions, mapGetters } from "vuex";
+import { mapActions, mapGetters, mapState } from "vuex";
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faFilePdf, faImage, faFileWord, faFileExcel } from '@fortawesome/free-solid-svg-icons'
 import UploadArquivo from '../Forms/UploadArquivos.vue'
+import LoadingSection from "../Utils/LoadingSection.vue";
+
 library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
 
 
@@ -196,7 +199,7 @@ export default {
         propsSemImovel: Boolean
     },
 
-    components: { CardImovel, Modal, FontAwesomeIcon, UploadArquivo },
+    components: { CardImovel, Modal, FontAwesomeIcon, UploadArquivo, LoadingSection },
 
     setup() {
         const modalActive = ref(false);
@@ -211,6 +214,7 @@ export default {
         ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveisValidosEInvalidos", "loadArquivosInvalidos", "loadArquivosSemImoveis"]),
 
         async procuraArquivo() {
+            this.$store.commit('isFetching', true);
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
                     await this.loadArquivos();
@@ -232,7 +236,7 @@ export default {
 
                 this.$store.dispatch('buscaArquivo', payload).catch(error => console.log(error))
             }
-
+            this.$store.commit('isFetching', false);
         },
 
         openModal(arquivo, tipo) {
@@ -263,6 +267,7 @@ export default {
         },
 
         async apagarArquivo(id, tipo) {
+            this.$store.commit('isFetching', true);
             await this.$store.dispatch('apagar' + tipo, id)
                 .then(() => {
                     if (tipo == 'Arquivo') {
@@ -273,14 +278,19 @@ export default {
                     }
                     this.confirmation = true;
                 }).catch(error => console.log(error))
+            this.$store.commit('isFetching', false);
+
         },
 
         async reativarArquivo(id) {
+            this.$store.commit('isFetching', true);
             await this.$store.dispatch('reativarArquivo', id)
                 .then(() => {
                     this.loadArquivosInvalidos();
                     this.confirmation = true;
                 }).catch(error => console.log(error))
+            this.$store.commit('isFetching', false);
+
         },
 
         getNow() {
@@ -307,6 +317,7 @@ export default {
                 imovel: this.$refs.formulario.imovel,
                 data_edicao: this.getNow(),
             }
+            this.$store.commit('isFetching', true);
 
             await this.$store.dispatch('updateArquivo', arquivo)
                 .then(() => {
@@ -318,10 +329,13 @@ export default {
                     }
                     this.edit = false;
                 }).catch(error => console.log(error))
+            this.$store.commit('isFetching', false);
+
         },
 
         async changeList() {
             this.keywords = '';
+            this.$store.commit('isFetching', true);
             if (this.semImovel) {
                 await this.loadArquivosSemImoveis();
             }
@@ -333,6 +347,7 @@ export default {
                     await this.loadArquivosInvalidos();
                 }
             }
+            this.$store.commit('isFetching', false);
         },
     },
 
@@ -341,6 +356,10 @@ export default {
             "displayListaArquivos",
             "displayListaImoveis",
             "displayImovelById"
+        ]),
+
+        ...mapState([
+            "isFetching",
         ]),
 
         schema() {
@@ -353,6 +372,7 @@ export default {
     },
 
     async created() {
+        this.$store.commit('isFetching', true);
         await this.loadImoveisValidosEInvalidos();
         if (this.propsSemImovel) {
             this.semImovel = true;
@@ -361,6 +381,7 @@ export default {
         else {
             await this.loadArquivos();
         }
+        this.$store.commit('isFetching', false);
     },
 }
 

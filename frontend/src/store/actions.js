@@ -21,7 +21,6 @@ const loadArquivos = async ({ commit }) => {
         .then(response => {
             const payloadArquivos = response.data;
             commit('arquivos', payloadArquivos);
-            commit('isFetching', false);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -34,7 +33,6 @@ const loadArquivosSemImoveis = async ({ commit }) => {
             const payloadArquivos = response.data;
             console.log(payloadArquivos)
             commit('arquivos', payloadArquivos);
-            commit('isFetching', false);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -46,7 +44,6 @@ const loadImoveis = async ({ commit }) => {
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
-            commit('isFetching', false);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -58,7 +55,6 @@ const loadImoveisValidosEInvalidos = async ({ commit }) => {
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
-            commit('isFetching', false);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -71,7 +67,6 @@ const buscaImovel = async ({ commit }, busca) => {
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
-            commit('isFetching', false);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -90,7 +85,6 @@ const buscaArquivo = async ({ commit }, busca) => {
         .then(response => {
             const payloadArquivos = response.data;
             commit('arquivos', payloadArquivos);
-            commit('isFetching', false);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -211,7 +205,6 @@ const loadArquivosInvalidos = async ({ commit }) => {
         .then(response => {
             const payloadArquivos = response.data;
             commit('arquivos', payloadArquivos);
-            commit('isFetching', false);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -223,7 +216,6 @@ const loadImoveisInvalidos = async ({ commit }) => {
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
-            commit('isFetching', false);
             return response.data
         }).catch(error => {
             console.log(error)

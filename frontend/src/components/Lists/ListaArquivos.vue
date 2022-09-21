@@ -6,12 +6,12 @@
                     <div class="row">
                         <div class="form-check form-switch" v-if="invalidesOrNot">
                             <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault2"
-                                v-model="semImovel" @click="changeListSemImovel()">
+                                v-model="semImovel" @change="changeList()">
                             <label class="form-check-label" for="flexSwitchCheckDefault2">Sem imóvel</label>
                         </div>
                         <div class="form-check form-switch" v-if="!semImovel">
                             <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
-                                v-model="invalidesOrNot" @click="changeList()">
+                                v-model="invalidesOrNot" @change="changeList()">
                             <label class="form-check-label" for="flexSwitchCheckDefault"
                                 v-if="invalidesOrNot">Ativos</label>
                             <label class="form-check-label" for="flexSwitchCheckDefault" v-else>Inativos</label>
@@ -321,30 +321,19 @@ export default {
         },
 
         async changeList() {
-            console.log(this.displayListaImoveis);
             this.keywords = '';
-            if (this.invalidesOrNot) {
-                await this.loadArquivosInvalidos();
-            }
-            else {
-                await this.loadArquivos();
-            }
-        },
-        // dar um jeito de fazer uma função só 
-        async changeListSemImovel() {
-            this.keywords = '';
-            if (!this.semImovel) {
+            if (this.semImovel) {
                 await this.loadArquivosSemImoveis();
             }
             else {
-                if (!this.invalidesOrNot) {
-                    await this.loadArquivosInvalidos();
-                }
-                else {
+                if (this.invalidesOrNot) {
                     await this.loadArquivos();
                 }
+                else {
+                    await this.loadArquivosInvalidos();
+                }
             }
-        }
+        },
     },
 
     computed: {

@@ -40,7 +40,7 @@ $busca = null;
 
 if ($uri[1] == 'imovel') {
     if ($uri[2] == 'novo') {
-    } else if ($uri[2] == 'editar') {
+    } else if ($uri[2] == 'editar' || $uri[2] == 'desassociarTodosDocumentos' || $uri[2] == 'deletarTodosDocumentosAssociados') {
         if (!isset($uri[3])) {
             header("HTTP/1.1 404 Not Found");
             exit();

@@ -38,7 +38,7 @@
                         <div class="col-1 paddingZero" v-if="!semImovel">
                             <span>
                                 <button type="submit" class="btn colors" @click="procuraArquivo()">
-                                    <font-awesome-icon icon="fa-solid fa-search"  />
+                                    <font-awesome-icon icon="fa-solid fa-search" />
                                 </button>
                             </span>
                         </div>
@@ -97,6 +97,9 @@
             <template v-slot:card-footer v-else>
                 <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')"
                     v-if="!(arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'I')">Reativar</button>
+                <button class="btn btn-sm btn-primary" @click="openModal(arquivo, 'reactiveImovel')" v-else>Reativar
+                    Imóvel do
+                    Documento</button>
                 <!-- botar um v-if aqui pra nao aparecer quando imovel = deletado-->
                 <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar
                     Definitivamente</button>
@@ -146,14 +149,22 @@
                     </div>
                 </div>
                 <div v-else>
-                    <div v-if="confirmation">
+                    <div v-if="confirmation && !reactiveImovel">
                         <h1>Arquivo reativado com sucesso</h1>
                     </div>
-                    <div v-else>
+                    <div v-if="!confirmation && !reactiveImovel">
                         <h1>Deseja realmente reativar o arquivo {{ arquivoNome }}?</h1>
                         <button class="btn btn-sm btn-success" @click="reativarArquivo(arquivoId)">Reativar</button>
                     </div>
-
+                    <div v-if="confirmation && reactiveImovel">
+                        <h1>Imóvel do arquivo reativado com sucesso</h1>
+                    </div>
+                    <div v-if="!confirmation && reactiveImovel">
+                        <h1>Deseja realmente reativar o imóvel do arquivo {{ arquivoNome }}?</h1>
+                        <button class="btn btn-sm btn-primary"
+                            @click="reativarImovel(arquivoImovelId)">Reativar</button>
+                    </div>
+                    <!-- ver de fazer essas coisas numa variável por mensagem no script-->
                 </div>
             </div>
         </Modal>
@@ -191,7 +202,9 @@ export default {
             baseUrl: 'http://localhost:8000/',
             imageTypes: ['png', 'jpg', 'jpeg'],
             invalidesOrNot: true,
-            semImovel: false
+            semImovel: false,
+            reactiveImovel: false,
+            arquivoImovelId: ''
         }
     },
 
@@ -211,7 +224,7 @@ export default {
     // https://stackoverflow.com/questions/53772331/vue-html-js-how-to-download-a-file-to-browser-using-the-download-tag
 
     methods: {
-        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveisValidosEInvalidos", "loadArquivosInvalidos", "loadArquivosSemImoveis"]),
+        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveisValidosEInvalidos", "loadArquivosInvalidos", "loadArquivosSemImoveis", "reativarImovel"]),
 
         async procuraArquivo() {
             this.$store.commit('isFetching', true);
@@ -243,11 +256,17 @@ export default {
             this.modalDelete = false;
             this.confirmation = false;
             this.edit = false;
+            this.reactiveImovel = false;
             this.arquivoId = arquivo.id;
             this.arquivoNome = arquivo.nome;
+            this.arquivoImovelId = '';
 
             if (tipo == 'delete') {
                 this.modalDelete = true;
+            }
+            else if (tipo == 'reactiveImovel') {
+                this.reactiveImovel = true;
+                this.arquivoImovelId = arquivo.imovel_id;
             }
             else {
                 this.edit = true;
@@ -291,6 +310,17 @@ export default {
                 }).catch(error => console.log(error))
             this.$store.commit('isFetching', false);
 
+        },
+
+        async reativarImovel(id) {
+            this.$store.commit('isFetching', true);
+            await this.$store.dispatch('reativarImovel', id)
+                .then(() => {
+                    this.loadArquivosInvalidos();
+                    this.loadImoveisValidosEInvalidos();
+                    this.confirmation = true;
+                }).catch(error => console.log(error));
+            this.$store.commit('isFetching', false);
         },
 
         getNow() {

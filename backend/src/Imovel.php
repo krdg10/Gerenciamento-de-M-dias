@@ -51,6 +51,10 @@ class Imovel
                     $response = $this->deletarOuReativarImovel('A', $this->imovelId);
                 } else if ($this->url == 'alterarTag') {
                     $response = $this->updateTag($this->imovelId);
+                } else if ($this->url == 'desassociarTodosDocumentos') {
+                    $response = $this->desassociaDocumentos($this->imovelId, true);
+                } else if ($this->url == 'deletarTodosDocumentosAssociados') {
+                    $response = $this->deletaDocumentos($this->imovelId, 'inativar', true);
                 } else {
                     $response = $this->updateImovel($this->imovelId);
                 }
@@ -314,9 +318,9 @@ class Imovel
             $input = (array) json_decode(file_get_contents('php://input'), TRUE);
 
             if ($input["tipoDelete"] == "desassociaDocumentos") {
-                $this->desassociaDocumentos($id);
+                $this->desassociaDocumentos($id, false);
             } else {
-                $this->deletaDocumentos($id, 'inativar');
+                $this->deletaDocumentos($id, 'inativar', false);
             }
         }
 
@@ -382,9 +386,9 @@ class Imovel
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
 
         if ($input["tipoDelete"] == "desassociaDocumentos") {
-            $this->desassociaDocumentos($id);
+            $this->desassociaDocumentos($id, false);
         } else {
-            $this->deletaDocumentos($id, 'permanente');
+            $this->deletaDocumentos($id, 'permanente', false);
         }
 
         $query = "DELETE FROM imoveis WHERE id = $id;";
@@ -401,7 +405,7 @@ class Imovel
         return $response;
     }
 
-    private function desassociaDocumentos($id)
+    private function desassociaDocumentos($id, $urlTrueOrFalse)
     {
         $query = "UPDATE arquivos set imovel_id = null WHERE imovel_id = $id;";
 
@@ -409,28 +413,37 @@ class Imovel
         try {
             $statement = $this->db->query($query);
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
+            if (!$urlTrueOrFalse) {
+                return $result;
+            }
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode('Documentos do imóvel desassociados com sucesso');
+        return $response;
     }
 
-    private function deletaDocumentos($id, $tipo)
+    private function deletaDocumentos($id, $tipo, $urlTrueOrFalse)
     {
         if ($tipo == 'permanente') {
             $query = "DELETE FROM arquivos WHERE imovel_id = $id;";
         } else {
             $query = "UPDATE arquivos SET ativo = 'I' WHERE imovel_id = $id;";
         }
-        var_dump($query);
 
         try {
             $statement = $this->db->query($query);
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-            return $result;
+            if (!$urlTrueOrFalse) {
+                return $result;
+            }
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode('Documentos do imóvel apagados com sucesso');
+        return $response;
     }
 
     private function unprocessableEntityResponse()

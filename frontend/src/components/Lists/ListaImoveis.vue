@@ -57,6 +57,11 @@
             <template v-slot:card-footer v-if="invalidesOrNot">
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
                 <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')">Apagar</button>
+                <button class="btn btn-sm btn-warning" @click="openModal(imovel, 'desassocia')">Desassociar todos os
+                    Arquivos</button>
+                <button class="btn btn-sm btn-primary" @click="openModal(imovel, 'deleteDocumentos')">Apagar todos os
+                    Arquivos</button>
+
             </template>
             <template v-slot:card-footer v-else>
                 <button class="btn btn-sm btn-success" @click="openModal(imovel, 'reativar')">Reativar</button>
@@ -67,10 +72,13 @@
         <Modal @close="toggleModal" :modalActive="modalActive" :showCloseButton="true">
             <div v-if="modalDelete">
                 <div v-if="invalidesOrNot">
-                    <div class="modal-content" v-if="confirmation">
+                    <div class="modal-content" v-if="confirmation && !modalDesassocia">
                         <h1>Imóvel apagado com sucesso</h1>
                     </div>
-                    <div v-else>
+                    <div class="modal-content" v-if="confirmation && modalDesassocia">
+                        <h1>{{modalDesassocia}}</h1>
+                    </div>
+                    <div v-if="!confirmation && !modalDesassocia">
                         <div v-if="!tipoDeDelete" class="modal-content">
                             <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>?</h1>
                             <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
@@ -84,6 +92,17 @@
                                 @click="apagarImovel(imovelId, 'Imovel', 'desassociaDocumentos')">Desassociar
                                 Todos os Documentos Associados ao Imóvel</button>
                         </div>
+                    </div>
+                    <div v-if="!confirmation && modalDesassocia">
+                        <h1 class="mb-5">{{modalDesassocia}} <b>{{ imovelNome }}</b>?</h1>
+                        <button class="btn btn-sm btn-danger" @click="desassociarDocumentos(imovelId)"
+                            v-if="modalDesassocia == 'Deseja realmente desassociar todos os documentos do '">Desassociar
+                            Todos
+                            os Documentos do Imóvel</button>
+                        <button class="btn btn-sm btn-danger" @click="apagarDocumentos(imovelId)"
+                            v-if="modalDesassocia == 'Deseja realmente apagar todos os documentos associados ao '">Apagar
+                            Todos
+                            os Documentos do Imóvel</button>
                     </div>
                 </div>
                 <div v-else>
@@ -150,7 +169,8 @@ export default {
             imovelNome: '',
             invalidesOrNot: true,
             modalDelete: false,
-            modalReativar: false
+            modalReativar: false,
+            modalDesassocia: false
         }
     },
 
@@ -209,9 +229,18 @@ export default {
             this.modalDelete = false;
             this.modalReativar = false;
             this.confirmation = false;
+            this.modalDesassocia = false;
 
             if (tipo == 'delete') {
                 this.modalDelete = true;
+            }
+            else if (tipo == 'desassocia') {
+                this.modalDelete = true;
+                this.modalDesassocia = 'Deseja realmente desassociar todos os documentos do '
+            }
+            else if (tipo == 'deleteDocumentos') {
+                this.modalDelete = true;
+                this.modalDesassocia = 'Deseja realmente apagar todos os documentos associados ao '
             }
             else {
                 this.modalReativar = true;
@@ -252,6 +281,32 @@ export default {
 
             await this.$store.dispatch('alterarTag', payload).catch(error => console.log(error))
         },
+
+        async desassociarDocumentos(id) {
+            this.$store.commit('isFetching', true);
+
+            await this.$store.dispatch('desassociarTodosDocumentos', id)
+                .then(() => {
+                    this.modalDesassocia = 'Documentos do imóvel desassociados com sucesso';
+                    this.confirmation = true;
+                }).catch(error => console.log(error))
+            this.$store.commit('isFetching', false);
+
+        },
+
+        async apagarDocumentos(id) {
+            this.$store.commit('isFetching', true);
+
+            await this.$store.dispatch('deletarTodosDocumentosAssociados', id)
+                .then(() => {
+                    this.modalDesassocia = 'Documentos do imóvel apagados com sucesso';
+                    this.confirmation = true;
+                }).catch(error => console.log(error))
+            this.$store.commit('isFetching', false);
+
+        },
+
+
 
         changeTagValue(value) {
             if (value == 0) {

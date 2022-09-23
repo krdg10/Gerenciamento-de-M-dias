@@ -261,6 +261,24 @@ const apagarImovelPermanentemente = async (_, payload) => {
         })
 };
 
+const deletarTodosDocumentosAssociados = async (_, id) => {
+    return await axios({ url: imovelUrl + 'deletarTodosDocumentosAssociados' + '/' + id, method: 'PUT' })
+        .then(response => {
+            return response
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
+const desassociarTodosDocumentos = async (_, id) => {
+    return await axios({ url: imovelUrl + 'desassociarTodosDocumentos' + '/' + id, method: 'PUT' })
+        .then(response => {
+            return response
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 export default {
     createImovel,
     loadImoveis,
@@ -284,5 +302,7 @@ export default {
     apagarArquivoPermanentemente,
     apagarImovelPermanentemente,
     loadArquivosSemImoveis,
-    loadImoveisValidosEInvalidos
+    loadImoveisValidosEInvalidos,
+    deletarTodosDocumentosAssociados,
+    desassociarTodosDocumentos
 };

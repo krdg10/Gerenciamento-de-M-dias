@@ -2,6 +2,14 @@
     <LoadingSection v-if="isFetching"></LoadingSection>
     <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
+            <div class="col-3" v-if="invalidesOrNot">
+                <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
+                    v-bind:class="{ 'impIcon': tags.filterImportant == 1}" @click="changeTagFilter('importante')" />
+                <font-awesome-icon icon="fa fa-star" class="static" v-bind:class="{ 'favIcon': tags.filterFav == 1 }"
+                    @click="changeTagFilter('favorito')" />
+                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
+                    v-bind:class="{ 'urgIcon': tags.filterUrgent == 1 }" @click="changeTagFilter('urgente')" />
+            </div>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
                     v-model="invalidesOrNot" @click="changeList()">
@@ -21,12 +29,13 @@
             </div>
         </div>
     </div>
-    <div class="container" v-if="displayListaImoveis.length == 0">
+    <div class="container" v-if="displayListaImoveis(tags).length == 0">
         <h4 v-if="invalidesOrNot">Sem imóveis cadastrados</h4>
         <h4 v-else>Sem imóveis inativos</h4>
     </div>
     <div class="row rowCard" v-else>
-        <CardImovel class="col-sm-6 paddingZero" v-for="imovel in displayListaImoveis" :key="imovel.id" :id="imovel.id">
+        <CardImovel class="col-sm-6 paddingZero" v-for="imovel in displayListaImoveis(tags)" :key="imovel.id"
+            :id="imovel.id">
             <template v-slot:card-header>
                 <div class="container">
                     <div class="row">
@@ -170,7 +179,13 @@ export default {
             invalidesOrNot: true,
             modalDelete: false,
             modalReativar: false,
-            modalDesassocia: false
+            modalDesassocia: false,
+            tags: {
+                filterFav: 0,
+                filterImportant: 0,
+                filterUrgent: 0
+            }
+
         }
     },
 
@@ -306,7 +321,17 @@ export default {
 
         },
 
-
+        changeTagFilter(tipo) {
+            if (tipo == 'urgente') {
+                this.tags.filterUrgent = this.changeTagValue(this.tags.filterUrgent);
+            }
+            else if (tipo == 'importante') {
+                this.tags.filterImportant = this.changeTagValue(this.tags.filterImportant);
+            }
+            else {
+                this.tags.filterFav = this.changeTagValue(this.tags.filterFav);
+            }
+        },
 
         changeTagValue(value) {
             if (value == 0) {
@@ -335,6 +360,9 @@ export default {
         },
         async changeList() {
             this.keywords = '';
+            this.tags.filterFav = 0;
+            this.tags.filterImportant = 0;
+            this.tags.filterUrgent = 0;
             this.$store.commit('isFetching', true);
             if (this.invalidesOrNot) {
                 await this.loadImoveisInvalidos();

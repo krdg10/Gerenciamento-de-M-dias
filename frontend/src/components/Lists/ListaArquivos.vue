@@ -30,7 +30,7 @@
                             <select class="form-control" id="busca" placeholder="Imóvel associado ao arquivo"
                                 name="busca" v-model="keywords" v-else>
                                 <option value="" selected>Selecione o imóvel</option>
-                                <option v-for="imovel in displayListaImoveis" :value="imovel.id" :key="imovel.id">
+                                <option v-for="imovel in displayListaImoveis(false)" :value="imovel.id" :key="imovel.id">
                                     {{ imovel.id }} - {{ imovel.nome }}
                                 </option>
                             </select>
@@ -276,7 +276,7 @@ export default {
                 if (this.edit) {
                     this.edit = true;
                     if (arquivo.imovel_id) {
-                        this.arquivoImovel = this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
+                        this.arquivoImovel = this.displayListaImoveis(false).find(x => x.id == arquivo.imovel_id).id;
                         this.$refs.formulario.imovel = this.arquivoImovel;
                     }
                     this.$refs.formulario.nome = arquivo.nome;

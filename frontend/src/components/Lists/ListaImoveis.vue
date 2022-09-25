@@ -29,11 +29,11 @@
             </div>
         </div>
     </div>
-    <div class="container" v-if="displayListaImoveis(tags).length == 0">
+    <div class="container mb-6" v-if="displayListaImoveis(tags).length == 0">
         <h4 v-if="invalidesOrNot">Sem imóveis cadastrados</h4>
         <h4 v-else>Sem imóveis inativos</h4>
     </div>
-    <div class="row rowCard" v-else>
+    <div class="row rowCard mb-6" v-else>
         <CardImovel class="col-sm-6 paddingZero" v-for="imovel in displayListaImoveis(tags)" :key="imovel.id"
             :id="imovel.id">
             <template v-slot:card-header>

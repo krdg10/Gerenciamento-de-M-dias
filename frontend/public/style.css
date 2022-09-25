@@ -52,3 +52,26 @@
   color: black !important;
   text-decoration: none !important;
 }
+
+body {
+  position: relative;
+  padding-bottom: 58px;
+  min-height: 100vh;
+}
+
+
+footer {
+  text-align: center;
+  background-color: #333;
+  color: #fff;
+  padding: 20px;
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  /* position: fixed;
+  z-index: 1; */
+}
+
+.mb-6 {
+  margin-bottom: 6rem !important;
+}

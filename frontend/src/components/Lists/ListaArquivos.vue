@@ -47,11 +47,11 @@
             </div>
         </div>
     </div>
-    <div class="container" v-if="displayListaArquivos.length == 0">
+    <div class="container mb-6" v-if="displayListaArquivos.length == 0">
         <h4 v-if="invalidesOrNot">Sem arquivos cadastrados</h4>
         <h4 v-else>Sem nenhum arquivo inativo</h4>
     </div>
-    <div class="row rowCard" v-else>
+    <div class="row rowCard mb-6" v-else>
         <CardImovel class="col-sm-6 paddingZero" v-for="arquivo in displayListaArquivos" :key="arquivo.id"
             :id="arquivo.id">
             <template v-slot:card-header>

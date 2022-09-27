@@ -3,12 +3,26 @@
     <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
             <div class="col-3" v-if="invalidesOrNot">
-                <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
-                    v-bind:class="{ 'impIcon': tags.filterImportant == 1}" @click="changeTagFilter('importante')" />
-                <font-awesome-icon icon="fa fa-star" class="static" v-bind:class="{ 'favIcon': tags.filterFav == 1 }"
-                    @click="changeTagFilter('favorito')" />
-                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
-                    v-bind:class="{ 'urgIcon': tags.filterUrgent == 1 }" @click="changeTagFilter('urgente')" />
+                <Transition name="bounce" mode="out-in">
+                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
+                        @click="changeTagFilter('importante')" v-if="tags.filterImportant == 0" />
+                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon"
+                        @click="changeTagFilter('importante')" v-else />
+                </Transition>
+
+                <Transition name="bounce" mode="out-in">
+                    <font-awesome-icon icon="fa fa-star" class="static" @click="changeTagFilter('favorito')"
+                        v-if="tags.filterFav == 0" />
+                    <font-awesome-icon icon="fa fa-star" class="static favIcon" @click="changeTagFilter('favorito')"
+                        v-else />
+                </Transition>
+
+                <Transition name="bounce" mode="out-in">
+                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
+                        @click="changeTagFilter('urgente')" v-if="tags.filterUrgent == 0" />
+                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon"
+                        @click="changeTagFilter('urgente')" v-else />
+                </Transition>
             </div>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
@@ -46,15 +60,28 @@
                                 }}</h3>
                         </div>
                         <div class="col-3" v-if="invalidesOrNot">
-                            <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
-                                v-bind:class="{ 'impIcon': imovel.importante == 1 }"
-                                @click="addTag(imovel.id, 'importante', imovel.importante)" />
-                            <font-awesome-icon icon="fa fa-star" class="static"
-                                v-bind:class="{ 'favIcon': imovel.favorito == 1 }"
-                                @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
-                            <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
-                                v-bind:class="{ 'urgIcon': imovel.urgente == 1 }"
-                                @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                            <Transition name="bounce" mode="out-in">
+                                <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
+                                    v-if=" imovel.importante == 0"
+                                    @click="addTag(imovel.id, 'importante', imovel.importante)" />
+                                <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon" v-else
+                                    @click="addTag(imovel.id, 'importante', imovel.importante)" />
+                            </Transition>
+
+                            <Transition name="bounce" mode="out-in">
+                                <font-awesome-icon icon="fa fa-star" class="static" v-if="imovel.favorito == 0"
+                                    @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
+                                <font-awesome-icon icon="fa fa-star" class="static favIcon" v-else
+                                    @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
+                            </Transition>
+
+                            <Transition name="bounce" mode="out-in">
+                                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
+                                    v-if="imovel.urgente == 0" @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon" v-else
+                                    @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                            </Transition>
+
                         </div>
                     </div>
                 </div>
@@ -165,7 +192,7 @@ import LoadingSection from "../Utils/LoadingSection.vue";
 library.add(faSearch, faStar, faExclamation, faTriangleExclamation)
 // adicionar isso no X do modal e tirar o link do fontawesome do index
 // ver de mudar cor do icons e tornálos clicáveis pra fazer os botões de tag. 
-
+// design: botar os "excluir docs" e "desassociar docs" como opções nos cards
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
 
@@ -185,7 +212,6 @@ export default {
                 filterImportant: 0,
                 filterUrgent: 0
             }
-
         }
     },
 
@@ -321,7 +347,7 @@ export default {
 
         },
 
-        changeTagFilter(tipo) {
+        async changeTagFilter(tipo) {
             if (tipo == 'urgente') {
                 this.tags.filterUrgent = this.changeTagValue(this.tags.filterUrgent);
             }
@@ -424,29 +450,4 @@ export default {
     }
 }
 
-.barra {
-    display: flex;
-}
-
-.colors {
-    background-color: #198754;
-    color: white;
-}
-
-.favIcon {
-    color: yellow
-}
-
-.urgIcon {
-    color: red
-}
-
-.impIcon {
-    color: red;
-}
-
-.margin-barra {
-    margin-top: 1%;
-    margin-bottom: 1%;
-}
 </style>

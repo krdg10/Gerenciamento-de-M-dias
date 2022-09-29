@@ -215,7 +215,7 @@ export default {
                 filterUrgent: 0
             },
             offset: 0,
-            limit: 10,
+            limit: 2,
             total: 0,
             current: 0,
         }
@@ -241,7 +241,7 @@ export default {
     },
 
     methods: {
-        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos", "loadImoveisAtivosPorPagina"]),
+        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos", "loadImoveisPorPagina"]),
 
         async procuraImovel() {
             this.$store.commit('isFetching', true);
@@ -299,27 +299,42 @@ export default {
 
         },
 
+
         /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
+        async recalculaDepoisRemoverDaLista(status) {
+            if ((this.total - 1) / this.limit == Math.floor(this.total / this.limit) && (this.current == Math.floor(this.total / this.limit))) {
+                this.offset = this.offset - this.limit;
+                this.current--;
+            }
+            const resultado =
+                await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            this.total = resultado.totalImoveis.totalImoveis;
+        },
 
         async apagarImovel(id, tipo, tipoDelete) {
             let payload = { id: id, tipoDelete: tipoDelete };
+            this.$store.commit('isFetching', true);
             await this.$store.dispatch('apagar' + tipo, payload)
-                .then(() => {
+                .then(async () => {
+                    let status = 'Inativos';
                     if (tipo == 'Imovel') {
-                        this.loadImoveis();
+                        status = 'Ativos';
                     }
-                    else {
-                        this.loadImoveisInvalidos();
-                    }
+                    await this.recalculaDepoisRemoverDaLista(status);
+
+                    this.$store.commit('isFetching', false);
                     this.confirmation = true;
                 }).catch(error => console.log(error))
         },
 
         async reativarImovel(id) {
+            this.$store.commit('isFetching', true);
             await this.$store.dispatch('reativarImovel', id)
-                .then(() => {
-                    this.loadImoveisInvalidos();
+                .then(async () => {
+                    await this.recalculaDepoisRemoverDaLista('Inativos');
                     this.confirmation = true;
+                    this.$store.commit('isFetching', false);
+
                 }).catch(error => console.log(error))
         },
 
@@ -402,9 +417,9 @@ export default {
             if (this.invalidesOrNot) {
                 status = 'Inativos';
             }
-            const teste =
-                await this.loadImoveisAtivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
-            this.total = teste.totalImoveis.totalImoveis;
+            const resultado =
+                await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            this.total = resultado.totalImoveis.totalImoveis;
             this.$store.commit('isFetching', false);
         },
 
@@ -417,15 +432,16 @@ export default {
                 return;
             }
             else if (this.current > value) {
-                this.offset = this.offset - this.limit;
+                this.offset = this.offset - (this.limit * (this.current - value));
             }
             else if (this.current < value) {
-                this.offset = this.offset + this.limit;
+                this.offset = this.offset + (this.limit * (value - this.current));
             }
             this.current = value;
             this.$store.commit('isFetching', true);
-            this.loadImoveisAtivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
             this.$store.commit('isFetching', false);
+            console.log('Offset: ' + this.offset + ' current: ' + this.current)
         },
     },
 
@@ -442,14 +458,12 @@ export default {
 
     async created() {
         this.$store.commit('isFetching', true);
-        await this.loadImoveis();
-        const teste = await this.loadImoveisAtivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
+        const resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
         // https://dedicio.medium.com/como-criar-um-componente-de-pagina%C3%A7%C3%A3o-em-vue-js-86fed480e45b
         // API tem que estar parecida com a desse exemplo... ta melhorando.
         // ja ta retornando total, fazendo coisa com offset e limit. 
         // ai organizar os load tudo e organizar o offset e limit local, o que tem que ser atribuido a que e o que tem que ir pro component
-        console.log(teste)
-        this.total = teste.totalImoveis.totalImoveis;
+        this.total = resultado.totalImoveis.totalImoveis;
         this.$store.commit('isFetching', false);
 
     },

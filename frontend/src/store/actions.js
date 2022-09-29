@@ -279,7 +279,7 @@ const desassociarTodosDocumentos = async (_, id) => {
         })
 };
 
-const loadImoveisAtivosPorPagina = async ({ commit }, payload) => {
+const loadImoveisPorPagina = async ({ commit }, payload) => {
     let offset = payload.offset;
     let limit = payload.limit;
     let status = payload.status; // Ativo ou Inativo
@@ -319,5 +319,5 @@ export default {
     loadImoveisValidosEInvalidos,
     deletarTodosDocumentosAssociados,
     desassociarTodosDocumentos,
-    loadImoveisAtivosPorPagina
+    loadImoveisPorPagina
 };

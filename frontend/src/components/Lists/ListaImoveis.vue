@@ -105,6 +105,7 @@
                     Definitivamente</button>
             </template>
         </CardImovel>
+        <Pagination :offset="offset" :total="total" :limit="limit" @change-page="changePage"></Pagination>
         <Modal @close="toggleModal" :modalActive="modalActive" :showCloseButton="true">
             <div v-if="modalDelete">
                 <div v-if="invalidesOrNot">
@@ -195,6 +196,7 @@ library.add(faSearch, faStar, faExclamation, faTriangleExclamation)
 // design: botar os "excluir docs" e "desassociar docs" como opções nos cards
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
+import Pagination from "../Utils/PaginationOfLists.vue"
 
 export default {
     data() {
@@ -211,11 +213,15 @@ export default {
                 filterFav: 0,
                 filterImportant: 0,
                 filterUrgent: 0
-            }
+            },
+            offset: 0,
+            limit: 10,
+            total: 0,
+            current: 0,
         }
     },
 
-    components: { CardImovel, Modal, FontAwesomeIcon, LoadingSection },
+    components: { CardImovel, Modal, FontAwesomeIcon, LoadingSection, Pagination },
 
     setup() {
         const tipoDeDelete = ref(false);
@@ -235,7 +241,7 @@ export default {
     },
 
     methods: {
-        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos"]),
+        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos", "loadImoveisAtivosPorPagina"]),
 
         async procuraImovel() {
             this.$store.commit('isFetching', true);
@@ -389,16 +395,38 @@ export default {
             this.tags.filterFav = 0;
             this.tags.filterImportant = 0;
             this.tags.filterUrgent = 0;
+            this.current = 0;
+            let status = 'Ativos';
+            this.offset = 0;
             this.$store.commit('isFetching', true);
             if (this.invalidesOrNot) {
-                await this.loadImoveisInvalidos();
+                status = 'Inativos';
             }
-            else {
-                await this.loadImoveis();
-            }
+            const teste =
+                await this.loadImoveisAtivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            this.total = teste.totalImoveis.totalImoveis;
             this.$store.commit('isFetching', false);
+        },
 
-        }
+        changePage(value) {
+            let status = 'Ativos';
+            if (!this.invalidesOrNot) {
+                status = 'Inativos';
+            }
+            if (this.current == value) {
+                return;
+            }
+            else if (this.current > value) {
+                this.offset = this.offset - this.limit;
+            }
+            else if (this.current < value) {
+                this.offset = this.offset + this.limit;
+            }
+            this.current = value;
+            this.$store.commit('isFetching', true);
+            this.loadImoveisAtivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            this.$store.commit('isFetching', false);
+        },
     },
 
     computed: {
@@ -415,6 +443,13 @@ export default {
     async created() {
         this.$store.commit('isFetching', true);
         await this.loadImoveis();
+        const teste = await this.loadImoveisAtivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
+        // https://dedicio.medium.com/como-criar-um-componente-de-pagina%C3%A7%C3%A3o-em-vue-js-86fed480e45b
+        // API tem que estar parecida com a desse exemplo... ta melhorando.
+        // ja ta retornando total, fazendo coisa com offset e limit. 
+        // ai organizar os load tudo e organizar o offset e limit local, o que tem que ser atribuido a que e o que tem que ir pro component
+        console.log(teste)
+        this.total = teste.totalImoveis.totalImoveis;
         this.$store.commit('isFetching', false);
 
     },
@@ -449,5 +484,4 @@ export default {
         }
     }
 }
-
 </style>

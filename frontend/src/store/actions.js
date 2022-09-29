@@ -279,6 +279,20 @@ const desassociarTodosDocumentos = async (_, id) => {
         })
 };
 
+const loadImoveisAtivosPorPagina = async ({ commit }, payload) => {
+    let offset = payload.offset;
+    let limit = payload.limit;
+    let status = payload.status; // Ativo ou Inativo
+    return await axios({ url: imovelUrl + 'imoveisPaginados' + status + '/' + offset + '/' + limit, method: 'GET' })
+        .then(response => {
+            const payloadImoveis = response.data.resultado;
+            commit('imoveis', payloadImoveis);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 export default {
     createImovel,
     loadImoveis,
@@ -304,5 +318,6 @@ export default {
     loadArquivosSemImoveis,
     loadImoveisValidosEInvalidos,
     deletarTodosDocumentosAssociados,
-    desassociarTodosDocumentos
+    desassociarTodosDocumentos,
+    loadImoveisAtivosPorPagina
 };

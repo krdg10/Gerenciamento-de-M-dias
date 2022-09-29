@@ -9,14 +9,18 @@ class Imovel
     private $imovelId;
     private $busca;
     private $url;
+    private $offset;
+    private $limit;
 
-    public function __construct($db, $requestMethod, $imovelId, $busca, $url)
+    public function __construct($db, $requestMethod, $imovelId, $busca, $url, $offset, $limit)
     {
         $this->db = $db;
         $this->requestMethod = $requestMethod;
         $this->imovelId = $imovelId;
         $this->busca = $busca;
         $this->url = $url;
+        $this->offset = $offset;
+        $this->limit = $limit;
     }
 
     public function processRequest()
@@ -30,6 +34,10 @@ class Imovel
                 } else {
                     if ($this->url == 'buscarTodosValidos') {
                         $response = $this->getAllImovels('A');
+                    } else if ($this->url == 'imoveisPaginadosAtivos') {
+                        $response = $this->getAllImovelsInPages('A', $this->offset, $this->limit);
+                    } else if ($this->url == 'imoveisPaginadosInativos') {
+                        $response = $this->getAllImovelsInPages('I', $this->offset, $this->limit);
                     } else if ($this->url == 'buscarTodosInvalidos') {
                         $response = $this->getAllImovels('I');
                     } else if ($this->url == 'buscarTodosValidosEInvalidos') {
@@ -74,10 +82,10 @@ class Imovel
 
     private function getAllImovels($status)
     {
-        $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.id = tag.id;";
+        $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.tags_id = tag.id;";
 
         if (!isset($status)) {
-            $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.id = tag.id;";
+            $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.tags_id = tag.id;";
         }
 
         try {
@@ -89,6 +97,31 @@ class Imovel
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
+        return $response;
+    }
+
+    private function getAllImovelsInPages($status, $offset, $limit)
+    {
+        $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.tags_id = tag.id ORDER BY imovel.id LIMIT $limit OFFSET $offset;";
+
+        if (!isset($status)) {
+            $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.tags_id = tag.id ORDER BY imovel.nome LIMIT $limit OFFSET $offset;";
+        }
+
+        $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis where ativo = '$status';";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $statement = $this->db->query($queryTotal);
+            $total = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+        $object = (object) ['totalImoveis' => $total[0], 'resultado' => $result];
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($object);
         return $response;
     }
 
@@ -119,7 +152,7 @@ class Imovel
       SELECT
       imovel.*, tag.favorito, tag.importante, tag.urgente
       FROM
-      imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.id = tag.id;
+      imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.tags_id = tag.id;
     ";
 
 

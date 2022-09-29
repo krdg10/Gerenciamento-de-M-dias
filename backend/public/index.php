@@ -37,6 +37,8 @@ $uri = explode('/', $uri);
 $requestMethod = $_SERVER["REQUEST_METHOD"];
 $postId = null;
 $busca = null;
+$offset = null;
+$limit = null;
 
 if ($uri[1] == 'imovel') {
     if ($uri[2] == 'novo') {
@@ -65,11 +67,18 @@ if ($uri[1] == 'imovel') {
             exit();
         }
         $postId = (int) $uri[3];
+    } else if ($uri[2] == 'imoveisPaginadosAtivos' || $uri[2] == 'imoveisPaginadosInativos') {
+        if (!isset($uri[3]) || !isset($uri[4])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $offset = (int) $uri[3];
+        $limit = (int) $uri[4];
     } else {
         header("HTTP/1.1 404 Not Found");
         exit();
     }
-    $controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
+    $controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[2], $offset, $limit);
     $controller->processRequest();
 } else if ($uri[1] == 'arquivo') {
     if ($uri[2] == 'novoArquivo') {

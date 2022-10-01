@@ -10,14 +10,18 @@ class Arquivo
     private $arquivoId;
     private $busca;
     private $url;
+    private $offset;
+    private $limit;
 
-    public function __construct($db, $requestMethod, $arquivoId, $busca, $url)
+    public function __construct($db, $requestMethod, $arquivoId, $busca, $url, $offset, $limit)
     {
         $this->db = $db;
         $this->requestMethod = $requestMethod;
         $this->arquivoId = $arquivoId;
         $this->busca = $busca;
         $this->url = $url;
+        $this->offset = $offset;
+        $this->limit = $limit;
     }
 
     public function processRequest()
@@ -28,9 +32,9 @@ class Arquivo
                     $response = $this->getArquivo($this->arquivoId);
                 } else if ($this->busca) {
                     if ($this->url == 'buscaNome') {
-                        $response = $this->getArquivosByName($this->busca);
+                        $response = $this->getArquivosByName($this->busca, $this->offset, $this->limit);
                     } else {
-                        $response = $this->getArquivosByImovel($this->busca);
+                        $response = $this->getArquivosByImovel($this->busca, $this->offset, $this->limit);
                     }
                 } else {
                     if ($this->url == 'buscarTodosValidos') {
@@ -38,7 +42,11 @@ class Arquivo
                     } else if ($this->url == 'buscarTodosInvalidos') {
                         $response = $this->getAllArquivos('I');
                     } else if ($this->url == 'ativosSemImovel') {
-                        $response = $this->getArquivosAtivosSemImovel();
+                        $response = $this->getAllArquivosInPages('semImovel', $this->offset, $this->limit);
+                    } else if ($this->url == 'arquivosPaginadosAtivos') {
+                        $response = $this->getAllArquivosInPages('A', $this->offset, $this->limit);
+                    } else if ($this->url == 'arquivosPaginadosInativos') {
+                        $response = $this->getAllArquivosInPages('I', $this->offset, $this->limit);
                     } else if ($this->url == 'numeroDeAtivos') {
                         $response = $this->getNumeroArquivosAtivosOuInativos('A');
                     } else if ($this->url == 'numeroDeInativos') {
@@ -88,6 +96,32 @@ class Arquivo
         return $response;
     }
 
+    private function getAllArquivosInPages($status, $offset, $limit)
+    {
+        if ($status == 'semImovel') {
+            $query = "SELECT * FROM arquivos where ativo = 'A' AND imovel_id IS NULL ORDER BY id LIMIT $limit OFFSET $offset;";
+            $queryTotal = "SELECT COUNT(*) totalImoveis FROM arquivos where ativo = 'A' AND imovel_id IS NULL;";
+        } else {
+            $query = "SELECT * FROM arquivos where ativo = '$status' ORDER BY id LIMIT $limit OFFSET $offset;";
+            $queryTotal = "SELECT COUNT(*) totalImoveis FROM arquivos where ativo = '$status';";
+        }
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $statement = $this->db->query($queryTotal);
+            $total = $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+        $object = (object) ['totalImoveis' => $total[0], 'resultado' => $result];
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($object);
+        return $response;
+    }
+
+
     private function getNumeroArquivosAtivosOuInativos($status)
     {
         $query = "SELECT count(*) numero FROM arquivos where ativo = '$status';";
@@ -121,55 +155,48 @@ class Arquivo
     }
 
 
-    private function getArquivosByName($busca)
+    private function getArquivosByName($busca, $offset, $limit)
     {
         $keywords = $busca[0];
         $status = $busca[1];
-        $query = "SELECT * FROM arquivos where LOWER(nome) LIKE LOWER('%$keywords%') and ativo = '$status';";
+        $query = "SELECT * FROM arquivos where LOWER(nome) LIKE LOWER('%$keywords%') and ativo = '$status' ORDER BY id LIMIT $limit OFFSET $offset;";
+        $queryTotal = "SELECT COUNT(*) totalImoveis FROM arquivos where LOWER(nome) LIKE LOWER('%$keywords%') and ativo = '$status';";
 
         try {
             $statement = $this->db->query($query);
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $statement = $this->db->query($queryTotal);
+            $total =  $statement->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
+        $object = (object) ['totalImoveis' => $total[0], 'resultado' => $result];
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
+        $response['body'] = json_encode($object);
         return $response;
     }
 
-    private function getArquivosByImovel($busca)
+    private function getArquivosByImovel($busca,  $offset, $limit)
     {
         $keywords = $busca[0];
         $status = $busca[1];
-        $query = "SELECT * FROM arquivos where imovel_id = $keywords and ativo = '$status';";
+        $query = "SELECT * FROM arquivos where imovel_id = $keywords and ativo = '$status' ORDER BY id LIMIT $limit OFFSET $offset;";
+        $queryTotal = "SELECT COUNT(*) totalImoveis FROM arquivos where imovel_id = $keywords and ativo = '$status';";
+
 
         try {
             $statement = $this->db->query($query);
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $statement = $this->db->query($queryTotal);
+            $total =  $statement->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
+        $object = (object) ['totalImoveis' => $total[0], 'resultado' => $result];
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
-        return $response;
-    }
-
-    private function getArquivosAtivosSemImovel()
-    {
-        $query = "SELECT * FROM arquivos where ativo = 'A' AND imovel_id IS NULL;";
-
-        try {
-            $statement = $this->db->query($query);
-            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
-        } catch (\PDOException $e) {
-            exit($e->getMessage());
-        }
-
-        $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
+        $response['body'] = json_encode($object);
         return $response;
     }
 

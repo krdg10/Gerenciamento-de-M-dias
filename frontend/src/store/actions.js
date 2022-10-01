@@ -81,9 +81,9 @@ const buscaArquivo = async ({ commit }, busca) => {
     else {
         url = 'buscaImovel';
     }
-    return await axios({ url: arquivoUrl + url + '/' + busca.keywords + '/' + busca.status, method: 'GET' })
+    return await axios({ url: arquivoUrl + url + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit, method: 'GET' })
         .then(response => {
-            const payloadArquivos = response.data;
+            const payloadArquivos = response.data.resultado;
             commit('arquivos', payloadArquivos);
             return response.data
         }).catch(error => {
@@ -293,6 +293,27 @@ const loadImoveisPorPagina = async ({ commit }, payload) => {
         })
 };
 
+const loadArquivosPorPagina = async ({ commit }, payload) => {
+    let offset = payload.offset;
+    let limit = payload.limit;
+    let url;
+    if (payload.status == 'semImovel') {
+        url = 'ativosSemImovel';
+    }
+    else {
+        url = 'arquivosPaginados' + payload.status;
+    }
+
+    return await axios({ url: arquivoUrl + url + '/' + offset + '/' + limit, method: 'GET' })
+        .then(response => {
+            const payloadArquivos = response.data.resultado;
+            commit('arquivos', payloadArquivos);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 export default {
     createImovel,
     loadImoveis,
@@ -319,5 +340,6 @@ export default {
     loadImoveisValidosEInvalidos,
     deletarTodosDocumentosAssociados,
     desassociarTodosDocumentos,
-    loadImoveisPorPagina
+    loadImoveisPorPagina,
+    loadArquivosPorPagina
 };

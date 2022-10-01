@@ -30,7 +30,8 @@
                             <select class="form-control" id="busca" placeholder="Imóvel associado ao arquivo"
                                 name="busca" v-model="keywords" v-else>
                                 <option value="" selected>Selecione o imóvel</option>
-                                <option v-for="imovel in displayListaImoveis(false)" :value="imovel.id" :key="imovel.id">
+                                <option v-for="imovel in displayListaImoveis(false)" :value="imovel.id"
+                                    :key="imovel.id">
                                     {{ imovel.id }} - {{ imovel.nome }}
                                 </option>
                             </select>
@@ -105,6 +106,8 @@
                     Definitivamente</button>
             </template>
         </CardImovel>
+        <Pagination :offset="offset" :total="total" :limit="limit" @change-page="changePage"></Pagination>
+
         <Modal @close="toggleModal" :modalActive="modalActive">
             <div v-if="modalDelete">
                 <div v-if="invalidesOrNot">
@@ -182,6 +185,7 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faSearch, faFilePdf, faImage, faFileWord, faFileExcel } from '@fortawesome/free-solid-svg-icons'
 import UploadArquivo from '../Forms/UploadArquivos.vue'
 import LoadingSection from "../Utils/LoadingSection.vue";
+import Pagination from "../Utils/PaginationOfLists.vue"
 
 library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
 
@@ -204,15 +208,23 @@ export default {
             invalidesOrNot: true,
             semImovel: false,
             reactiveImovel: false,
-            arquivoImovelId: ''
+            arquivoImovelId: '',
+            offset: 0,
+            limit: 2,
+            total: 0,
+            current: 0,
+            busca: false
         }
     },
 
     props: {
-        propsSemImovel: Boolean
+        propsSemImovel: {
+            type: [String, Boolean],
+            default: false,
+        },
     },
 
-    components: { CardImovel, Modal, FontAwesomeIcon, UploadArquivo, LoadingSection },
+    components: { CardImovel, Modal, FontAwesomeIcon, UploadArquivo, LoadingSection, Pagination },
 
     setup() {
         const modalActive = ref(false);
@@ -224,35 +236,51 @@ export default {
     // https://stackoverflow.com/questions/53772331/vue-html-js-how-to-download-a-file-to-browser-using-the-download-tag
 
     methods: {
-        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveisValidosEInvalidos", "loadArquivosInvalidos", "loadArquivosSemImoveis", "reativarImovel"]),
+        ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveisValidosEInvalidos", "reativarImovel", "loadArquivosPorPagina"]),
+
+        async execSearchImovel() {
+            let status;
+            if (this.invalidesOrNot) {
+                status = 'A';
+            }
+            else {
+                status = 'I'
+            }
+
+            let payload = {
+                keywords: this.keywords,
+                tipo: this.tipoBusca,
+                status: status,
+                offset: this.offset,
+                limit: this.limit
+            }
+
+            this.$store.dispatch('buscaArquivo', payload)
+                .then(response => {
+                    this.busca = true;
+                    this.total = response.totalImoveis.totalImoveis;
+                }).catch(error => console.log(error))
+        },
 
         async procuraArquivo() {
             this.$store.commit('isFetching', true);
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
-                    await this.loadArquivos();
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
                 }
                 else {
-                    await this.loadArquivosInvalidos();
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Inativos' });
                 }
             }
             else {
-                let status;
-                if (this.invalidesOrNot) {
-                    status = 'A';
-                }
-                else {
-                    status = 'I'
-                }
-
-                let payload = { keywords: this.keywords, tipo: this.tipoBusca, status: status }
-
-                this.$store.dispatch('buscaArquivo', payload).catch(error => console.log(error))
+                await this.execSearchImovel();
+                this.offset = 0;
+                this.current = 0;
             }
             this.$store.commit('isFetching', false);
         },
 
-        openModal(arquivo, tipo) {
+        async openModal(arquivo, tipo) {
             this.modalDelete = false;
             this.confirmation = false;
             this.edit = false;
@@ -276,7 +304,7 @@ export default {
                 if (this.edit) {
                     this.edit = true;
                     if (arquivo.imovel_id) {
-                        this.arquivoImovel = this.displayListaImoveis(false).find(x => x.id == arquivo.imovel_id).id;
+                        this.arquivoImovel = await this.displayListaImoveis(false).find(x => x.id == arquivo.imovel_id).id;
                         this.$refs.formulario.imovel = this.arquivoImovel;
                     }
                     this.$refs.formulario.nome = arquivo.nome;
@@ -288,12 +316,17 @@ export default {
         async apagarArquivo(id, tipo) {
             this.$store.commit('isFetching', true);
             await this.$store.dispatch('apagar' + tipo, id)
-                .then(() => {
+                .then(async () => {
                     if (tipo == 'Arquivo') {
-                        this.loadArquivos();
+                        if (this.semImovel) {
+                            await this.recalculaDepoisRemoverDaLista('semImovel');
+                        }
+                        else {
+                            await this.recalculaDepoisRemoverDaLista('Ativos');
+                        }
                     }
                     else {
-                        this.loadArquivosInvalidos();
+                        await this.recalculaDepoisRemoverDaLista('Inativos');
                     }
                     this.confirmation = true;
                 }).catch(error => console.log(error))
@@ -304,8 +337,8 @@ export default {
         async reativarArquivo(id) {
             this.$store.commit('isFetching', true);
             await this.$store.dispatch('reativarArquivo', id)
-                .then(() => {
-                    this.loadArquivosInvalidos();
+                .then(async () => {
+                    await this.recalculaDepoisRemoverDaLista('Inativos');
                     this.confirmation = true;
                 }).catch(error => console.log(error))
             this.$store.commit('isFetching', false);
@@ -315,9 +348,10 @@ export default {
         async reativarImovel(id) {
             this.$store.commit('isFetching', true);
             await this.$store.dispatch('reativarImovel', id)
-                .then(() => {
-                    this.loadArquivosInvalidos();
-                    this.loadImoveisValidosEInvalidos();
+                .then(async () => {
+                    //this.loadArquivosInvalidos();
+                    // await this.recalculaDepoisRemoverDaLista('Inativos');
+                    await this.loadImoveisValidosEInvalidos();
                     this.confirmation = true;
                 }).catch(error => console.log(error));
             this.$store.commit('isFetching', false);
@@ -334,9 +368,7 @@ export default {
         redirect(imovel) {
             let id = imovel.id;
             this.$store.commit('imovel', imovel);
-
             this.$router.push({ name: 'novoImovel', params: { id: id } })
-
             // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
         },
 
@@ -350,12 +382,17 @@ export default {
             this.$store.commit('isFetching', true);
 
             await this.$store.dispatch('updateArquivo', arquivo)
-                .then(() => {
+                .then(async () => {
                     if (this.semImovel) {
-                        this.loadArquivosSemImoveis();
+                        if ((this.arquivoImovel == null || this.arquivoImovel == '') && (arquivo.imovel != null && arquivo.imovel != '')) {
+                            await this.recalculaDepoisRemoverDaLista('semImovel');
+                        }
+                        else {
+                            await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'semImovel' });
+                        }
                     }
                     else {
-                        this.loadArquivos();
+                        await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
                     }
                     this.edit = false;
                 }).catch(error => console.log(error))
@@ -365,19 +402,76 @@ export default {
 
         async changeList() {
             this.keywords = '';
+            this.modalActive = false;
             this.$store.commit('isFetching', true);
             if (this.semImovel) {
-                await this.loadArquivosSemImoveis();
+                await this.inicializaLista('semImovel');
             }
             else {
                 if (this.invalidesOrNot) {
-                    await this.loadArquivos();
+                    await this.inicializaLista('Ativos');
                 }
                 else {
-                    await this.loadArquivosInvalidos();
+                    await this.inicializaLista('Inativos');
                 }
             }
             this.$store.commit('isFetching', false);
+        },
+
+        async changePage(value) {
+            let status = 'Ativos';
+            if (!this.invalidesOrNot) {
+                status = 'Inativos';
+            }
+            if (this.semImovel) {
+                status = 'semImovel'
+            }
+            if (this.current == value) {
+                return;
+            }
+            else if (this.current > value) {
+                this.offset = this.offset - (this.limit * (this.current - value));
+            }
+            else if (this.current < value) {
+                this.offset = this.offset + (this.limit * (value - this.current));
+            }
+            this.current = value;
+            this.$store.commit('isFetching', true);
+            if (this.busca) {
+                await this.execSearchImovel();
+            }
+            else {
+                await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            }
+            this.$store.commit('isFetching', false);
+            console.log('Offset: ' + this.offset + ' current: ' + this.current)
+        },
+
+        async inicializaLista(status) {
+            this.busca = false;
+            this.offset = 0;
+            this.current = 0;
+            this.total = 0;
+            const resultado = await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            this.total = resultado.totalImoveis.totalImoveis;
+        },
+
+        async recalculaDepoisRemoverDaLista(status) {
+            if ((this.total - 1) / this.limit == Math.floor(this.total / this.limit) && (this.current == Math.floor(this.total / this.limit))
+                && (this.current != 0 && this.offset != 0)) {
+                this.offset = this.offset - this.limit;
+                this.current--;
+            }
+
+            if (this.busca) {
+                await this.execSearchImovel();
+            }
+            else {
+                let resultado;
+                resultado =
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                this.total = resultado.totalImoveis.totalImoveis;
+            }
         },
     },
 
@@ -406,10 +500,10 @@ export default {
         await this.loadImoveisValidosEInvalidos();
         if (this.propsSemImovel) {
             this.semImovel = true;
-            await this.loadArquivosSemImoveis();
+            await this.inicializaLista('semImovel');
         }
         else {
-            await this.loadArquivos();
+            await this.inicializaLista('Ativos');
         }
         this.$store.commit('isFetching', false);
     },

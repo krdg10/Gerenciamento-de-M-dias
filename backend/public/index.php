@@ -102,15 +102,24 @@ if ($uri[1] == 'imovel') {
             exit();
         }
         $postId = (int) $uri[3];
-    } else if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos' || $uri[2] == 'numeroSemImovel' || $uri[2] == 'ativosSemImovel') {
-    } else if ($uri[2] == 'buscaNome' || $uri[2] == 'buscaImovel') {
+    } else if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos' || $uri[2] == 'numeroSemImovel') {
+    } else if ($uri[2] == 'arquivosPaginadosAtivos' || $uri[2] == 'arquivosPaginadosInativos' || $uri[2] == 'ativosSemImovel') {
         if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");
             exit();
         }
+        $offset = (int) $uri[3];
+        $limit = (int) $uri[4];
+    } else if ($uri[2] == 'buscaNome' || $uri[2] == 'buscaImovel') {
+        if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
         $busca = [$uri[3], $uri[4]];
+        $offset = (int) $uri[5];
+        $limit = (int) $uri[6];
     }
-    $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2]);
+    $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2], $offset, $limit);
     $controller->processRequest();
 } else if ($uri[1] == 'public') {
 

@@ -63,9 +63,9 @@ const loadImoveisValidosEInvalidos = async ({ commit }) => {
 
 
 const buscaImovel = async ({ commit }, busca) => {
-    return await axios({ url: imovelUrl + 'busca' + '/' + busca.keywords + '/' + busca.status, method: 'GET' })
+    return await axios({ url: imovelUrl + 'busca' + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit, method: 'GET' })
         .then(response => {
-            const payloadImoveis = response.data;
+            const payloadImoveis = response.data.resultado;
             commit('imoveis', payloadImoveis);
             return response.data
         }).catch(error => {

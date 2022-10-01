@@ -218,6 +218,7 @@ export default {
             limit: 2,
             total: 0,
             current: 0,
+            busca: false
         }
     },
 
@@ -243,17 +244,7 @@ export default {
     methods: {
         ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos", "loadImoveisPorPagina"]),
 
-        async procuraImovel() {
-            this.$store.commit('isFetching', true);
-
-            if (this.keywords.length == 0) {
-                if (this.invalidesOrNot) {
-                    await this.loadImoveis();
-                }
-                else {
-                    await this.loadImoveisInvalidos();
-                }
-            }
+        async execSearchImovel() {
             let status;
             if (this.invalidesOrNot) {
                 status = 'A';
@@ -264,10 +255,35 @@ export default {
 
             let payload = {
                 keywords: this.keywords,
-                status: status
+                status: status,
+                offset: this.offset,
+                limit: this.limit
             }
+            // ate aqui ta tudo pegando. a busca e tal no back, as alterações que fiz. negocio vai ser mudar de pagina
 
-            this.$store.dispatch('buscaImovel', payload).catch(error => console.log(error))
+            // ver isso e depois ver a fita dos por tag pensar numa solução ou retirar e ver de fazer depois
+            // solução facil seria fazer consultas e tal só seria uma porra montar a query pq os negocio é opcional no fim das contas
+            this.$store.dispatch('buscaImovel', payload).then(response => {
+                this.busca = true;
+                this.total = response.totalImoveis.totalImoveis;
+            }).catch(error => console.log(error))
+        },
+
+        async procuraImovel() {
+            this.$store.commit('isFetching', true);
+
+            if (this.keywords.length == 0) {
+                if (this.invalidesOrNot) {
+                    await this.inicializaLista('Ativos');
+                }
+                else {
+                    await this.inicializaLista('Inativos');
+                }
+            }
+            await this.execSearchImovel();
+            this.offset = 0;
+            this.current = 0;
+
             this.$store.commit('isFetching', false);
 
         },
@@ -302,13 +318,24 @@ export default {
 
         /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
         async recalculaDepoisRemoverDaLista(status) {
-            if ((this.total - 1) / this.limit == Math.floor(this.total / this.limit) && (this.current == Math.floor(this.total / this.limit))) {
+            // caso de uso onde só tem uma pagina. 
+
+            if ((this.total - 1) / this.limit == Math.floor(this.total / this.limit) && (this.current == Math.floor(this.total / this.limit))
+                && (this.current != 0 && this.offset != 0)) {
                 this.offset = this.offset - this.limit;
                 this.current--;
             }
-            const resultado =
-                await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
-            this.total = resultado.totalImoveis.totalImoveis;
+
+            if (this.busca) {
+                await this.execSearchImovel();
+            }
+            else {
+                let resultado;
+                resultado =
+                    await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                this.total = resultado.totalImoveis.totalImoveis;
+            }
+
         },
 
         async apagarImovel(id, tipo, tipoDelete) {
@@ -406,6 +433,7 @@ export default {
             // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
         },
         async changeList() {
+            this.busca = false;
             this.keywords = '';
             this.tags.filterFav = 0;
             this.tags.filterImportant = 0;
@@ -423,7 +451,7 @@ export default {
             this.$store.commit('isFetching', false);
         },
 
-        changePage(value) {
+        async changePage(value) {
             let status = 'Ativos';
             if (!this.invalidesOrNot) {
                 status = 'Inativos';
@@ -439,10 +467,25 @@ export default {
             }
             this.current = value;
             this.$store.commit('isFetching', true);
-            this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            if (this.busca) {
+                await this.execSearchImovel();
+            }
+            else {
+                await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+
+            }
             this.$store.commit('isFetching', false);
             console.log('Offset: ' + this.offset + ' current: ' + this.current)
         },
+
+        async inicializaLista(status) {
+            this.busca = false;
+            this.offset = 0;
+            this.current = 0;
+            this.total = 0;
+            const resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            this.total = resultado.totalImoveis.totalImoveis;
+        }
     },
 
     computed: {
@@ -458,14 +501,8 @@ export default {
 
     async created() {
         this.$store.commit('isFetching', true);
-        const resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
-        // https://dedicio.medium.com/como-criar-um-componente-de-pagina%C3%A7%C3%A3o-em-vue-js-86fed480e45b
-        // API tem que estar parecida com a desse exemplo... ta melhorando.
-        // ja ta retornando total, fazendo coisa com offset e limit. 
-        // ai organizar os load tudo e organizar o offset e limit local, o que tem que ser atribuido a que e o que tem que ir pro component
-        this.total = resultado.totalImoveis.totalImoveis;
+        await this.inicializaLista('Ativos');
         this.$store.commit('isFetching', false);
-
     },
 }
 

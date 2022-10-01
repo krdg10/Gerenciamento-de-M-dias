@@ -56,11 +56,13 @@ if ($uri[1] == 'imovel') {
         $postId = (int) $uri[3];
     } else  if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'buscarTodosValidosEInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos') {
     } else if ($uri[2] == 'busca') {
-        if (!isset($uri[3]) || !isset($uri[4])) {
+        if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6])) {
             header("HTTP/1.1 404 Not Found");
             exit();
         }
         $busca = [$uri[3], $uri[4]];
+        $offset = (int) $uri[5];
+        $limit = (int) $uri[6];
     } else if ($uri[2] == 'alterarTag') {
         if (!isset($uri[3])) {
             header("HTTP/1.1 404 Not Found");

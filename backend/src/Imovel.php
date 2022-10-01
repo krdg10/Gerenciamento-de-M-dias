@@ -30,7 +30,7 @@ class Imovel
                 if ($this->imovelId) {
                     $response = $this->getImovel($this->imovelId);
                 } else if ($this->busca) {
-                    $response = $this->getImoveisByName($this->busca);
+                    $response = $this->getImoveisByName($this->busca, $this->offset, $this->limit);
                 } else {
                     if ($this->url == 'buscarTodosValidos') {
                         $response = $this->getAllImovels('A');
@@ -142,7 +142,7 @@ class Imovel
     }
 
 
-    private function getImoveisByName($busca)
+    private function getImoveisByName($busca, $offset, $limit)
     {
 
         $keywords = $busca[0];
@@ -152,20 +152,25 @@ class Imovel
       SELECT
       imovel.*, tag.favorito, tag.importante, tag.urgente
       FROM
-      imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.tags_id = tag.id;
-    ";
+      imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.tags_id = tag.id LIMIT $limit OFFSET $offset;
+      ";
+
+        $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis where ativo = '$status' and  LOWER(nome) LIKE LOWER('%$keywords%');";
 
 
 
         try {
             $statement = $this->db->query($query);
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $statement = $this->db->query($queryTotal);
+            $total = $statement->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
+        $object = (object) ['totalImoveis' => $total[0], 'resultado' => $result];
 
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
-        $response['body'] = json_encode($result);
+        $response['body'] = json_encode($object);
         return $response;
     }
 

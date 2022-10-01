@@ -2,28 +2,6 @@
     <LoadingSection v-if="isFetching"></LoadingSection>
     <div class="container d-flex justify-content-center margin-barra my-3">
         <div class="row">
-            <div class="col-3" v-if="invalidesOrNot">
-                <Transition name="bounce" mode="out-in">
-                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
-                        @click="changeTagFilter('importante')" v-if="tags.filterImportant == 0" />
-                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon"
-                        @click="changeTagFilter('importante')" v-else />
-                </Transition>
-
-                <Transition name="bounce" mode="out-in">
-                    <font-awesome-icon icon="fa fa-star" class="static" @click="changeTagFilter('favorito')"
-                        v-if="tags.filterFav == 0" />
-                    <font-awesome-icon icon="fa fa-star" class="static favIcon" @click="changeTagFilter('favorito')"
-                        v-else />
-                </Transition>
-
-                <Transition name="bounce" mode="out-in">
-                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
-                        @click="changeTagFilter('urgente')" v-if="tags.filterUrgent == 0" />
-                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon"
-                        @click="changeTagFilter('urgente')" v-else />
-                </Transition>
-            </div>
             <div class="form-check form-switch">
                 <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
                     v-model="invalidesOrNot" @click="changeList()">
@@ -393,18 +371,6 @@ export default {
                 }).catch(error => console.log(error))
             this.$store.commit('isFetching', false);
 
-        },
-
-        async changeTagFilter(tipo) {
-            if (tipo == 'urgente') {
-                this.tags.filterUrgent = this.changeTagValue(this.tags.filterUrgent);
-            }
-            else if (tipo == 'importante') {
-                this.tags.filterImportant = this.changeTagValue(this.tags.filterImportant);
-            }
-            else {
-                this.tags.filterFav = this.changeTagValue(this.tags.filterFav);
-            }
         },
 
         changeTagValue(value) {

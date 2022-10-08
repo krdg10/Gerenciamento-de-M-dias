@@ -1,22 +1,48 @@
 <template>
     <LoadingSection v-if="isFetching"></LoadingSection>
-    <div class="container d-flex justify-content-center margin-barra my-3">
+    <div class="container margin-barra my-3">
         <div class="row">
-            <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
-                    v-model="invalidesOrNot" @click="changeList()">
-                <label class="form-check-label" for="flexSwitchCheckDefault" v-if="invalidesOrNot">Ativos</label>
-                <label class="form-check-label" for="flexSwitchCheckDefault" v-else>Inativos</label>
+            <!--  <div class="col-3" v-if="invalidesOrNot">
+                <Transition name="bounce" mode="out-in">
+                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
+                        @click="changeTagFilter('importante')" v-if="tags.filterImportant == 0" />
+                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon"
+                        @click="changeTagFilter('importante')" v-else />
+                </Transition>
+
+                <Transition name="bounce" mode="out-in">
+                    <font-awesome-icon icon="fa fa-star" class="static" @click="changeTagFilter('favorito')"
+                        v-if="tags.filterFav == 0" />
+                    <font-awesome-icon icon="fa fa-star" class="static favIcon" @click="changeTagFilter('favorito')"
+                        v-else />
+                </Transition>
+
+                <Transition name="bounce" mode="out-in">
+                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
+                        @click="changeTagFilter('urgente')" v-if="tags.filterUrgent == 0" />
+                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon"
+                        @click="changeTagFilter('urgente')" v-else />
+                </Transition>
+            </div>-->
+            <div class="col-md-5 col-4">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
+                        v-model="invalidesOrNot" @click="changeList()">
+                    <label class="form-check-label" for="flexSwitchCheckDefault" v-if="invalidesOrNot">Ativos</label>
+                    <label class="form-check-label" for="flexSwitchCheckDefault" v-else>Inativos</label>
+                </div>
             </div>
-            <div class="input-group margin-bottom-40">
-                <div class="input-group-btn barra">
-                    <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
-                        v-model="keywords" />
-                    <span>
-                        <button type="submit" class="btn colors" @click="procuraImovel">
-                            <font-awesome-icon icon="fa-solid fa-search" />
-                        </button>
-                    </span>
+            <div class="col-md-7 col-8">
+                <div class="input-group margin-bottom-40">
+                    <div class="input-group-btn barra">
+                        <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
+                            v-model="keywords" />
+                        <span>
+                            <button type="submit" class="btn colors" @click="procuraImovel">
+                                <font-awesome-icon icon="fa-solid fa-search" />
+                            </button>
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -31,35 +57,60 @@
             <template v-slot:card-header>
                 <div class="container">
                     <div class="row">
-                        <div class="col-9">
-                            <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)">{{
-                            imovel.nome
-                            }} {{ imovel.id
-                                }}</h3>
+                        <div class="col-8">
+                            <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)"
+                                v-if="imovel.nome.length < 21">
+                                {{
+                                imovel.nome }}
+                            </h3>
+                            <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)" v-else>
+                                {{
+                                imovel.nome.substring(0, 20) + "..." }}
+                            </h3>
                         </div>
                         <div class="col-3" v-if="invalidesOrNot">
-                            <Transition name="bounce" mode="out-in">
-                                <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
-                                    v-if=" imovel.importante == 0"
-                                    @click="addTag(imovel.id, 'importante', imovel.importante)" />
-                                <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon" v-else
-                                    @click="addTag(imovel.id, 'importante', imovel.importante)" />
-                            </Transition>
+                            <h3 class="d-flex justify-content-center">
+                                <Transition name="bounce" mode="out-in">
+                                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
+                                        v-if=" imovel.importante == 0"
+                                        @click="addTag(imovel.id, 'importante', imovel.importante)" />
+                                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon" v-else
+                                        @click="addTag(imovel.id, 'importante', imovel.importante)" />
+                                </Transition>
 
-                            <Transition name="bounce" mode="out-in">
-                                <font-awesome-icon icon="fa fa-star" class="static" v-if="imovel.favorito == 0"
-                                    @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
-                                <font-awesome-icon icon="fa fa-star" class="static favIcon" v-else
-                                    @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
-                            </Transition>
+                                <Transition name="bounce" mode="out-in">
+                                    <font-awesome-icon icon="fa fa-star" class="static" v-if="imovel.favorito == 0"
+                                        @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
+                                    <font-awesome-icon icon="fa fa-star" class="static favIcon" v-else
+                                        @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
+                                </Transition>
 
-                            <Transition name="bounce" mode="out-in">
-                                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
-                                    v-if="imovel.urgente == 0" @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
-                                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon" v-else
-                                    @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
-                            </Transition>
+                                <Transition name="bounce" mode="out-in">
+                                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
+                                        v-if="imovel.urgente == 0"
+                                        @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon"
+                                        v-else @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                                </Transition>
+                            </h3>
+                        </div>
+                        <div class="col-1">
+                            <div class="dropdown" v-if="invalidesOrNot">
+                                <h3 class="d-flex justify-content-center">
+                                    <font-awesome-icon icon="fa-solid fa-bars" class="dropdown-toggle" type="button"
+                                        id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
+                                    </font-awesome-icon>
+                                    <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
+                                        <li><a class="dropdown-item"
+                                                @click="openModal(imovel, 'desassocia')">Desassociar
+                                                todos os Arquivos</a></li>
+                                        <li><a class="dropdown-item"
+                                                @click="openModal(imovel, 'deleteDocumentos')">Apagar
+                                                todos os Arquivos</a></li>
+                                    </ul>
+                                </h3>
 
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -68,14 +119,10 @@
                 <strong>Cidade</strong>: {{ imovel.cidade }}-{{ imovel.estado }} <br><br>
                 <strong>Preço</strong>: R$ {{ imovel.preco }} <br><br>
             </template>
+
             <template v-slot:card-footer v-if="invalidesOrNot">
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
                 <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')">Apagar</button>
-                <button class="btn btn-sm btn-warning" @click="openModal(imovel, 'desassocia')">Desassociar todos os
-                    Arquivos</button>
-                <button class="btn btn-sm btn-primary" @click="openModal(imovel, 'deleteDocumentos')">Apagar todos os
-                    Arquivos</button>
-
             </template>
             <template v-slot:card-footer v-else>
                 <button class="btn btn-sm btn-success" @click="openModal(imovel, 'reativar')">Reativar</button>
@@ -83,7 +130,8 @@
                     Definitivamente</button>
             </template>
         </CardImovel>
-        <Pagination :offset="offset" :total="total" :limit="limit" @change-page="changePage"></Pagination>
+        <Pagination :offset="offset" :total="total" :current="current+1" :limit="limit" @change-page="changePage">
+        </Pagination>
         <Modal @close="toggleModal" :modalActive="modalActive" :showCloseButton="true">
             <div v-if="modalDelete">
                 <div v-if="invalidesOrNot">
@@ -91,25 +139,25 @@
                         <h1>Imóvel apagado com sucesso</h1>
                     </div>
                     <div class="modal-content" v-if="confirmation && modalDesassocia">
-                        <h1>{{modalDesassocia}}</h1>
+                        <h1 class="pre">{{modalDesassocia}}</h1>
                     </div>
                     <div v-if="!confirmation && !modalDesassocia">
                         <div v-if="!tipoDeDelete" class="modal-content">
-                            <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>?</h1>
+                            <h1 class="mb-5">Deseja realmente apagar o imóvel <b class="pre">{{ imovelNome }}</b>?</h1>
                             <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
                         </div>
                         <div v-else class="modal-content">
                             <h1 class="mb-5">Deseja, ao apagar:</h1>
+                            <button class="btn btn-sm btn-danger-reverse mb-3"
+                                @click="apagarImovel(imovelId, 'Imovel', 'desassociaDocumentos')">Desassociar
+                                Todos os Documentos Associados ao Imóvel</button>
                             <button class="btn btn-sm btn-danger"
                                 @click="apagarImovel(imovelId, 'Imovel', 'deleteDocumentos')">Apagar Todos
                                 os Documentos Associados ao Imóvel</button>
-                            <button class="btn btn-sm btn-danger"
-                                @click="apagarImovel(imovelId, 'Imovel', 'desassociaDocumentos')">Desassociar
-                                Todos os Documentos Associados ao Imóvel</button>
                         </div>
                     </div>
-                    <div v-if="!confirmation && modalDesassocia">
-                        <h1 class="mb-5">{{modalDesassocia}} <b>{{ imovelNome }}</b>?</h1>
+                    <div class="modal-content" v-if="!confirmation && modalDesassocia">
+                        <h1 class="mb-5">{{modalDesassocia}} <b class="pre">{{ imovelNome }}</b>?</h1>
                         <button class="btn btn-sm btn-danger" @click="desassociarDocumentos(imovelId)"
                             v-if="modalDesassocia == 'Deseja realmente desassociar todos os documentos do '">Desassociar
                             Todos
@@ -126,23 +174,22 @@
                     </div>
                     <div v-else>
                         <div v-if="!tipoDeDelete" class="modal-content">
-                            <h1 class="mb-5">Deseja realmente apagar o imóvel <b>{{ imovelNome }}</b>
+                            <h1 class="mb-5">Deseja realmente apagar o imóvel <b class="pre">{{ imovelNome }}</b>
                                 definitivamente?
                             </h1>
                             <button class="btn btn-sm btn-danger" @click="toggleDelete()">Apagar</button>
                         </div>
                         <div v-else class="modal-content">
                             <h1 class="mb-5">Deseja, ao apagar:</h1>
-                            <button class="btn btn-sm btn-danger"
-                                @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'deleteDocumentos')">Apagar
-                                Definitivamente
-                                Todos
-                                os Documentos Associados ao Imóvel</button>
-                            <button class="btn btn-sm btn-danger"
+                            <button class="btn btn-sm btn-danger-reverse mb-3"
                                 @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'desassociaDocumentos')">Desassociar
-                                Todos os Documentos Associados ao Imóvel</button>
+                                Todos os Documentos Associados ao Imóvel
+                            </button>
+                            <button class="btn btn-sm btn-danger mb-3"
+                                @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'deleteDocumentos')">Apagar
+                                Definitivamente Todos os Documentos Associados ao Imóvel
+                            </button>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -151,7 +198,7 @@
                     <h1>Imóvel reativado com sucesso</h1>
                 </div>
                 <div class="modal-content" v-else>
-                    <h1 class="mb-5">Deseja realmente reativar o imóvel <b>{{ imovelNome }}</b>?</h1>
+                    <h1 class="mb-5">Deseja realmente reativar o imóvel <b class="pre">{{ imovelNome }}</b>?</h1>
                     <button class="btn btn-sm btn-success" @click="reativarImovel(imovelId)">Reativar</button>
                 </div>
             </div>
@@ -162,19 +209,14 @@
 <script>
 import CardImovel from "../Utils/CardImovel.vue";
 import { mapActions, mapGetters, mapState } from "vuex";
-
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faSearch, faStar, faExclamation, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons'
+import { faSearch, faStar, faExclamation, faTriangleExclamation, faBars } from '@fortawesome/free-solid-svg-icons'
 import LoadingSection from "../Utils/LoadingSection.vue";
-
-library.add(faSearch, faStar, faExclamation, faTriangleExclamation)
-// adicionar isso no X do modal e tirar o link do fontawesome do index
-// ver de mudar cor do icons e tornálos clicáveis pra fazer os botões de tag. 
-// design: botar os "excluir docs" e "desassociar docs" como opções nos cards
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
 import Pagination from "../Utils/PaginationOfLists.vue"
+library.add(faSearch, faStar, faExclamation, faTriangleExclamation, faBars)
 
 export default {
     data() {
@@ -193,7 +235,7 @@ export default {
                 filterUrgent: 0
             },
             offset: 0,
-            limit: 2,
+            limit: 10,
             total: 0,
             current: 0,
             busca: false
@@ -237,10 +279,7 @@ export default {
                 offset: this.offset,
                 limit: this.limit
             }
-            // ate aqui ta tudo pegando. a busca e tal no back, as alterações que fiz. negocio vai ser mudar de pagina
 
-            // ver isso e depois ver a fita dos por tag pensar numa solução ou retirar e ver de fazer depois
-            // solução facil seria fazer consultas e tal só seria uma porra montar a query pq os negocio é opcional no fim das contas
             this.$store.dispatch('buscaImovel', payload).then(response => {
                 this.busca = true;
                 this.total = response.totalImoveis.totalImoveis;
@@ -258,12 +297,12 @@ export default {
                     await this.inicializaLista('Inativos');
                 }
             }
-            await this.execSearchImovel();
-            this.offset = 0;
-            this.current = 0;
-
+            else {
+                await this.execSearchImovel();
+                this.offset = 0;
+                this.current = 0;
+            }
             this.$store.commit('isFetching', false);
-
         },
 
         openModal(imovel, tipo) {
@@ -294,10 +333,7 @@ export default {
         },
 
 
-        /// pensar pra ver se tem alguma forma do modal de exclusão funcionar sem os negocios do data(). Mas por enquanto a solução atual funciona
         async recalculaDepoisRemoverDaLista(status) {
-            // caso de uso onde só tem uma pagina. 
-
             if ((this.total - 1) / this.limit == Math.floor(this.total / this.limit) && (this.current == Math.floor(this.total / this.limit))
                 && (this.current != 0 && this.offset != 0)) {
                 this.offset = this.offset - this.limit;
@@ -307,6 +343,7 @@ export default {
             if (this.busca) {
                 await this.execSearchImovel();
             }
+
             else {
                 let resultado;
                 resultado =
@@ -373,6 +410,18 @@ export default {
 
         },
 
+        async changeTagFilter(tipo) {
+            if (tipo == 'urgente') {
+                this.tags.filterUrgent = this.changeTagValue(this.tags.filterUrgent);
+            }
+            else if (tipo == 'importante') {
+                this.tags.filterImportant = this.changeTagValue(this.tags.filterImportant);
+            }
+            else {
+                this.tags.filterFav = this.changeTagValue(this.tags.filterFav);
+            }
+        },
+
         changeTagValue(value) {
             if (value == 0) {
                 return 1
@@ -393,12 +442,11 @@ export default {
         redirect(imovel) {
             let id = imovel.id;
             this.$store.commit('imovel', imovel);
-
             this.$router.push({ name: 'novoImovel', params: { id: id } })
-
-            // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
         },
+
         async changeList() {
+            this.modalActive = false;
             this.busca = false;
             this.keywords = '';
             this.tags.filterFav = 0;
@@ -411,9 +459,7 @@ export default {
             if (this.invalidesOrNot) {
                 status = 'Inativos';
             }
-            const resultado =
-                await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
-            this.total = resultado.totalImoveis.totalImoveis;
+            await this.inicializaLista(status);
             this.$store.commit('isFetching', false);
         },
 
@@ -441,7 +487,6 @@ export default {
 
             }
             this.$store.commit('isFetching', false);
-            console.log('Offset: ' + this.offset + ' current: ' + this.current)
         },
 
         async inicializaLista(status) {

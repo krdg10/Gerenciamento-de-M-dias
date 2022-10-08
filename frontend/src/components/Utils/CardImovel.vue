@@ -8,9 +8,12 @@
             <slot name="card-body">
             </slot>
         </div>
+
         <div class="card-footer">
-            <slot name="card-footer">
-            </slot>
+            <div class="d-flex justify-content-between">
+                <slot name="card-footer">
+                </slot>
+            </div>
         </div>
     </div>
 </template>

@@ -1,48 +1,49 @@
 <template>
     <LoadingSection v-if="isFetching"></LoadingSection>
-    <div class="container d-flex justify-content-center margin-barra my-3">
+    <div class="container margin-barra my-3">
         <div class="row">
-            <div class="input-group paddingZeroLeft margin-bottom-40">
-                <div class="input-group-btn barra container">
-                    <div class="row">
-                        <div class="form-check form-switch" v-if="invalidesOrNot">
-                            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault2"
-                                v-model="semImovel" @change="changeList()">
-                            <label class="form-check-label" for="flexSwitchCheckDefault2">Sem imóvel</label>
+            <div class="col-md-3 col-5">
+                <div class="form-check form-switch" v-if="invalidesOrNot">
+                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault2"
+                        v-model="semImovel" @change="changeList()">
+                    <label class="form-check-label" for="flexSwitchCheckDefault2">Sem imóvel</label>
+                </div>
+                <div class="form-check form-switch" v-if="!semImovel">
+                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
+                        v-model="invalidesOrNot" @change="changeList()">
+                    <label class="form-check-label" for="flexSwitchCheckDefault" v-if="invalidesOrNot">Ativos</label>
+                    <label class="form-check-label" for="flexSwitchCheckDefault" v-else>Inativos</label>
+                </div>
+            </div>
+            <div class="col-md-7 col-7">
+                <div class="row">
+                    <div class="col-md-8 col-8">
+                        <div class="row">
+                            <div class="col-md-4 paddingZero" v-if="!semImovel">
+                                <select class="form-control" name="tipoBusca" id="tipoBusca" v-model="tipoBusca"
+                                    @change="keywords = ''">
+                                    <option value="nome" selected>Nomes</option>
+                                    <option value="imovel">Imovel</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 paddingZero" v-if="!semImovel">
+                                <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
+                                    v-model="keywords" v-if="tipoBusca == 'nome'" />
+                                <select class="form-control" id="busca" placeholder="Imóvel associado ao arquivo"
+                                    name="busca" v-model="keywords" v-else>
+                                    <option value="" selected>Selecione o imóvel</option>
+                                    <option v-for="imovel in displayListaImoveis(false)" :value="imovel.id"
+                                        :key="imovel.id">
+                                        {{ imovel.id }} - {{ imovel.nome }}
+                                    </option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-check form-switch" v-if="!semImovel">
-                            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
-                                v-model="invalidesOrNot" @change="changeList()">
-                            <label class="form-check-label" for="flexSwitchCheckDefault"
-                                v-if="invalidesOrNot">Ativos</label>
-                            <label class="form-check-label" for="flexSwitchCheckDefault" v-else>Inativos</label>
-                        </div>
-                        <div class="col-4 paddingZero" v-if="!semImovel">
-                            <select class="form-control" name="tipoBusca" id="tipoBusca" v-model="tipoBusca"
-                                @change="keywords = ''">
-                                <option value="nome" selected>Nomes</option>
-                                <option value="imovel">Imovel</option>
-                            </select>
-                        </div>
-                        <div class="col-7 paddingZero" v-if="!semImovel">
-                            <input class="form-control" name="busca" id="busca" placeholder="Digite sua busca"
-                                v-model="keywords" v-if="tipoBusca == 'nome'" />
-                            <select class="form-control" id="busca" placeholder="Imóvel associado ao arquivo"
-                                name="busca" v-model="keywords" v-else>
-                                <option value="" selected>Selecione o imóvel</option>
-                                <option v-for="imovel in displayListaImoveis(false)" :value="imovel.id"
-                                    :key="imovel.id">
-                                    {{ imovel.id }} - {{ imovel.nome }}
-                                </option>
-                            </select>
-                        </div>
-                        <div class="col-1 paddingZero" v-if="!semImovel">
-                            <span>
-                                <button type="submit" class="btn colors" @click="procuraArquivo()">
-                                    <font-awesome-icon icon="fa-solid fa-search" />
-                                </button>
-                            </span>
-                        </div>
+                    </div>
+                    <div class="col-md-1 col-4 paddingZero" v-if="!semImovel">
+                        <button type="submit" class="btn colors button-max" @click="procuraArquivo()">
+                            <font-awesome-icon icon="fa-solid fa-search" />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -106,8 +107,8 @@
                     Definitivamente</button>
             </template>
         </CardImovel>
-        <Pagination :offset="offset" :total="total" :limit="limit" @change-page="changePage"></Pagination>
-
+        <Pagination :offset="offset" :total="total" :limit="limit" :current="current+1" @change-page="changePage">
+        </Pagination>
         <Modal @close="toggleModal" :modalActive="modalActive">
             <div v-if="modalDelete">
                 <div v-if="invalidesOrNot">
@@ -115,7 +116,7 @@
                         <h1>Arquivo apagado com sucesso</h1>
                     </div>
                     <div class="modal-content" v-else>
-                        <h1>Deseja realmente apagar o arquivo {{ arquivoNome }}?</h1>
+                        <h1 class="mb-5">Deseja realmente apagar o arquivo {{ arquivoNome }}?</h1>
                         <button class="btn btn-sm btn-danger"
                             @click="apagarArquivo(arquivoId, 'Arquivo')">Apagar</button>
                     </div>
@@ -125,15 +126,15 @@
                         <h1>Arquivo apagado permanentemente com sucesso</h1>
                     </div>
                     <div class="modal-content" v-else>
-                        <h1>Deseja realmente apagar o arquivo {{ arquivoNome }} permanentemente?</h1>
-                        <button class="btn btn-sm btn-danger"
+                        <h1 class="mb-5">Deseja realmente apagar o arquivo {{ arquivoNome }} permanentemente?</h1>
+                        <button class="btn btn-sm btn-danger mt-3"
                             @click="apagarArquivo(arquivoId, 'ArquivoPermanentemente')">Apagar</button>
                     </div>
                 </div>
             </div>
-            <div v-else class="modal-content">
+            <div v-else>
                 <div v-if="invalidesOrNot">
-                    <div v-if="edit">
+                    <div v-if="edit" class="modal-content">
                         <h3 class="text-center">Editar arquivo <b>{{ arquivoNome }}</b></h3>
                         <UploadArquivo :imovelProps="imovelProps" ref="formulario">
                             <template v-slot:button-submit>
@@ -152,18 +153,19 @@
                     </div>
                 </div>
                 <div v-else>
-                    <div v-if="confirmation && !reactiveImovel">
+                    <div v-if="confirmation && !reactiveImovel" class="modal-content">
                         <h1>Arquivo reativado com sucesso</h1>
                     </div>
-                    <div v-if="!confirmation && !reactiveImovel">
-                        <h1>Deseja realmente reativar o arquivo {{ arquivoNome }}?</h1>
+                    <div v-if="!confirmation && !reactiveImovel" class="modal-content">
+                        <h1 class="mb-5">Deseja realmente reativar o arquivo {{ arquivoNome }}?</h1>
                         <button class="btn btn-sm btn-success" @click="reativarArquivo(arquivoId)">Reativar</button>
                     </div>
-                    <div v-if="confirmation && reactiveImovel">
+                    <div v-if="confirmation && reactiveImovel" class="modal-content">
                         <h1>Imóvel do arquivo reativado com sucesso</h1>
                     </div>
-                    <div v-if="!confirmation && reactiveImovel">
-                        <h1>Deseja realmente reativar o imóvel do arquivo {{ arquivoNome }}?</h1>
+                    <div v-if="!confirmation && reactiveImovel" class="modal-content">
+                        <!-- ver essa fita aqui de tamanho do botão -->
+                        <h1 class="mb-5">Deseja realmente reativar o imóvel do arquivo {{ arquivoNome }}?</h1>
                         <button class="btn btn-sm btn-primary"
                             @click="reativarImovel(arquivoImovelId)">Reativar</button>
                     </div>
@@ -189,7 +191,7 @@ import Pagination from "../Utils/PaginationOfLists.vue"
 
 library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
 
-
+// fazer testes pra ver quando da erro ao abrir o modal de editar
 
 export default {
     data() {
@@ -210,7 +212,7 @@ export default {
             reactiveImovel: false,
             arquivoImovelId: '',
             offset: 0,
-            limit: 2,
+            limit: 10,
             total: 0,
             current: 0,
             busca: false

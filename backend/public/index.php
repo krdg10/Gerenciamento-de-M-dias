@@ -3,6 +3,7 @@ require "../start.php";
 
 use Src\Imovel;
 use Src\Arquivo;
+// dar uma melhorada nesse código. nos outros do back tbm e revisar os do front.
 
 /*header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
@@ -41,20 +42,13 @@ $offset = null;
 $limit = null;
 
 if ($uri[1] == 'imovel') {
-    if ($uri[2] == 'novo') {
-    } else if ($uri[2] == 'editar' || $uri[2] == 'desassociarTodosDocumentos' || $uri[2] == 'deletarTodosDocumentosAssociados') {
+    if ($uri[2] == 'novo' || $uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'buscarTodosValidosEInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos') {
+    } else if ($uri[2] == 'alterarTag' || $uri[2] == 'editar' || $uri[2] == 'desassociarTodosDocumentos' || $uri[2] == 'deletarTodosDocumentosAssociados' || $uri[2] == 'deletarImovel' ||  $uri[2] == 'deletarImovelPermanente' || $uri[2] == 'reativarImovel') {
         if (!isset($uri[3])) {
             header("HTTP/1.1 404 Not Found");
             exit();
         }
         $postId = (int) $uri[3];
-    } else if ($uri[2] == 'deletarImovel' ||  $uri[2] == 'deletarImovelPermanente' || $uri[2] == 'reativarImovel') {
-        if (!isset($uri[3])) {
-            header("HTTP/1.1 404 Not Found");
-            exit();
-        }
-        $postId = (int) $uri[3];
-    } else  if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'buscarTodosValidosEInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos') {
     } else if ($uri[2] == 'busca') {
         if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6])) {
             header("HTTP/1.1 404 Not Found");
@@ -63,12 +57,6 @@ if ($uri[1] == 'imovel') {
         $busca = [$uri[3], $uri[4]];
         $offset = (int) $uri[5];
         $limit = (int) $uri[6];
-    } else if ($uri[2] == 'alterarTag') {
-        if (!isset($uri[3])) {
-            header("HTTP/1.1 404 Not Found");
-            exit();
-        }
-        $postId = (int) $uri[3];
     } else if ($uri[2] == 'imoveisPaginadosAtivos' || $uri[2] == 'imoveisPaginadosInativos') {
         if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");
@@ -90,19 +78,13 @@ if ($uri[1] == 'imovel') {
             echo $message;
             exit();
         }
-    } else if ($uri[2] == 'editar') {
+    } else if ($uri[2] == 'deletarArquivo' || $uri[2] == 'reativarArquivo' || $uri[2] == 'deletarArquivoPermanente' || $uri[2] == 'editar') {
         if (!isset($uri[3])) {
             header("HTTP/1.1 404 Not Found");
             exit();
         }
         $postId = (int) $uri[3];
-    } else if ($uri[2] == 'deletarArquivo' || $uri[2] == 'reativarArquivo' || $uri[2] == 'deletarArquivoPermanente') {
-        if (!isset($uri[3])) {
-            header("HTTP/1.1 404 Not Found");
-            exit();
-        }
-        $postId = (int) $uri[3];
-    } else if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos' || $uri[2] == 'numeroSemImovel') {
+    } else if ($uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos' || $uri[2] == 'numeroDeSemImovel') {
     } else if ($uri[2] == 'arquivosPaginadosAtivos' || $uri[2] == 'arquivosPaginadosInativos' || $uri[2] == 'ativosSemImovel') {
         if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");
@@ -121,10 +103,6 @@ if ($uri[1] == 'imovel') {
     }
     $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2], $offset, $limit);
     $controller->processRequest();
-} else if ($uri[1] == 'public') {
-
-    var_dump($_SERVER['DOCUMENT_ROOT']);
-    exit();
 } else {
     header("HTTP/1.1 404 Not Found");
     exit();

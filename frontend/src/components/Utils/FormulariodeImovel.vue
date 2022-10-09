@@ -155,7 +155,6 @@ export default {
                         this.bairro = response.data['bairro'];
                         this.estado = response.data['uf'];
                         this.cidade = response.data['localidade'];
-                        //console.log(this.displayNomeImovel)
                     })
                     .catch(error => console.log(error))
             }

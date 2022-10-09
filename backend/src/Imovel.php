@@ -1,7 +1,7 @@
 <?php
 
 namespace Src;
-
+// inserir validações das informações.
 class Imovel
 {
     private $db;

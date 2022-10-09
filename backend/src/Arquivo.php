@@ -279,7 +279,6 @@ class Arquivo
             $response = 'Upload failed. Allowed file types: ' . implode(',', $allowedfileExtensions);
             return $response;
         }
-        // https://code.tutsplus.com/tutorials/how-to-upload-a-file-in-php-with-example--cms-31763
         $response['status_code_header'] = 'HTTP/1.1 201 Created';
         $response['body'] = json_encode(array('message' => 'Arquivo Created'));
         return $response;
@@ -359,7 +358,7 @@ class Arquivo
     private function notFoundResponse()
     {
         $response['status_code_header'] = 'HTTP/1.1 404 Not Found';
-        $response['body'] = null;
+        $response['body'] = 'erro';
         return $response;
     }
 }

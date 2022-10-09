@@ -1,20 +1,6 @@
 import axios from 'axios';
-//import * as Cookies from 'js-cookie'
-
-//  const imoveis = 'http://localhost:8000/imoveis'; 
 const imovelUrl = 'http://localhost:8000/imovel/';
 const arquivoUrl = 'http://localhost:8000/arquivo/';
-
-
-//https://stackoverflow.com/questions/52630866/vuex-actions-that-do-not-need-to-commit-a-mutation
-const createImovel = async (_, imovel) => {
-    return await axios({ url: imovelUrl + 'novo', data: imovel, method: 'POST' })
-        .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
 
 const loadArquivos = async ({ commit }) => {
     return await axios({ url: arquivoUrl + 'buscarTodosValidos', method: 'GET' })
@@ -102,25 +88,6 @@ const updateImovel = async ({ commit }, imovel) => {
         })
 };
 
-const apagarImovel = async (_, payload) => {
-    let id = payload.id;
-    return await axios({ url: imovelUrl + 'deletarImovel' + '/' + id, data: payload, method: 'PUT' })
-        .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const apagarArquivo = async (_, id) => {
-    return await axios({ url: arquivoUrl + 'deletarArquivo' + '/' + id, method: 'PUT' })
-        .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
 const alterarTag = async ({ commit }, payload) => {
     return await axios({ url: imovelUrl + 'alterarTag' + '/' + payload.id, data: payload, method: 'PUT' })
         .then(response => {
@@ -131,69 +98,22 @@ const alterarTag = async ({ commit }, payload) => {
         })
 };
 
-const updateArquivo = async (_, payload) => {
-    console.log(payload)
-    return await axios({ url: arquivoUrl + 'editar' + '/' + payload.id, data: payload, method: 'PUT' })
+const loadQuantidadeImoveis = async ({ commit }, payload) => {
+    return await axios({ url: imovelUrl + 'numeroDe' + payload, method: 'GET' })
         .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const loadQuantidadeImoveisInativos = async ({ commit }) => {
-    return await axios({ url: imovelUrl + 'numeroDeAtivos', method: 'GET' })
-        .then(response => {
-            const payloadImoveisAtivos = response.data.numero;
-            commit('quantidadeImoveisAtivos', payloadImoveisAtivos);
+            const payloadImoveis = response.data.numero;
+            commit('quantidadeImoveis' + payload, payloadImoveis);
             return response.data
         }).catch(error => {
             console.log(error)
         })
 };
 
-const loadQuantidadeImoveisAtivos = async ({ commit }) => {
-    return await axios({ url: imovelUrl + 'numeroDeInativos', method: 'GET' })
+const loadQuantidadeArquivos = async ({ commit }, payload) => {
+    return await axios({ url: arquivoUrl + 'numeroDe' + payload, method: 'GET' })
         .then(response => {
-            const payloadImoveisInativos = response.data.numero;
-
-            commit('quantidadeImoveisInativos', payloadImoveisInativos);
-            return response.data
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const loadQuantidadeArquivosAtivos = async ({ commit }) => {
-    return await axios({ url: arquivoUrl + 'numeroDeAtivos', method: 'GET' })
-        .then(response => {
-            const payloadArquivosAtivos = response.data.numero;
-            commit('quantidadeArquivosAtivos', payloadArquivosAtivos);
-            return response.data
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const loadQuantidadeArquivosInativos = async ({ commit }) => {
-    return await axios({ url: arquivoUrl + 'numeroDeInativos', method: 'GET' })
-        .then(response => {
-            const payloadArquivosInativos = response.data.numero;
-
-            commit('quantidadeArquivosInativos', payloadArquivosInativos);
-            return response.data
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const loadQuantidadeArquivosSemImovel = async ({ commit }) => {
-    return await axios({ url: arquivoUrl + 'numeroSemImovel', method: 'GET' })
-        .then(response => {
-            console.log(response.data)
-            const payloadArquivosSemImovel = response.data.numero;
-
-            commit('quantidadeArquivosSemImovel', payloadArquivosSemImovel);
+            const payloadArquivos = response.data.numero;
+            commit('quantidadeArquivos' + payload, payloadArquivos);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -217,63 +137,6 @@ const loadImoveisInvalidos = async ({ commit }) => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
             return response.data
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const reativarArquivo = async (_, id) => {
-    return await axios({ url: arquivoUrl + 'reativarArquivo' + '/' + id, method: 'PUT' })
-        .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-
-const reativarImovel = async (_, id) => {
-    return await axios({ url: imovelUrl + 'reativarImovel' + '/' + id, method: 'PUT' })
-        .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-
-const apagarArquivoPermanentemente = async (_, id) => {
-    return await axios({ url: arquivoUrl + 'deletarArquivoPermanente' + '/' + id, method: 'DELETE' })
-        .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const apagarImovelPermanentemente = async (_, payload) => {
-    let id = payload.id;
-    return await axios({ url: imovelUrl + 'deletarImovelPermanente' + '/' + id, data: payload, method: 'DELETE' })
-        .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const deletarTodosDocumentosAssociados = async (_, id) => {
-    return await axios({ url: imovelUrl + 'deletarTodosDocumentosAssociados' + '/' + id, method: 'PUT' })
-        .then(response => {
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
-const desassociarTodosDocumentos = async (_, id) => {
-    return await axios({ url: imovelUrl + 'desassociarTodosDocumentos' + '/' + id, method: 'PUT' })
-        .then(response => {
-            return response
         }).catch(error => {
             console.log(error)
         })
@@ -315,31 +178,18 @@ const loadArquivosPorPagina = async ({ commit }, payload) => {
 };
 
 export default {
-    createImovel,
     loadImoveis,
     buscaImovel,
     updateImovel,
-    apagarImovel,
     alterarTag,
     loadArquivos,
     buscaArquivo,
-    apagarArquivo,
-    updateArquivo,
-    loadQuantidadeImoveisInativos,
-    loadQuantidadeImoveisAtivos,
-    loadQuantidadeArquivosInativos,
-    loadQuantidadeArquivosAtivos,
-    loadQuantidadeArquivosSemImovel,
+    loadQuantidadeImoveis,
+    loadQuantidadeArquivos,
     loadArquivosInvalidos,
     loadImoveisInvalidos,
-    reativarArquivo,
-    reativarImovel,
-    apagarArquivoPermanentemente,
-    apagarImovelPermanentemente,
     loadArquivosSemImoveis,
     loadImoveisValidosEInvalidos,
-    deletarTodosDocumentosAssociados,
-    desassociarTodosDocumentos,
     loadImoveisPorPagina,
     loadArquivosPorPagina
 };

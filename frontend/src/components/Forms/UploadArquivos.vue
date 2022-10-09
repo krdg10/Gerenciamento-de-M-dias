@@ -42,12 +42,6 @@
 </template>
 
 <script>
-// https://www.youtube.com/watch?v=wWKhKPN_Pmw 
-// peguei o dropzone disso ai... mas dar uma procurada e tentar esse pack
-// https://www.npmjs.com/package/vue3-dropzone
-// também procurar coisa sobre paginação. tomar decisão se paginação vai vir do back/php ou se vai ser só no vue. Acho que só no vue é mais fácil
-// mas nao quero caminho fácil nesse caso
-
 import DropZone from "../Utils/Dropzone.vue";
 import { Form } from 'vee-validate';
 import { ref } from "vue";
@@ -89,16 +83,14 @@ export default {
         const selectedFile = () => {
             dropzoneFile.value = document.querySelector(".dropzoneFile").files[0];
         };
-        // talvez apagar
+
         return { dropzoneFile, drop, selectedFile, toggleModal, modalActive };
     },
 
     methods: {
         ...mapActions(["loadImoveis"]),
-        // https://masteringjs.io/tutorials/vue/file-upload#:~:text=Using%20Vue%202%20with%20Axios,it%20easy%20to%20upload%20files. 
 
         async onCompleteCreate() {
-
             const arquivoUploaded = document.querySelector(".dropzoneFile").files[0];
             const formData = new FormData();
             formData.append('uploadedFile', arquivoUploaded);
@@ -112,13 +104,10 @@ export default {
                 console.log('Formato não aceito');
                 return;
             }
-            console.log(this.imovel)
 
             await axios({ url: 'http://localhost:8000/arquivo/novoArquivo', data: formData, method: 'POST', headers: headers })
-                .then(response => {
-                    console.log(response);
+                .then(() => {
                     this.toggleModal();
-
                 }).catch(error => {
                     console.log(error)
                 })
@@ -149,7 +138,6 @@ export default {
 
     async created() {
         if (!this.imovelProps) {
-            console.log('entrou no props')
             await this.loadImoveis();
         }
     },

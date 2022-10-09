@@ -47,13 +47,12 @@
             </div>
         </div>
     </div>
-    <div class="container mb-6" v-if="displayListaImoveis(tags).length == 0">
+    <div class="container mb-6" v-if="displayListaImoveis.length == 0">
         <h4 v-if="invalidesOrNot">Sem imóveis cadastrados</h4>
         <h4 v-else>Sem imóveis inativos</h4>
     </div>
     <div class="row rowCard mb-6" v-else>
-        <CardImovel class="col-sm-6 paddingZero" v-for="imovel in displayListaImoveis(tags)" :key="imovel.id"
-            :id="imovel.id">
+        <CardImovel class="col-sm-6 paddingZero" v-for="imovel in displayListaImoveis" :key="imovel.id" :id="imovel.id">
             <template v-slot:card-header>
                 <div class="container">
                     <div class="row">
@@ -149,10 +148,10 @@
                         <div v-else class="modal-content">
                             <h1 class="mb-5">Deseja, ao apagar:</h1>
                             <button class="btn btn-sm btn-danger-reverse mb-3"
-                                @click="apagarImovel(imovelId, 'Imovel', 'desassociaDocumentos')">Desassociar
+                                @click="apagarImovel(imovelId, 'Imovel', 'desassociaDocumentos', 'PUT')">Desassociar
                                 Todos os Documentos Associados ao Imóvel</button>
                             <button class="btn btn-sm btn-danger"
-                                @click="apagarImovel(imovelId, 'Imovel', 'deleteDocumentos')">Apagar Todos
+                                @click="apagarImovel(imovelId, 'Imovel', 'deleteDocumentos', 'PUT')">Apagar Todos
                                 os Documentos Associados ao Imóvel</button>
                         </div>
                     </div>
@@ -182,11 +181,11 @@
                         <div v-else class="modal-content">
                             <h1 class="mb-5">Deseja, ao apagar:</h1>
                             <button class="btn btn-sm btn-danger-reverse mb-3"
-                                @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'desassociaDocumentos')">Desassociar
+                                @click="apagarImovel(imovelId, 'ImovelPermanente', 'desassociaDocumentos', 'DELETE')">Desassociar
                                 Todos os Documentos Associados ao Imóvel
                             </button>
                             <button class="btn btn-sm btn-danger mb-3"
-                                @click="apagarImovel(imovelId, 'ImovelPermanentemente', 'deleteDocumentos')">Apagar
+                                @click="apagarImovel(imovelId, 'ImovelPermanente', 'deleteDocumentos', 'DELETE')">Apagar
                                 Definitivamente Todos os Documentos Associados ao Imóvel
                             </button>
                         </div>
@@ -216,7 +215,9 @@ import LoadingSection from "../Utils/LoadingSection.vue";
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
 import Pagination from "../Utils/PaginationOfLists.vue"
+import axios from 'axios';
 library.add(faSearch, faStar, faExclamation, faTriangleExclamation, faBars)
+const imovelUrl = 'http://localhost:8000/imovel/';
 
 export default {
     data() {
@@ -353,10 +354,11 @@ export default {
 
         },
 
-        async apagarImovel(id, tipo, tipoDelete) {
+        async apagarImovel(id, tipo, tipoDelete, method) {
             let payload = { id: id, tipoDelete: tipoDelete };
             this.$store.commit('isFetching', true);
-            await this.$store.dispatch('apagar' + tipo, payload)
+
+            await axios({ url: imovelUrl + 'deletar' + tipo + '/' + id, data: payload, method: method })
                 .then(async () => {
                     let status = 'Inativos';
                     if (tipo == 'Imovel') {
@@ -366,18 +368,21 @@ export default {
 
                     this.$store.commit('isFetching', false);
                     this.confirmation = true;
-                }).catch(error => console.log(error))
+                }).catch(error => {
+                    console.log(error)
+                })
         },
 
         async reativarImovel(id) {
             this.$store.commit('isFetching', true);
-            await this.$store.dispatch('reativarImovel', id)
+            await axios({ url: imovelUrl + 'reativarImovel' + '/' + id, method: 'PUT' })
                 .then(async () => {
                     await this.recalculaDepoisRemoverDaLista('Inativos');
                     this.confirmation = true;
                     this.$store.commit('isFetching', false);
-
-                }).catch(error => console.log(error))
+                }).catch(error => {
+                    console.log(error)
+                })
         },
 
         async addTag(id, type, value) {
@@ -388,24 +393,26 @@ export default {
 
         async desassociarDocumentos(id) {
             this.$store.commit('isFetching', true);
-
-            await this.$store.dispatch('desassociarTodosDocumentos', id)
+            await axios({ url: imovelUrl + 'desassociarTodosDocumentos' + '/' + id, method: 'PUT' })
                 .then(() => {
                     this.modalDesassocia = 'Documentos do imóvel desassociados com sucesso';
                     this.confirmation = true;
-                }).catch(error => console.log(error))
+                }).catch(error => {
+                    console.log(error)
+                })
             this.$store.commit('isFetching', false);
 
         },
 
         async apagarDocumentos(id) {
             this.$store.commit('isFetching', true);
-
-            await this.$store.dispatch('deletarTodosDocumentosAssociados', id)
+            await axios({ url: imovelUrl + 'deletarTodosDocumentosAssociados' + '/' + id, method: 'PUT' })
                 .then(() => {
                     this.modalDesassocia = 'Documentos do imóvel apagados com sucesso';
                     this.confirmation = true;
-                }).catch(error => console.log(error))
+                }).catch(error => {
+                    console.log(error)
+                })
             this.$store.commit('isFetching', false);
 
         },

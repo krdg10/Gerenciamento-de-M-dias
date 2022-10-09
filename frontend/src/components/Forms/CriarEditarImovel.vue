@@ -43,12 +43,11 @@ import { Form } from 'vee-validate';
 import FormulariodeImovel from '../Utils/FormulariodeImovel.vue'
 import Modal from "../Utils/ModalDefault.vue";
 import { ref } from "vue";
-
+import axios from 'axios';
 
 export default {
 
   name: 'FormularioImovel',
-
   components: { Form, FormulariodeImovel, Modal },
 
   setup() {
@@ -65,7 +64,6 @@ export default {
 
   methods: {
     async onCompleteCreate() {
-
       let imovel = {
         nome: this.$refs.formulario.nome,
         descricao: this.$refs.formulario.descricao,
@@ -79,11 +77,12 @@ export default {
         complemento: this.$refs.formulario.complemento,
         data_cadastro: this.getNow(),
       }
-      await this.$store.dispatch('createImovel', imovel)
-        .then(response => {
+      await axios({ url: 'http://localhost:8000/imovel/' + 'novo', data: imovel, method: 'POST' })
+        .then(() => {
           this.toggleModal();
-          console.log(response.data)
-        }).catch(error => console.log(error))
+        }).catch(error => {
+          console.log(error)
+        })
     },
 
     async onCompleteEdit() {
@@ -103,9 +102,8 @@ export default {
         data_edicao: this.getNow(),
       }
       await this.$store.dispatch('updateImovel', imovel)
-        .then(response => {
+        .then(() => {
           this.toggleModal();
-          console.log(response.data)
         }).catch(error => console.log(error))
     },
 

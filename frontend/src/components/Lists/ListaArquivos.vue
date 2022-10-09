@@ -102,7 +102,6 @@
                 <button class="btn btn-sm btn-primary" @click="openModal(arquivo, 'reactiveImovel')" v-else>Reativar
                     Imóvel do
                     Documento</button>
-                <!-- botar um v-if aqui pra nao aparecer quando imovel = deletado-->
                 <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar
                     Definitivamente</button>
             </template>
@@ -118,7 +117,7 @@
                     <div class="modal-content" v-else>
                         <h1 class="mb-5">Deseja realmente apagar o arquivo {{ arquivoNome }}?</h1>
                         <button class="btn btn-sm btn-danger"
-                            @click="apagarArquivo(arquivoId, 'Arquivo')">Apagar</button>
+                            @click="apagarArquivo(arquivoId, 'Arquivo', 'PUT')">Apagar</button>
                     </div>
                 </div>
                 <div v-else>
@@ -128,7 +127,7 @@
                     <div class="modal-content" v-else>
                         <h1 class="mb-5">Deseja realmente apagar o arquivo {{ arquivoNome }} permanentemente?</h1>
                         <button class="btn btn-sm btn-danger mt-3"
-                            @click="apagarArquivo(arquivoId, 'ArquivoPermanentemente')">Apagar</button>
+                            @click="apagarArquivo(arquivoId, 'ArquivoPermanente', 'DELETE')">Apagar</button>
                     </div>
                 </div>
             </div>
@@ -164,16 +163,13 @@
                         <h1>Imóvel do arquivo reativado com sucesso</h1>
                     </div>
                     <div v-if="!confirmation && reactiveImovel" class="modal-content">
-                        <!-- ver essa fita aqui de tamanho do botão -->
                         <h1 class="mb-5">Deseja realmente reativar o imóvel do arquivo {{ arquivoNome }}?</h1>
                         <button class="btn btn-sm btn-primary"
                             @click="reativarImovel(arquivoImovelId)">Reativar</button>
                     </div>
-                    <!-- ver de fazer essas coisas numa variável por mensagem no script-->
                 </div>
             </div>
         </Modal>
-
     </div>
 </template>
 
@@ -188,10 +184,10 @@ import { faSearch, faFilePdf, faImage, faFileWord, faFileExcel } from '@fortawes
 import UploadArquivo from '../Forms/UploadArquivos.vue'
 import LoadingSection from "../Utils/LoadingSection.vue";
 import Pagination from "../Utils/PaginationOfLists.vue"
+import axios from 'axios';
 
 library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
-
-// fazer testes pra ver quando da erro ao abrir o modal de editar
+const arquivoUrl = 'http://localhost:8000/arquivo/';
 
 export default {
     data() {
@@ -235,7 +231,6 @@ export default {
         };
         return { modalActive, toggleModal };
     },
-    // https://stackoverflow.com/questions/53772331/vue-html-js-how-to-download-a-file-to-browser-using-the-download-tag
 
     methods: {
         ...mapActions(["loadArquivos", "buscaArquivo", "loadImoveisValidosEInvalidos", "reativarImovel", "loadArquivosPorPagina"]),
@@ -315,9 +310,9 @@ export default {
             this.toggleModal();
         },
 
-        async apagarArquivo(id, tipo) {
+        async apagarArquivo(id, tipo, method) {
             this.$store.commit('isFetching', true);
-            await this.$store.dispatch('apagar' + tipo, id)
+            await axios({ url: arquivoUrl + 'deletar' + tipo + '/' + id, method: method })
                 .then(async () => {
                     if (tipo == 'Arquivo') {
                         if (this.semImovel) {
@@ -331,20 +326,22 @@ export default {
                         await this.recalculaDepoisRemoverDaLista('Inativos');
                     }
                     this.confirmation = true;
-                }).catch(error => console.log(error))
+                }).catch(error => {
+                    console.log(error)
+                })
             this.$store.commit('isFetching', false);
-
         },
 
         async reativarArquivo(id) {
             this.$store.commit('isFetching', true);
-            await this.$store.dispatch('reativarArquivo', id)
+            await axios({ url: arquivoUrl + 'reativarArquivo' + '/' + id, method: 'PUT' })
                 .then(async () => {
                     await this.recalculaDepoisRemoverDaLista('Inativos');
                     this.confirmation = true;
-                }).catch(error => console.log(error))
+                }).catch(error => {
+                    console.log(error)
+                })
             this.$store.commit('isFetching', false);
-
         },
 
         async reativarImovel(id) {
@@ -371,7 +368,6 @@ export default {
             let id = imovel.id;
             this.$store.commit('imovel', imovel);
             this.$router.push({ name: 'novoImovel', params: { id: id } })
-            // passando só id via props e o resto por vuex... mas daria pra passar tudo por props passando parametro por parametro. mas seria paia.
         },
 
         async onCompleteEdit() {
@@ -382,8 +378,7 @@ export default {
                 data_edicao: this.getNow(),
             }
             this.$store.commit('isFetching', true);
-
-            await this.$store.dispatch('updateArquivo', arquivo)
+            await axios({ url: arquivoUrl + 'editar' + '/' + arquivo.id, data: arquivo, method: 'PUT' })
                 .then(async () => {
                     if (this.semImovel) {
                         if ((this.arquivoImovel == null || this.arquivoImovel == '') && (arquivo.imovel != null && arquivo.imovel != '')) {
@@ -397,7 +392,9 @@ export default {
                         await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
                     }
                     this.edit = false;
-                }).catch(error => console.log(error))
+                }).catch(error => {
+                    console.log(error)
+                })
             this.$store.commit('isFetching', false);
 
         },
@@ -446,7 +443,6 @@ export default {
                 await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
             }
             this.$store.commit('isFetching', false);
-            console.log('Offset: ' + this.offset + ' current: ' + this.current)
         },
 
         async inicializaLista(status) {
@@ -539,31 +535,5 @@ export default {
             font-size: 18px;
         }
     }
-}
-
-.barra {
-    display: flex;
-}
-
-.colors {
-    background-color: #198754;
-    color: white;
-}
-
-.favIcon {
-    color: yellow
-}
-
-.urgIcon {
-    color: red
-}
-
-.impIcon {
-    color: red;
-}
-
-.margin-barra {
-    margin-top: 1%;
-    margin-bottom: 1%;
 }
 </style>

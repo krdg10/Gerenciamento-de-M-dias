@@ -15,8 +15,8 @@ import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { library } from '@fortawesome/fontawesome-svg-core'
 library.add(faChevronLeft, faChevronRight)
-
 // fazendo sumir com css... mas o ideal é: não entrar no v-for e/ou no array ter só os numeros corretos.
+
 export default {
     name: 'PaginationOfLists',
     components: { FontAwesomeIcon },

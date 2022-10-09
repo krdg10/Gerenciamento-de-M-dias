@@ -1,15 +1,11 @@
-/*const isLoggedIn = state => !!state.auth.token;
-const authStatus = state => state.auth.status;
-const dataCompleted = state => state.dataCompleted; 
-const typeUser = state => state.auth.user.role; 
-*/
-
 const displayNomeImovel = state => {
   return state.imovelNome
 }
 
-const displayListaImoveis = (state) => (tags) => {
-  if (!tags) {
+const displayListaImoveis = (state) => {
+  return state.imoveis;
+
+  /*if (!tags) {
     return state.imoveis;
   }
   
@@ -23,7 +19,7 @@ const displayListaImoveis = (state) => (tags) => {
   if (tags.filterUrgent == 1) {
     imoveis = imoveis.filter((teste) => { return teste.urgente == 1 })
   }
-  return imoveis;
+  return imoveis;*/
 }
 
 const displayListaImoveisAtivos = state => {

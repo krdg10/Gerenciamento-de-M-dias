@@ -13,8 +13,9 @@
   }
 
 }
+
 @media (max-width: 768px) {
-  .button-max{
+  .button-max {
     height: 100%;
     width: 100%;
   }
@@ -136,14 +137,14 @@ footer {
 }
 
 
-.noCurrent{
+.noCurrent {
   background-color: white;
   color: green;
   border-color: green;
   border: 2px solid;
 }
 
-.noCurrent:hover{
+.noCurrent:hover {
   background-color: green;
   color: white;
   border-color: white;
@@ -158,7 +159,7 @@ footer {
   --bs-btn-hover-color: #dc3545;
   --bs-btn-hover-bg: #fff;
   --bs-btn-hover-border-color: #fff;
-  --bs-btn-focus-shadow-rgb: 225,83,97;
+  --bs-btn-focus-shadow-rgb: 225, 83, 97;
   --bs-btn-active-color: #b02a37;
   --bs-btn-active-bg: #fff;
   --bs-btn-active-border-color: #fff;
@@ -171,4 +172,30 @@ footer {
 .pre {
   overflow-wrap: break-word;
   overflow: hidden;
+}
+
+.barra {
+  display: flex;
+}
+
+.colors {
+  background-color: #198754;
+  color: white;
+}
+
+.favIcon {
+  color: yellow
+}
+
+.urgIcon {
+  color: red
+}
+
+.impIcon {
+  color: red;
+}
+
+.margin-barra {
+  margin-top: 1%;
+  margin-bottom: 1%;
 }

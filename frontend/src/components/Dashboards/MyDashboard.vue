@@ -83,21 +83,18 @@ export default {
     },
     methods: {
         ...mapActions([
-            "loadQuantidadeImoveisInativos",
-            "loadQuantidadeImoveisAtivos",
-            "loadQuantidadeArquivosInativos",
-            "loadQuantidadeArquivosAtivos",
-            "loadQuantidadeArquivosSemImovel"
+            "loadQuantidadeImoveis",
+            "loadQuantidadeArquivos",
         ]),
     },
 
     async created() {
         this.$store.commit('isFetching', true);
-        await this.loadQuantidadeImoveisInativos();
-        await this.loadQuantidadeImoveisAtivos();
-        await this.loadQuantidadeArquivosInativos();
-        await this.loadQuantidadeArquivosAtivos();
-        await this.loadQuantidadeArquivosSemImovel();
+        await this.loadQuantidadeImoveis('Ativos');
+        await this.loadQuantidadeImoveis('Inativos');
+        await this.loadQuantidadeArquivos('Inativos');
+        await this.loadQuantidadeArquivos('Ativos');
+        await this.loadQuantidadeArquivos('SemImovel');
         this.$store.commit('isFetching', false);
     }
 

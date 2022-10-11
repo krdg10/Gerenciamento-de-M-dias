@@ -260,7 +260,7 @@ export default {
         },
 
         async procuraArquivo() {
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
                     await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
@@ -274,7 +274,7 @@ export default {
                 this.offset = 0;
                 this.current = 0;
             }
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         async openModal(arquivo, tipo) {
@@ -311,7 +311,7 @@ export default {
         },
 
         async apagarArquivo(id, tipo, method) {
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await axios({ url: arquivoUrl + 'deletar' + tipo + '/' + id, method: method })
                 .then(async () => {
                     if (tipo == 'Arquivo') {
@@ -329,11 +329,11 @@ export default {
                 }).catch(error => {
                     console.log(error)
                 })
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         async reativarArquivo(id) {
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await axios({ url: arquivoUrl + 'reativarArquivo' + '/' + id, method: 'PUT' })
                 .then(async () => {
                     await this.recalculaDepoisRemoverDaLista('Inativos');
@@ -341,11 +341,11 @@ export default {
                 }).catch(error => {
                     console.log(error)
                 })
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         async reativarImovel(id) {
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await this.$store.dispatch('reativarImovel', id)
                 .then(async () => {
                     //this.loadArquivosInvalidos();
@@ -353,7 +353,7 @@ export default {
                     await this.loadImoveisValidosEInvalidos();
                     this.confirmation = true;
                 }).catch(error => console.log(error));
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         getNow() {
@@ -377,7 +377,7 @@ export default {
                 imovel: this.$refs.formulario.imovel,
                 data_edicao: this.getNow(),
             }
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await axios({ url: arquivoUrl + 'editar' + '/' + arquivo.id, data: arquivo, method: 'PUT' })
                 .then(async () => {
                     if (this.semImovel) {
@@ -395,14 +395,14 @@ export default {
                 }).catch(error => {
                     console.log(error)
                 })
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
 
         },
 
         async changeList() {
             this.keywords = '';
             this.modalActive = false;
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (this.semImovel) {
                 await this.inicializaLista('semImovel');
             }
@@ -414,7 +414,7 @@ export default {
                     await this.inicializaLista('Inativos');
                 }
             }
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         async changePage(value) {
@@ -435,14 +435,14 @@ export default {
                 this.offset = this.offset + (this.limit * (value - this.current));
             }
             this.current = value;
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (this.busca) {
                 await this.execSearchImovel();
             }
             else {
                 await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
             }
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         async inicializaLista(status) {
@@ -494,7 +494,7 @@ export default {
     },
 
     async created() {
-        this.$store.commit('isFetching', true);
+        this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
         await this.loadImoveisValidosEInvalidos();
         if (this.propsSemImovel) {
             this.semImovel = true;
@@ -503,7 +503,7 @@ export default {
         else {
             await this.inicializaLista('Ativos');
         }
-        this.$store.commit('isFetching', false);
+        this.$store.commit('isFetching', { status: false, message: '' });
     },
 }
 

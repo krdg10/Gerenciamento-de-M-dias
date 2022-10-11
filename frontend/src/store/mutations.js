@@ -59,8 +59,9 @@ const quantidadeArquivosSemImovel = (state, payloadArquivosSemImovel) => {
 }
 
 
-const isFetching = (state, bool) => {
-  state.isFetching = bool;
+const isFetching = (state, object) => {
+  state.isFetching.status = object.status;
+  state.isFetching.message = object.message;
 }
 
 export default {

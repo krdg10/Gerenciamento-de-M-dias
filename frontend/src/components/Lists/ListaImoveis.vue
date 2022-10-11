@@ -1,5 +1,5 @@
 <template>
-    <LoadingSection v-if="isFetching"></LoadingSection>
+    <LoadingSection v-if="isFetching.status"></LoadingSection>
     <div class="container margin-barra my-3">
         <h4 v-if="invalidesOrNot">
             <Transition name="bounce" mode="out-in">
@@ -285,11 +285,13 @@ export default {
             this.$store.dispatch('buscaImovel', payload).then(response => {
                 this.busca = true;
                 this.total = response.totalImoveis.totalImoveis;
-            }).catch(error => console.log(error))
+            }).catch(error =>
+                this.$store.commit('isFetching', { status: true, message: error })
+            )
         },
         // procurar se busca estiver com filtro. o que fazer
         async procuraImovel() {
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
 
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
@@ -307,7 +309,7 @@ export default {
                 this.offset = 0;
                 this.current = 0;
             }
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         openModal(imovel, tipo) {
@@ -376,7 +378,7 @@ export default {
 
         async apagarImovel(id, tipo, tipoDelete, method) {
             let payload = { id: id, tipoDelete: tipoDelete };
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
 
             await axios({ url: imovelUrl + 'deletar' + tipo + '/' + id, data: payload, method: method })
                 .then(async () => {
@@ -386,22 +388,22 @@ export default {
                     }
                     await this.recalculaDepoisRemoverDaLista(status);
 
-                    this.$store.commit('isFetching', false);
+                    this.$store.commit('isFetching', { status: false, message: '' });
                     this.confirmation = true;
                 }).catch(error => {
-                    console.log(error)
+                    this.$store.commit('isFetching', { status: true, message: error })
                 })
         },
 
         async reativarImovel(id) {
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await axios({ url: imovelUrl + 'reativarImovel' + '/' + id, method: 'PUT' })
                 .then(async () => {
                     await this.recalculaDepoisRemoverDaLista('Inativos');
                     this.confirmation = true;
-                    this.$store.commit('isFetching', false);
+                    this.$store.commit('isFetching', { status: false, message: '' });
                 }).catch(error => {
-                    console.log(error)
+                    this.$store.commit('isFetching', { status: true, message: error })
                 })
         },
 
@@ -413,39 +415,39 @@ export default {
                     await this.recalculaDepoisRemoverDaLista('Ativos');
 
                 })
-                .catch(error => console.log(error))
+                .catch(error => this.$store.commit('isFetching', { status: true, message: error }))
         },
 
         async desassociarDocumentos(id) {
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await axios({ url: imovelUrl + 'desassociarTodosDocumentos' + '/' + id, method: 'PUT' })
                 .then(() => {
                     this.modalDesassocia = 'Documentos do imóvel desassociados com sucesso';
                     this.confirmation = true;
                 }).catch(error => {
-                    console.log(error)
+                    this.$store.commit('isFetching', { status: true, message: error })
                 })
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
 
         },
 
         async apagarDocumentos(id) {
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await axios({ url: imovelUrl + 'deletarTodosDocumentosAssociados' + '/' + id, method: 'PUT' })
                 .then(() => {
                     this.modalDesassocia = 'Documentos do imóvel apagados com sucesso';
                     this.confirmation = true;
                 }).catch(error => {
-                    console.log(error)
+                    this.$store.commit('isFetching', { status: true, message: error })
                 })
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
 
         },
 
         async changeTagFilter(tipo) {
             // ver se tiver em busca e se tiver com filtro. O que fazer.
             // começar daqui.
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (tipo == 'urgente') {
                 this.tags.filterUrgent = this.changeTagValue(this.tags.filterUrgent);
             }
@@ -456,7 +458,7 @@ export default {
                 this.tags.filterFav = this.changeTagValue(this.tags.filterFav);
             }
             await this.inicializaLista(null, this.tags);
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         changeTagValue(value) {
@@ -492,12 +494,12 @@ export default {
             this.current = 0;
             let status = 'Ativos';
             this.offset = 0;
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (this.invalidesOrNot) {
                 status = 'Inativos';
             }
             await this.inicializaLista(status, null);
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         async changePage(value) {
@@ -515,7 +517,7 @@ export default {
                 this.offset = this.offset + (this.limit * (value - this.current));
             }
             this.current = value;
-            this.$store.commit('isFetching', true);
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (this.busca) {
                 if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
                     await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A' });
@@ -533,7 +535,7 @@ export default {
                 }
 
             }
-            this.$store.commit('isFetching', false);
+            this.$store.commit('isFetching', { status: false, message: '' });
         },
 
         async inicializaLista(status, tags) {
@@ -572,9 +574,9 @@ export default {
     },
 
     async created() {
-        this.$store.commit('isFetching', true);
+        this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
         await this.inicializaLista('Ativos', null);
-        this.$store.commit('isFetching', false);
+        this.$store.commit('isFetching', { status: false, message: '' });
     },
 }
 

@@ -89,16 +89,14 @@ export default {
     },
 
     async created() {
-        this.$store.commit('isFetching', true);
+        this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
         await this.loadQuantidadeImoveis('Ativos');
         await this.loadQuantidadeImoveis('Inativos');
         await this.loadQuantidadeArquivos('Inativos');
         await this.loadQuantidadeArquivos('Ativos');
         await this.loadQuantidadeArquivos('SemImovel');
-        this.$store.commit('isFetching', false);
+        this.$store.commit('isFetching', { status: false, message: '' });
     }
-
-
 }
 </script>
 

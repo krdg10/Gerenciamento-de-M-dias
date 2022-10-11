@@ -11,7 +11,7 @@ const imovel = (state, payloadImovel) => {
 }
 
 const alterTag = (state, payload) => {
-  let index = state.imoveis.findIndex(x => x.id == payload.id);
+  let index = state.imoveis.findIndex(x => x.id == payload.imovelId);
   if (payload.type == 'urgente') {
     if (state.imoveis[index].urgente == 0) {
       state.imoveis[index].urgente = 1;

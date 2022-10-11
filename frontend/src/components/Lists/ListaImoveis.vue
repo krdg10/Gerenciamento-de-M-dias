@@ -1,29 +1,29 @@
 <template>
     <LoadingSection v-if="isFetching"></LoadingSection>
     <div class="container margin-barra my-3">
+        <h4 v-if="invalidesOrNot">
+            <Transition name="bounce" mode="out-in">
+                <font-awesome-icon icon="fa-solid fa-exclamation" class="static" @click="changeTagFilter('importante')"
+                    v-if="tags.filterImportant == 0" />
+                <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon"
+                    @click="changeTagFilter('importante')" v-else />
+            </Transition>
+
+            <Transition name="bounce" mode="out-in">
+                <font-awesome-icon icon="fa fa-star" class="static" @click="changeTagFilter('favorito')"
+                    v-if="tags.filterFav == 0" />
+                <font-awesome-icon icon="fa fa-star" class="static favIcon" @click="changeTagFilter('favorito')"
+                    v-else />
+            </Transition>
+
+            <Transition name="bounce" mode="out-in">
+                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
+                    @click="changeTagFilter('urgente')" v-if="tags.filterUrgent == 0" />
+                <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon"
+                    @click="changeTagFilter('urgente')" v-else />
+            </Transition>
+        </h4>
         <div class="row">
-            <div class="col-3" v-if="invalidesOrNot">
-                <Transition name="bounce" mode="out-in">
-                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
-                        @click="changeTagFilter('importante')" v-if="tags.filterImportant == 0" />
-                    <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon"
-                        @click="changeTagFilter('importante')" v-else />
-                </Transition>
-
-                <Transition name="bounce" mode="out-in">
-                    <font-awesome-icon icon="fa fa-star" class="static" @click="changeTagFilter('favorito')"
-                        v-if="tags.filterFav == 0" />
-                    <font-awesome-icon icon="fa fa-star" class="static favIcon" @click="changeTagFilter('favorito')"
-                        v-else />
-                </Transition>
-
-                <Transition name="bounce" mode="out-in">
-                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
-                        @click="changeTagFilter('urgente')" v-if="tags.filterUrgent == 0" />
-                    <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon"
-                        @click="changeTagFilter('urgente')" v-else />
-                </Transition>
-            </div>
             <div class="col-md-5 col-4">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
@@ -263,7 +263,8 @@ export default {
     },
 
     methods: {
-        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos", "loadImoveisPorPagina", "loadImoveisPorPaginaFiltrados"]),
+        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos",
+            "loadImoveisPorPagina", "loadImoveisPorPaginaFiltrados", "buscaImovelFiltrado"]),
 
         async execSearchImovel() {
             let status;
@@ -299,6 +300,9 @@ export default {
                 }
             }
             else {
+                this.tags.filterFav = 0;
+                this.tags.filterImportant = 0;
+                this.tags.filterUrgent = 0;
                 await this.execSearchImovel();
                 this.offset = 0;
                 this.current = 0;
@@ -340,9 +344,17 @@ export default {
                 this.offset = this.offset - this.limit;
                 this.current--;
             }
-            // calcular se busca tiver com filtro. o que fazer
+
             if (this.busca) {
-                await this.execSearchImovel();
+                if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
+                    let resultado;
+
+                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A' });
+                    this.total = resultado.totalImoveis.totalImoveis;
+                }
+                else {
+                    await this.execSearchImovel();
+                }
             }
 
             else {
@@ -505,8 +517,12 @@ export default {
             this.current = value;
             this.$store.commit('isFetching', true);
             if (this.busca) {
-                // se busca estiver com filtro. o que fazer
-                await this.execSearchImovel();
+                if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
+                    await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A' });
+                }
+                else {
+                    await this.execSearchImovel();
+                }
             }
             else {
                 if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
@@ -521,14 +537,18 @@ export default {
         },
 
         async inicializaLista(status, tags) {
-            this.busca = false;
             this.offset = 0;
             this.current = 0;
             this.total = 0;
 
             let resultado;
             if (tags) {
-                resultado = await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags });
+                if (this.busca) {
+                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A' })
+                }
+                else {
+                    resultado = await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags });
+                }
             }
             else {
                 this.tags.filterFav = 0;

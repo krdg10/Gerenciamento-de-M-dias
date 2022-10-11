@@ -17,7 +17,6 @@ const loadArquivosSemImoveis = async ({ commit }) => {
     return await axios({ url: arquivoUrl + 'ativosSemImovel', method: 'GET' })
         .then(response => {
             const payloadArquivos = response.data;
-            console.log(payloadArquivos)
             commit('arquivos', payloadArquivos);
             return response.data
         }).catch(error => {
@@ -59,6 +58,19 @@ const buscaImovel = async ({ commit }, busca) => {
         })
 };
 
+const buscaImovelFiltrado = async ({ commit }, busca) => {
+    let tags = busca.tags;
+
+    return await axios({ url: imovelUrl + 'buscarTodosValidosComFiltro' + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit + '/' + tags.filterUrgent + '/' + tags.filterFav + '/' + tags.filterImportant, method: 'GET' })
+        .then(response => {
+            const payloadImoveis = response.data.resultado;
+            commit('imoveis', payloadImoveis);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 const buscaArquivo = async ({ commit }, busca) => {
     let url;
     if (busca.tipo == 'nome') {
@@ -89,7 +101,7 @@ const updateImovel = async ({ commit }, imovel) => {
 };
 
 const alterarTag = async ({ commit }, payload) => {
-    return await axios({ url: imovelUrl + 'alterarTag' + '/' + payload.id, data: payload, method: 'PUT' })
+    return await axios({ url: imovelUrl + 'alterarTag' + '/' + payload.tagId, data: payload, method: 'PUT' })
         .then(response => {
             commit('alterTag', payload);
             return response
@@ -156,6 +168,22 @@ const loadImoveisPorPagina = async ({ commit }, payload) => {
         })
 };
 
+
+const loadImoveisPorPaginaFiltrados = async ({ commit }, payload) => {
+    let offset = payload.offset;
+    let limit = payload.limit;
+    let tags = payload.tags;
+
+    return await axios({ url: imovelUrl + 'imoveisPaginadosComFiltro' + '/' + offset + '/' + limit + '/' + tags.filterUrgent + '/' + tags.filterFav + '/' + tags.filterImportant, method: 'GET' })
+        .then(response => {
+            const payloadImoveis = response.data.resultado;
+            commit('imoveis', payloadImoveis);
+            return response.data
+        }).catch(error => {
+            console.log(error)
+        })
+};
+
 const loadArquivosPorPagina = async ({ commit }, payload) => {
     let offset = payload.offset;
     let limit = payload.limit;
@@ -191,5 +219,7 @@ export default {
     loadArquivosSemImoveis,
     loadImoveisValidosEInvalidos,
     loadImoveisPorPagina,
-    loadArquivosPorPagina
+    loadArquivosPorPagina,
+    loadImoveisPorPaginaFiltrados,
+    buscaImovelFiltrado
 };

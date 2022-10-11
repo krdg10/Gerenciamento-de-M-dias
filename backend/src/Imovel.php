@@ -11,8 +11,9 @@ class Imovel
     private $url;
     private $offset;
     private $limit;
+    private $tags;
 
-    public function __construct($db, $requestMethod, $imovelId, $busca, $url, $offset, $limit)
+    public function __construct($db, $requestMethod, $imovelId, $busca, $url, $offset, $limit, $tags)
     {
         $this->db = $db;
         $this->requestMethod = $requestMethod;
@@ -21,6 +22,7 @@ class Imovel
         $this->url = $url;
         $this->offset = $offset;
         $this->limit = $limit;
+        $this->tags = $tags;
     }
 
     public function processRequest()
@@ -30,14 +32,20 @@ class Imovel
                 if ($this->imovelId) {
                     $response = $this->getImovel($this->imovelId);
                 } else if ($this->busca) {
-                    $response = $this->getImoveisByName($this->busca, $this->offset, $this->limit);
+                    if ($this->url == 'buscarTodosValidosComFiltro') {
+                        $response = $this->getImoveisByName($this->busca, $this->offset, $this->limit, $this->tags);
+                    } else {
+                        $response = $this->getImoveisByName($this->busca, $this->offset, $this->limit, null);
+                    }
                 } else {
                     if ($this->url == 'buscarTodosValidos') {
                         $response = $this->getAllImovels('A');
                     } else if ($this->url == 'imoveisPaginadosAtivos') {
-                        $response = $this->getAllImovelsInPages('A', $this->offset, $this->limit);
+                        $response = $this->getAllImovelsInPages('A', $this->offset, $this->limit, null);
                     } else if ($this->url == 'imoveisPaginadosInativos') {
-                        $response = $this->getAllImovelsInPages('I', $this->offset, $this->limit);
+                        $response = $this->getAllImovelsInPages('I', $this->offset, $this->limit, null);
+                    } else if ($this->url == 'imoveisPaginadosComFiltro') {
+                        $response = $this->getAllImovelsInPages('A', $this->offset, $this->limit, $this->tags);
                     } else if ($this->url == 'buscarTodosInvalidos') {
                         $response = $this->getAllImovels('I');
                     } else if ($this->url == 'buscarTodosValidosEInvalidos') {
@@ -100,15 +108,34 @@ class Imovel
         return $response;
     }
 
-    private function getAllImovelsInPages($status, $offset, $limit)
+    private function getAllImovelsInPages($status, $offset, $limit, $tags)
     {
         $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.tags_id = tag.id ORDER BY imovel.id LIMIT $limit OFFSET $offset;";
 
-        if (!isset($status)) {
-            $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.tags_id = tag.id ORDER BY imovel.nome LIMIT $limit OFFSET $offset;";
+        $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis where ativo = '$status';";
+
+        if (isset($tags)) {
+            $partialQuery = '';
+
+            $favorito = $tags->favorito;
+            $importante = $tags->importante;
+            $urgente = $tags->urgente;
+
+            if ($favorito == 1) {
+                $partialQuery .= ' and tag.favorito = 1';
+            }
+            if ($importante == 1) {
+                $partialQuery .= ' and tag.importante = 1';
+            }
+            if ($urgente == 1) {
+                $partialQuery .= ' and tag.urgente = 1';
+            }
+
+            $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.tags_id = tag.id $partialQuery ORDER BY imovel.id LIMIT $limit OFFSET $offset;";
+
+            $queryTotal = "SELECT COUNT(*) totalImoveis  FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.tags_id = tag.id $partialQuery;";
         }
 
-        $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis where ativo = '$status';";
 
         try {
             $statement = $this->db->query($query);
@@ -142,7 +169,7 @@ class Imovel
     }
 
 
-    private function getImoveisByName($busca, $offset, $limit)
+    private function getImoveisByName($busca, $offset, $limit, $tags)
     {
 
         $keywords = $busca[0];
@@ -156,6 +183,35 @@ class Imovel
       ";
 
         $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis where ativo = '$status' and  LOWER(nome) LIKE LOWER('%$keywords%');";
+
+        if (isset($tags)) {
+            $partialQuery = '';
+
+            $favorito = $tags->favorito;
+            $importante = $tags->importante;
+            $urgente = $tags->urgente;
+
+            if ($favorito == 1) {
+                $partialQuery .= ' and tag.favorito = 1';
+            }
+            if ($importante == 1) {
+                $partialQuery .= ' and tag.importante = 1';
+            }
+            if ($urgente == 1) {
+                $partialQuery .= ' and tag.urgente = 1';
+            }
+
+            $query = "
+            SELECT
+            imovel.*, tag.favorito, tag.importante, tag.urgente
+            FROM
+            imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.tags_id = tag.id $partialQuery
+            LIMIT $limit OFFSET $offset;
+            ";
+
+            $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis imovel, tags tag where imovel.ativo = '$status' and  LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.tags_id = tag.id  $partialQuery;";
+        }
+
 
 
 
@@ -298,10 +354,7 @@ class Imovel
 
     private function updateTag($id)
     {
-        $result = $this->find($id);
-        if (!$result) {
-            return $this->notFoundResponse();
-        }
+        // fazer validação se tag com o id existe
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
         // validar o input
         if ($input['type'] == 'urgente') {

@@ -40,6 +40,7 @@ $postId = null;
 $busca = null;
 $offset = null;
 $limit = null;
+$tags = null;
 
 if ($uri[1] == 'imovel') {
     if ($uri[2] == 'novo' || $uri[2] == 'buscarTodosValidos' || $uri[2] == 'buscarTodosInvalidos' || $uri[2] == 'buscarTodosValidosEInvalidos' || $uri[2] == 'numeroDeAtivos' || $uri[2] == 'numeroDeInativos') {
@@ -64,11 +65,28 @@ if ($uri[1] == 'imovel') {
         }
         $offset = (int) $uri[3];
         $limit = (int) $uri[4];
+    } else if ($uri[2] == 'imoveisPaginadosComFiltro') {
+        if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6]) || !isset($uri[7])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $offset = (int) $uri[3];
+        $limit = (int) $uri[4];
+        $tags = (object) ['urgente' => (int) $uri[5], 'favorito' => (int) $uri[6], 'importante' => (int) $uri[7]];
+    } else if ($uri[2] == 'buscarTodosValidosComFiltro') {
+        if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6]) || !isset($uri[7]) || !isset($uri[8]) || !isset($uri[9])) {
+            header("HTTP/1.1 404 Not Found");
+            exit();
+        }
+        $busca = [$uri[3], $uri[4]];
+        $offset = (int) $uri[5];
+        $limit = (int) $uri[6];
+        $tags = (object) ['urgente' => (int) $uri[7], 'favorito' => (int) $uri[8], 'importante' => (int) $uri[9]];
     } else {
         header("HTTP/1.1 404 Not Found");
         exit();
     }
-    $controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[2], $offset, $limit);
+    $controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[2], $offset, $limit, $tags);
     $controller->processRequest();
 } else if ($uri[1] == 'arquivo') {
     if ($uri[2] == 'novoArquivo') {

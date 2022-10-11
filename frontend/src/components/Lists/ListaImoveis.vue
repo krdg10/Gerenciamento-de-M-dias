@@ -2,7 +2,7 @@
     <LoadingSection v-if="isFetching"></LoadingSection>
     <div class="container margin-barra my-3">
         <div class="row">
-            <!--  <div class="col-3" v-if="invalidesOrNot">
+            <div class="col-3" v-if="invalidesOrNot">
                 <Transition name="bounce" mode="out-in">
                     <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
                         @click="changeTagFilter('importante')" v-if="tags.filterImportant == 0" />
@@ -23,7 +23,7 @@
                     <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon"
                         @click="changeTagFilter('urgente')" v-else />
                 </Transition>
-            </div>-->
+            </div>
             <div class="col-md-5 col-4">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
@@ -72,24 +72,24 @@
                                 <Transition name="bounce" mode="out-in">
                                     <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
                                         v-if=" imovel.importante == 0"
-                                        @click="addTag(imovel.id, 'importante', imovel.importante)" />
+                                        @click="addTag(imovel.id, 'importante', imovel.importante, imovel.tags_id)" />
                                     <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon" v-else
-                                        @click="addTag(imovel.id, 'importante', imovel.importante)" />
+                                        @click="addTag(imovel.id, 'importante', imovel.importante, imovel.tags_id)" />
                                 </Transition>
 
                                 <Transition name="bounce" mode="out-in">
                                     <font-awesome-icon icon="fa fa-star" class="static" v-if="imovel.favorito == 0"
-                                        @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
+                                        @click="addTag(imovel.id, 'favorito', imovel.favorito, imovel.tags_id)" />
                                     <font-awesome-icon icon="fa fa-star" class="static favIcon" v-else
-                                        @click="addTag(imovel.id, 'favorito', imovel.favorito)" />
+                                        @click="addTag(imovel.id, 'favorito', imovel.favorito, imovel.tags_id)" />
                                 </Transition>
 
                                 <Transition name="bounce" mode="out-in">
                                     <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static"
                                         v-if="imovel.urgente == 0"
-                                        @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                                        @click="addTag(imovel.id, 'urgente', imovel.urgente, imovel.tags_id)" />
                                     <font-awesome-icon icon="fa-solid fa-triangle-exclamation" class="static urgIcon"
-                                        v-else @click="addTag(imovel.id, 'urgente', imovel.urgente)" />
+                                        v-else @click="addTag(imovel.id, 'urgente', imovel.urgente, imovel.tags_id)" />
                                 </Transition>
                             </h3>
                         </div>
@@ -236,7 +236,7 @@ export default {
                 filterUrgent: 0
             },
             offset: 0,
-            limit: 10,
+            limit: 2,
             total: 0,
             current: 0,
             busca: false
@@ -263,7 +263,7 @@ export default {
     },
 
     methods: {
-        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos", "loadImoveisPorPagina"]),
+        ...mapActions(["loadImoveis", "buscaImovel", "loadImoveisInvalidos", "loadImoveisPorPagina", "loadImoveisPorPaginaFiltrados"]),
 
         async execSearchImovel() {
             let status;
@@ -286,16 +286,16 @@ export default {
                 this.total = response.totalImoveis.totalImoveis;
             }).catch(error => console.log(error))
         },
-
+        // procurar se busca estiver com filtro. o que fazer
         async procuraImovel() {
             this.$store.commit('isFetching', true);
 
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
-                    await this.inicializaLista('Ativos');
+                    await this.inicializaLista('Ativos', null);
                 }
                 else {
-                    await this.inicializaLista('Inativos');
+                    await this.inicializaLista('Inativos', null);
                 }
             }
             else {
@@ -340,15 +340,23 @@ export default {
                 this.offset = this.offset - this.limit;
                 this.current--;
             }
-
+            // calcular se busca tiver com filtro. o que fazer
             if (this.busca) {
                 await this.execSearchImovel();
             }
 
             else {
                 let resultado;
-                resultado =
-                    await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+
+                if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
+                    resultado =
+                        await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags });
+                }
+                else {
+                    resultado =
+                        await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                }
+
                 this.total = resultado.totalImoveis.totalImoveis;
             }
 
@@ -385,10 +393,15 @@ export default {
                 })
         },
 
-        async addTag(id, type, value) {
-            let payload = { id: id, type: type, value: this.changeTagValue(value), hora: this.getNow() }
+        async addTag(imovelId, type, value, tagId) {
+            let payload = { imovelId: imovelId, type: type, value: this.changeTagValue(value), hora: this.getNow(), tagId: tagId }
 
-            await this.$store.dispatch('alterarTag', payload).catch(error => console.log(error))
+            await this.$store.dispatch('alterarTag', payload)
+                .then(async () => {
+                    await this.recalculaDepoisRemoverDaLista('Ativos');
+
+                })
+                .catch(error => console.log(error))
         },
 
         async desassociarDocumentos(id) {
@@ -418,6 +431,9 @@ export default {
         },
 
         async changeTagFilter(tipo) {
+            // ver se tiver em busca e se tiver com filtro. O que fazer.
+            // começar daqui.
+            this.$store.commit('isFetching', true);
             if (tipo == 'urgente') {
                 this.tags.filterUrgent = this.changeTagValue(this.tags.filterUrgent);
             }
@@ -427,6 +443,8 @@ export default {
             else {
                 this.tags.filterFav = this.changeTagValue(this.tags.filterFav);
             }
+            await this.inicializaLista(null, this.tags);
+            this.$store.commit('isFetching', false);
         },
 
         changeTagValue(value) {
@@ -466,7 +484,7 @@ export default {
             if (this.invalidesOrNot) {
                 status = 'Inativos';
             }
-            await this.inicializaLista(status);
+            await this.inicializaLista(status, null);
             this.$store.commit('isFetching', false);
         },
 
@@ -487,21 +505,37 @@ export default {
             this.current = value;
             this.$store.commit('isFetching', true);
             if (this.busca) {
+                // se busca estiver com filtro. o que fazer
                 await this.execSearchImovel();
             }
             else {
-                await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
+                    await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags });
+                }
+                else {
+                    await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                }
 
             }
             this.$store.commit('isFetching', false);
         },
 
-        async inicializaLista(status) {
+        async inicializaLista(status, tags) {
             this.busca = false;
             this.offset = 0;
             this.current = 0;
             this.total = 0;
-            const resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+
+            let resultado;
+            if (tags) {
+                resultado = await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags });
+            }
+            else {
+                this.tags.filterFav = 0;
+                this.tags.filterImportant = 0;
+                this.tags.filterUrgent = 0;
+                resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            }
             this.total = resultado.totalImoveis.totalImoveis;
         }
     },
@@ -519,7 +553,7 @@ export default {
 
     async created() {
         this.$store.commit('isFetching', true);
-        await this.inicializaLista('Ativos');
+        await this.inicializaLista('Ativos', null);
         this.$store.commit('isFetching', false);
     },
 }

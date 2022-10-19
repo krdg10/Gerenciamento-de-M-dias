@@ -89,17 +89,6 @@ const buscaArquivo = async ({ commit }, busca) => {
         })
 };
 
-const updateImovel = async ({ commit }, imovel) => {
-    return await axios({ url: imovelUrl + 'editar' + '/' + imovel.id, data: imovel, method: 'PUT' })
-        .then(response => {
-            const payload = imovel;
-            commit('imovel', payload)
-            return response
-        }).catch(error => {
-            console.log(error)
-        })
-};
-
 const alterarTag = async ({ commit }, payload) => {
     return await axios({ url: imovelUrl + 'alterarTag' + '/' + payload.tagId, data: payload, method: 'PUT' })
         .then(response => {
@@ -208,7 +197,6 @@ const loadArquivosPorPagina = async ({ commit }, payload) => {
 export default {
     loadImoveis,
     buscaImovel,
-    updateImovel,
     alterarTag,
     loadArquivos,
     buscaArquivo,

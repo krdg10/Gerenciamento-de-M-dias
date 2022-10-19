@@ -28,10 +28,9 @@
   </div>
 
   <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
-    pageToRedirect="listaImoveis" :showCloseButton="true">
+    pageToRedirect="listaImoveis" :showCloseButton="true" :redirectOrNot="redirectOrNot">
     <div class="modal-content">
-      <h1 v-if="!id">Imóvel Criado Com Sucesso</h1>
-      <h1 v-else>Imóvel Editado Com Sucesso</h1>
+      <h1>{{modalMessage}}</h1>
     </div>
   </Modal>
 </template>
@@ -49,6 +48,12 @@ export default {
 
   name: 'FormularioImovel',
   components: { Form, FormulariodeImovel, Modal },
+  data() {
+    return {
+      modalMessage: '',
+      redirectOrNot: false
+    }
+  },
 
   setup() {
     const modalActive = ref(false);
@@ -79,9 +84,13 @@ export default {
       }
       await axios({ url: 'http://localhost:8000/imovel/' + 'novo', data: imovel, method: 'POST' })
         .then(() => {
+          this.redirectOrNot = true;
+          this.modalMessage = 'Imóvel Criado com Sucesso!';
           this.toggleModal();
         }).catch(error => {
-          console.log(error)
+          this.redirectOrNot = false;
+          this.modalMessage = error.response.data;
+          this.toggleModal();
         })
     },
 
@@ -101,10 +110,19 @@ export default {
         complemento: this.$refs.formulario.complemento,
         data_edicao: this.getNow(),
       }
-      await this.$store.dispatch('updateImovel', imovel)
+
+      await axios({ url: 'http://localhost:8000/imovel/' + 'editar' + '/' + imovel.id, data: imovel, method: 'PUT' })
         .then(() => {
+          const payload = imovel;
+          this.$store.commit('imovel', payload);
+          this.redirectOrNot = true;
+          this.modalMessage = 'Imóvel Editado com Sucesso!';
           this.toggleModal();
-        }).catch(error => console.log(error))
+        }).catch(error => {
+          this.redirectOrNot = false;
+          this.modalMessage = Object.values(error.response.data[0])[0][0];
+          this.toggleModal();
+        })
     },
 
 

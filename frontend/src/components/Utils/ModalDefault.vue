@@ -18,13 +18,14 @@ export default {
     modalActive: Boolean,
     showCloseButton: Boolean,
     redirectToAnotherPage: Function,
+    redirectOrNot: Boolean,
     pageToRedirect: String
   },
 
   setup(props, { emit }) {
     const close = () => {
       emit("close");
-      if (props.redirectToAnotherPage) {
+      if (props.redirectToAnotherPage && props.redirectOrNot) {
         props.redirectToAnotherPage({ name: props.pageToRedirect });
       }
 

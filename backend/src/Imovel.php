@@ -1,7 +1,9 @@
 <?php
 
 namespace Src;
-// inserir validações das informações.
+
+include 'DataValidator/DataValidator.php';
+
 class Imovel
 {
     private $db;
@@ -79,7 +81,7 @@ class Imovel
                 $response = $this->deletePermanente($this->imovelId);
                 break;
             default:
-                $response = $this->notFoundResponse();
+                $response = $this->notFoundResponse('Error');
                 break;
         }
         header($response['status_code_header']);
@@ -175,12 +177,7 @@ class Imovel
         $keywords = $busca[0];
         $status = $busca[1];
 
-        $query = "
-      SELECT
-      imovel.*, tag.favorito, tag.importante, tag.urgente
-      FROM
-      imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.tags_id = tag.id LIMIT $limit OFFSET $offset;
-      ";
+        $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.tags_id = tag.id LIMIT $limit OFFSET $offset;";
 
         $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis where ativo = '$status' and  LOWER(nome) LIKE LOWER('%$keywords%');";
 
@@ -201,19 +198,10 @@ class Imovel
                 $partialQuery .= ' and tag.urgente = 1';
             }
 
-            $query = "
-            SELECT
-            imovel.*, tag.favorito, tag.importante, tag.urgente
-            FROM
-            imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.tags_id = tag.id $partialQuery
-            LIMIT $limit OFFSET $offset;
-            ";
+            $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.ativo = '$status' and imovel.tags_id = tag.id $partialQuery LIMIT $limit OFFSET $offset;";
 
             $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis imovel, tags tag where imovel.ativo = '$status' and  LOWER(imovel.nome) LIKE LOWER('%$keywords%') and imovel.tags_id = tag.id  $partialQuery;";
         }
-
-
-
 
         try {
             $statement = $this->db->query($query);
@@ -231,10 +219,10 @@ class Imovel
     }
 
     private function getImovel($id)
-    { ///////// ver aqui pra verificar se tá ativo
-        $result = $this->find($id);
+    {
+        $result = $this->find($id, 'A', 'imoveis');
         if (!$result) {
-            return $this->notFoundResponse();
+            return $this->notFoundResponse('Imovel Inexistente');
         }
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
@@ -244,8 +232,9 @@ class Imovel
     private function createImovel()
     {
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-        if (!$this->validateImovel($input, 'POST')) {
-            return $this->unprocessableEntityResponse();
+        $validation = $this->validateImovel($input, 'POST');
+        if (is_array($validation)) {
+            return $this->returnValidationErrors($validation);
         }
 
         $queryTag = "INSERT INTO tags (data_criacao) VALUES(:data_criacao);";
@@ -260,13 +249,7 @@ class Imovel
             exit($e->getMessage());
         }
 
-        $queryImovel = "
-      INSERT INTO imoveis
-          (nome, data_cadastro, descricao, preco, cep, rua, bairro, numero, cidade, estado, complemento, tags_id)
-      VALUES
-      (:nome, :data_cadastro, :descricao, :preco, :cep, :rua, :bairro, :numero, :cidade, :estado, :complemento, :tags_id);
-      ";
-        ////////// fazer pegar a data de cadastro automaticamente. current hora e tal. também colocar um formulario de edição
+        $queryImovel = "INSERT INTO imoveis (nome, data_cadastro, descricao, preco, cep, rua, bairro, numero, cidade, estado, complemento, tags_id) VALUES (:nome, :data_cadastro, :descricao, :preco, :cep, :rua, :bairro, :numero, :cidade, :estado, :complemento, :tags_id);";
         try {
             $statement = $this->db->prepare($queryImovel);
             $statement->execute(array(
@@ -293,39 +276,19 @@ class Imovel
         return $response;
     }
 
-    ////////////////////////////////////////////////////////////////
-    // Fazer Crud pra arquivos
-    // fazer front
-    // melhor tratamento de erros desse crud aqui
-    ////////////////////////////////////////
-
     private function updateImovel($id)
     {
-        $result = $this->find($id);
+        $result = $this->find($id, 'A', 'imoveis');
         if (!$result) {
-            return $this->notFoundResponse();
+            return $this->notFoundResponse('Imovel Inexistente');
         }
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-        if (!$this->validateImovel($input, 'PUT')) {
-            return $this->unprocessableEntityResponse();
+        $validation = $this->validateImovel($input, 'PUT');
+        if (is_array($validation)) {
+            return $this->returnValidationErrors($validation);
         }
 
-        $statement = "
-      UPDATE imoveis
-      SET
-        nome = :nome,
-        descricao = :descricao,
-        preco = :preco,
-        cep = :cep,
-        rua = :rua,
-        bairro = :bairro,
-        numero = :numero,
-        cidade = :cidade,
-        estado = :estado,
-        complemento = :complemento,
-        data_edicao = :data_edicao
-      WHERE id = :id;
-    ";
+        $statement = "UPDATE imoveis SET nome = :nome, descricao = :descricao, preco = :preco, cep = :cep, rua = :rua, bairro = :bairro, numero = :numero, cidade = :cidade, estado = :estado, complemento = :complemento, data_edicao = :data_edicao WHERE id = :id;";
 
         try {
             $statement = $this->db->prepare($statement);
@@ -354,33 +317,25 @@ class Imovel
 
     private function updateTag($id)
     {
-        // fazer validação se tag com o id existe
+        $result = $this->find($id, 'A', 'tags');
+        if (!$result) {
+            return $this->notFoundResponse('Tag Inexistente');
+        }
+
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-        // validar o input
+
+        if (!isset($input['type'])) {
+            if ($input['type'] != 'urgente' && $input['type'] != 'importante' && $input['type'] != 'favorito') {
+                return $this->notFoundResponse('Sem data necessária para update das tags');
+            }
+        }
+
         if ($input['type'] == 'urgente') {
-            $statement = "
-            UPDATE tags
-            SET
-            urgente = :value,
-            data_edicao = :hora
-            WHERE id = :id;
-          ";
+            $statement = "UPDATE tags SET urgente = :value, data_edicao = :hora WHERE id = :id;";
         } else if ($input['type'] == 'importante') {
-            $statement = "
-            UPDATE tags
-            SET
-            importante = :value,
-            data_edicao = :hora
-            WHERE id = :id;
-          ";
+            $statement = "UPDATE tags SET importante = :value, data_edicao = :hora WHERE id = :id;";
         } else {
-            $statement = "
-            UPDATE tags
-            SET
-            favorito = :value,
-            data_edicao = :hora
-            WHERE id = :id;
-          ";
+            $statement = "UPDATE tags SET favorito = :value, data_edicao = :hora WHERE id = :id;";
         }
         try {
             $statement = $this->db->prepare($statement);
@@ -400,12 +355,12 @@ class Imovel
 
     private function deletarOuReativarImovel($tipo, $id)
     {
-        if ($tipo == 'I') {
-            $result = $this->find($id);
-            if (!$result) {
-                return $this->notFoundResponse();
-            }
+        $result = $this->find($id, $tipo, 'imoveis');
+        if (!$result) {
+            return $this->notFoundResponse('Imovel Inexistente');
+        }
 
+        if ($tipo == 'I') {
             $input = (array) json_decode(file_get_contents('php://input'), TRUE);
 
             if ($input["tipoDelete"] == "desassociaDocumentos") {
@@ -429,15 +384,9 @@ class Imovel
         return $response;
     }
 
-    public function find($id)
+    public function find($id, $tipo, $table)
     {
-        $query = "
-      SELECT
-          *
-      FROM
-          imoveis
-      WHERE id = :id and ativo = 'A';
-    ";
+        $query = "SELECT * FROM $table WHERE id = :id and ativo = '$tipo';";
 
         try {
             $statement = $this->db->prepare($query);
@@ -451,29 +400,40 @@ class Imovel
 
     private function validateImovel($input, $tipo)
     {
-        if ($tipo == 'POST') {
-            if (
-                !isset($input['nome']) || !isset($input['data_cadastro']) || !isset($input['descricao']) || !isset($input['preco'])  || !isset($input['cep'])
-                || !isset($input['rua'])  || !isset($input['bairro'])  || !isset($input['cidade'])  || !isset($input['estado'])
-            ) {
-                return false;
-            }
-        } else if ($tipo == 'PUT') {
-            if (
-                !isset($input['nome']) || !isset($input['data_edicao']) || !isset($input['descricao']) || !isset($input['preco'])  || !isset($input['cep'])
-                || !isset($input['rua'])  || !isset($input['bairro'])  || !isset($input['cidade'])  || !isset($input['estado'])
-            ) {
-                return false;
-            }
+        $typeOfDate = 'data_cadastro';
+        if ($tipo == 'PUT') {
+            $typeOfDate = 'data_edicao';
         }
 
+        $validate = new Data_Validator();
+        $validate->set('nome', $input['nome'])->is_required()->max_length('50')
+            ->set('preco', $input['preco'])->is_required()->min_value('1')->is_num()
+            ->set('cep', $input['cep'])->is_required()->is_zipCode()
+            ->set('rua', $input['rua'])->is_required()->max_length('50')
+            ->set('bairro', $input['bairro'])->is_required()->max_length('50')
+            ->set('numero', $input['numero'])->max_length('50')
+            ->set('cidade', $input['cidade'])->is_required()->max_length('50')
+            ->set('estado', $input['estado'])->is_required()->exact_length('2')
+            ->set('complemento', $input['complemento'])->max_length('50')
+            ->set($typeOfDate, $input[$typeOfDate])->is_required()->is_date();
 
 
-        return true;
+        if ($validate->validate()) {
+            return  true;
+        } else {
+            return $validate->get_errors();
+        }
     }
 
     private function deletePermanente($id)
     {
+
+        $result = $this->find($id, 'I', 'imoveis');
+        if (!$result) {
+            return $this->notFoundResponse('Imovel Inexistente');
+        }
+
+        $id_tag = $result["tags_id"];
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
 
         if ($input["tipoDelete"] == "desassociaDocumentos") {
@@ -483,10 +443,14 @@ class Imovel
         }
 
         $query = "DELETE FROM imoveis WHERE id = $id;";
+        $queryTags = "DELETE FROM tags WHERE id = $id_tag;";
+
 
         try {
             $statement = $this->db->query($query);
             $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $statement = $this->db->query($queryTags);
+            $resultTags =  $statement->fetchAll(\PDO::FETCH_ASSOC);
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
@@ -537,19 +501,22 @@ class Imovel
         return $response;
     }
 
-    private function unprocessableEntityResponse()
+    private function returnValidationErrors($input)
     {
         $response['status_code_header'] = 'HTTP/1.1 422 Unprocessable Entity';
         $response['body'] = json_encode([
-            'error' => 'Invalid input'
+            $input
         ]);
+
         return $response;
     }
 
-    private function notFoundResponse()
+    private function notFoundResponse($message)
     {
         $response['status_code_header'] = 'HTTP/1.1 404 Not Found';
-        $response['body'] = null;
+        $response['body'] = json_encode([
+            $message
+        ]);
         return $response;
     }
 }

@@ -355,7 +355,12 @@ class Imovel
 
     private function deletarOuReativarImovel($tipo, $id)
     {
-        $result = $this->find($id, $tipo, 'imoveis');
+        $tipoBusca = 'A';
+        if ($tipo == 'A') {
+            $tipoBusca = 'I';
+        }
+
+        $result = $this->find($id, $tipoBusca, 'imoveis');
         if (!$result) {
             return $this->notFoundResponse('Imovel Inexistente');
         }

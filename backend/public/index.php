@@ -47,12 +47,14 @@ if ($uri[1] == 'imovel') {
     } else if ($uri[2] == 'alterarTag' || $uri[2] == 'editar' || $uri[2] == 'desassociarTodosDocumentos' || $uri[2] == 'deletarTodosDocumentosAssociados' || $uri[2] == 'deletarImovel' ||  $uri[2] == 'deletarImovelPermanente' || $uri[2] == 'reativarImovel') {
         if (!isset($uri[3])) {
             header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
             exit();
         }
         $postId = (int) $uri[3];
     } else if ($uri[2] == 'busca') {
         if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6])) {
             header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
             exit();
         }
         $busca = [$uri[3], $uri[4]];
@@ -61,6 +63,7 @@ if ($uri[1] == 'imovel') {
     } else if ($uri[2] == 'imoveisPaginadosAtivos' || $uri[2] == 'imoveisPaginadosInativos') {
         if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
             exit();
         }
         $offset = (int) $uri[3];
@@ -68,6 +71,7 @@ if ($uri[1] == 'imovel') {
     } else if ($uri[2] == 'imoveisPaginadosComFiltro') {
         if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6]) || !isset($uri[7])) {
             header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
             exit();
         }
         $offset = (int) $uri[3];
@@ -76,6 +80,7 @@ if ($uri[1] == 'imovel') {
     } else if ($uri[2] == 'buscarTodosValidosComFiltro') {
         if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6]) || !isset($uri[7]) || !isset($uri[8]) || !isset($uri[9])) {
             header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
             exit();
         }
         $busca = [$uri[3], $uri[4]];
@@ -84,6 +89,7 @@ if ($uri[1] == 'imovel') {
         $tags = (object) ['urgente' => (int) $uri[7], 'favorito' => (int) $uri[8], 'importante' => (int) $uri[9]];
     } else {
         header("HTTP/1.1 404 Not Found");
+        echo 'Pagina nao encontrada';
         exit();
     }
     $controller = new Imovel($dbConnection, $requestMethod, $postId, $busca, $uri[2], $offset, $limit, $tags);
@@ -99,6 +105,7 @@ if ($uri[1] == 'imovel') {
     } else if ($uri[2] == 'deletarArquivo' || $uri[2] == 'reativarArquivo' || $uri[2] == 'deletarArquivoPermanente' || $uri[2] == 'editar') {
         if (!isset($uri[3])) {
             header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
             exit();
         }
         $postId = (int) $uri[3];
@@ -106,6 +113,7 @@ if ($uri[1] == 'imovel') {
     } else if ($uri[2] == 'arquivosPaginadosAtivos' || $uri[2] == 'arquivosPaginadosInativos' || $uri[2] == 'ativosSemImovel') {
         if (!isset($uri[3]) || !isset($uri[4])) {
             header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
             exit();
         }
         $offset = (int) $uri[3];
@@ -113,15 +121,21 @@ if ($uri[1] == 'imovel') {
     } else if ($uri[2] == 'buscaNome' || $uri[2] == 'buscaImovel') {
         if (!isset($uri[3]) || !isset($uri[4]) || !isset($uri[5]) || !isset($uri[6])) {
             header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
             exit();
         }
         $busca = [$uri[3], $uri[4]];
         $offset = (int) $uri[5];
         $limit = (int) $uri[6];
+    } else {
+        header("HTTP/1.1 404 Not Found");
+        echo 'Pagina nao encontrada';
+        exit();
     }
     $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2], $offset, $limit);
     $controller->processRequest();
 } else {
     header("HTTP/1.1 404 Not Found");
+    echo 'Pagina nao encontrada';
     exit();
 }

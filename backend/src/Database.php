@@ -1,7 +1,9 @@
 <?php
+
 namespace Src;
 
-class Database {
+class Database
+{
 
   private $dbConnection = null;
 
@@ -15,9 +17,9 @@ class Database {
 
     try {
       $this->dbConnection = new \PDO(
-          "mysql:host=$host;port=$port;dbname=$db",
-          $user,
-          $pass
+        "mysql:host=$host;port=$port;dbname=$db",
+        $user,
+        $pass
       );
     } catch (\PDOException $e) {
       exit($e->getMessage());

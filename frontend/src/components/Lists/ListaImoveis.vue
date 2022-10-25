@@ -1,6 +1,6 @@
 <template>
     <LoadingSection v-if="isFetching.status"></LoadingSection>
-    <div class="container margin-barra my-3">
+    <div class="container margin-barra my-3"> 
         <h4 v-if="invalidesOrNot">
             <Transition name="bounce" mode="out-in">
                 <font-awesome-icon icon="fa-solid fa-exclamation" class="static" @click="changeTagFilter('importante')"

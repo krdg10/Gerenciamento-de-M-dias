@@ -32,8 +32,7 @@
                                 <select class="form-control" id="busca" placeholder="Imóvel associado ao arquivo"
                                     name="busca" v-model="keywords" v-else>
                                     <option value="" selected>Selecione o imóvel</option>
-                                    <option v-for="imovel in displayListaImoveis(false)" :value="imovel.id"
-                                        :key="imovel.id">
+                                    <option v-for="imovel in displayListaImoveis" :value="imovel.id" :key="imovel.id">
                                         {{ imovel.id }} - {{ imovel.nome }}
                                     </option>
                                 </select>
@@ -299,10 +298,9 @@ export default {
 
             if (this.invalidesOrNot) {
                 if (this.edit) {
-                    this.edit = true;
+                    await this.$refs.formulario;
                     if (arquivo.imovel_id) {
-                        this.arquivoImovel = await this.displayListaImoveis(false).find(x => x.id == arquivo.imovel_id).id;
-                        this.$refs.formulario.imovel = this.arquivoImovel;
+                        this.$refs.formulario.imovel = await this.displayListaImoveis.find(x => x.id == arquivo.imovel_id).id;
                     }
                     this.$refs.formulario.nome = arquivo.nome;
                 }
@@ -392,10 +390,21 @@ export default {
                         await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
                     }
                     this.edit = false;
+                    this.$store.commit('isFetching', { status: false, message: '' });
                 }).catch(error => {
-                    console.log(error)
+                    this.toggleModal();
+                    let message;
+                    if (typeof error.response.data == 'string') {
+                        message = error.response.data;
+                    }
+                    else if (typeof error.response.data[0] == 'string' && error.response.data[0].length > 1) {
+                        message = error.response.data[0];
+                    }
+                    else {
+                        message = Object.values(error.response.data[0])[0][0];
+                    }
+                    this.$store.commit('isFetching', { status: true, message: message });
                 })
-            this.$store.commit('isFetching', { status: false, message: '' });
 
         },
 

@@ -34,9 +34,9 @@
         <slot name="button-submit"></slot>
     </div>
     <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
-        pageToRedirect="listaArquivos" :showCloseButton="true">
+        pageToRedirect="listaArquivos" :showCloseButton="true" :redirectOrNot="redirectOrNot">
         <div class="modal-content">
-            <h1>Arquivo Criado Com Sucesso</h1>
+            <h1>{{modalMessage}}</h1>
         </div>
     </Modal>
 </template>
@@ -58,7 +58,9 @@ export default {
     data() {
         return {
             nome: '',
-            imovel: ''
+            imovel: '',
+            modalMessage: '',
+            redirectOrNot: false
         }
     },
 
@@ -92,6 +94,25 @@ export default {
 
         async onCompleteCreate() {
             const arquivoUploaded = document.querySelector(".dropzoneFile").files[0];
+            if (arquivoUploaded == undefined) {
+                this.modalMessage = 'Por favor anexe um documento.'
+                this.toggleModal();
+                return;
+            }
+
+            if (arquivoUploaded.size > 5000000) {
+                this.modalMessage = 'Arquivos devem possuir no máximo 5MB.'
+                this.toggleModal();
+                return;
+            }
+
+            const allowedfileExtensions = ['jpg', 'jpeg', 'png', 'xlsx', 'xls', 'doc', 'docx', 'pdf'];
+            if (!allowedfileExtensions.includes(arquivoUploaded.name.split('.')[1])) {
+                this.modalMessage = 'Somente permitido arquivos dos formatos jpg, jpeg, png, xlsx, xls, doc, docx, pdf.'
+                this.toggleModal();
+                return;
+            }
+
             const formData = new FormData();
             formData.append('uploadedFile', arquivoUploaded);
             formData.append('nome', this.nome,);
@@ -99,17 +120,24 @@ export default {
             formData.append('imovel_id', this.imovel);
 
             const headers = { 'Content-Type': 'multipart/form-data' };
-            const allowedfileExtensions = ['jpg', 'jpeg', 'png', 'xlsx', 'xls', 'doc', 'docx', 'pdf'];
-            if (!allowedfileExtensions.includes(arquivoUploaded.name.split('.')[1])) {
-                console.log('Formato não aceito');
-                return;
-            }
 
             await axios({ url: 'http://localhost:8000/arquivo/novoArquivo', data: formData, method: 'POST', headers: headers })
                 .then(() => {
+                    this.modalMessage = 'Arquivo criado com sucesso.'
+                    this.redirectOrNot = true;
                     this.toggleModal();
                 }).catch(error => {
-                    console.log(error)
+                    this.redirectOrNot = false;
+                    if (typeof error.response.data == 'string') {
+                        this.modalMessage = error.response.data;
+                    }
+                    else if (typeof error.response.data[0] == 'string' && error.response.data[0].length > 1) {
+                        this.modalMessage = error.response.data[0];
+                    }
+                    else {
+                        this.modalMessage = Object.values(error.response.data[0])[0][0];
+                    }
+                    this.toggleModal();
                 })
 
         },

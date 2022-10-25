@@ -2,24 +2,8 @@ const displayNomeImovel = state => {
   return state.imovelNome
 }
 
-const displayListaImoveis = (state) => {
+const displayListaImoveis = state => {
   return state.imoveis;
-
-  /*if (!tags) {
-    return state.imoveis;
-  }
-  
-  let imoveis = state.imoveis;
-  if (tags.filterImportant == 1) {
-    imoveis = imoveis.filter((teste) => { return teste.importante == 1 })
-  }
-  if (tags.filterFav == 1) {
-    imoveis = imoveis.filter((teste) => { return teste.favorito == 1 })
-  }
-  if (tags.filterUrgent == 1) {
-    imoveis = imoveis.filter((teste) => { return teste.urgente == 1 })
-  }
-  return imoveis;*/
 }
 
 const displayListaImoveisAtivos = state => {

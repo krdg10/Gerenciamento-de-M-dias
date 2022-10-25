@@ -2,6 +2,8 @@
 
 namespace Src;
 
+include 'DataValidator/DataValidator.php';
+
 class Arquivo
 {
 
@@ -202,24 +204,18 @@ class Arquivo
 
     private function getArquivo($id)
     {
-        $result = $this->find($id);
+        $result = $this->find($id, 'A');
         if (!$result) {
-            return $this->notFoundResponse();
+            return $this->notFoundResponse('Arquivo Inexistente');
         }
         $response['status_code_header'] = 'HTTP/1.1 200 OK';
         $response['body'] = json_encode($result);
         return $response;
     }
 
-    public function find($id)
+    public function find($id, $status)
     {
-        $query = "
-      SELECT
-          *
-      FROM
-          arquivos
-      WHERE id = :id and ativo = 'A';
-    ";
+        $query = "SELECT * FROM arquivos WHERE id = :id and ativo = '$status';";
 
         try {
             $statement = $this->db->prepare($query);
@@ -234,16 +230,26 @@ class Arquivo
     private function createArquivo()
     {
         if (!$_POST || !$_FILES) {
-            return $this->notFoundResponse();
+            return $this->notFoundResponse('Erro no upload de arquivo');
         }
+
+        $validation = $this->validateImovel($_POST, 'POST');
+
+        if (is_array($validation)) {
+            return $this->returnValidationErrors($validation);
+        }
+
         if ($_POST['imovel_id'] == '') {
             $_POST['imovel_id'] = null;
         }
 
-
         $fileTmpPath = $_FILES['uploadedFile']['tmp_name'];
         $fileName = $_FILES['uploadedFile']['name'];
-        //$fileSize = $_FILES['uploadedFile']['size']; fazer validação de tamanho
+        $fileSize = $_FILES['uploadedFile']['size'];
+        if ($fileSize > 5000000) {
+            $response = 'Tamanho do arquivo maior que 5MB.';
+            return $this->notFoundResponse($response);
+        }
         //$fileType = $_FILES['uploadedFile']['type'];
         $fileNameCmps = explode(".", $fileName);
         $fileExtension = strtolower(end($fileNameCmps));
@@ -257,7 +263,7 @@ class Arquivo
 
         if (in_array($fileExtension, $allowedfileExtensions)) {
             if (!move_uploaded_file($fileTmpPath, $dest_path)) {
-                return $this->notFoundResponse();
+                return $this->notFoundResponse('Erro ao salvar arquivo');
             }
 
             $query = "INSERT INTO arquivos (nome, data_upload, caminho, nome_salvo, imovel_id, nome_original ) VALUES(:nome, :data_upload, :caminho, :nome_salvo, :imovel_id, :nome_original );";
@@ -277,7 +283,7 @@ class Arquivo
             }
         } else {
             $response = 'Upload failed. Allowed file types: ' . implode(',', $allowedfileExtensions);
-            return $response;
+            return $this->notFoundResponse($response);
         }
         $response['status_code_header'] = 'HTTP/1.1 201 Created';
         $response['body'] = json_encode(array('message' => 'Arquivo Created'));
@@ -286,12 +292,15 @@ class Arquivo
 
     private function deletarOuReativarArquivo($tipo, $id)
     {
-        if ($tipo == 'I') {
-            $result = $this->find($id);
-            if (!$result) {
-                return $this->notFoundResponse();
-            }
+        $tipoBusca = 'A';
+        if ($tipo == 'A') {
+            $tipoBusca = 'I';
         }
+        $result = $this->find($id, $tipoBusca);
+        if (!$result) {
+            return $this->notFoundResponse('Arquivo Inexistente');
+        }
+
 
         $query = "UPDATE arquivos set ativo = '$tipo' WHERE id = :id;";
 
@@ -309,18 +318,24 @@ class Arquivo
 
     private function updateArquivo($id)
     {
-        $result = $this->find($id);
+        $result = $this->find($id, 'A');
         if (!$result) {
-            return $this->notFoundResponse();
+            return $this->notFoundResponse('Arquivo inexistente');
         }
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-        // botar um validate
-
-        $statement = "UPDATE arquivos SET nome = :nome, imovel_id = :imovel, data_edicao = :data_edicao WHERE id = :id;";
 
         if ($input['imovel'] == '') {
             $input['imovel'] = null;
         }
+
+
+        $validation = $this->validateImovel($input, 'PUT');
+        if (is_array($validation)) {
+            return $this->returnValidationErrors($validation);
+        }
+
+        $statement = "UPDATE arquivos SET nome = :nome, imovel_id = :imovel, data_edicao = :data_edicao WHERE id = :id;";
+
 
         try {
             $statement = $this->db->prepare($statement);
@@ -355,10 +370,47 @@ class Arquivo
         return $response;
     }
 
-    private function notFoundResponse()
+
+    private function validateImovel($input, $tipo)
+    {
+        $typeOfDate = 'data_upload';
+        if ($tipo == 'PUT') {
+            $typeOfDate = 'data_edicao';
+        }
+
+        $validate = new Data_Validator();
+        $validate->set('nome', $input['nome'])->is_required()->max_length('50')
+            ->set($typeOfDate, $input[$typeOfDate])->is_required()->is_date();
+
+        if (isset($input['imovel_id']) && $input['imovel_id'] != '') {
+            $validate->set('imovel_id', $input['imovel_id'])->min_value('1')->is_num();
+        } else if (isset($input['imovel']) && $input['imovel'] != '') {
+            $validate->set('imovel_id', $input['imovel'])->min_value('1')->is_num();
+        }
+
+        if ($validate->validate()) {
+            return  true;
+        } else {
+            return $validate->get_errors();
+        }
+    }
+
+    private function returnValidationErrors($input)
+    {
+        $response['status_code_header'] = 'HTTP/1.1 422 Unprocessable Entity';
+        $response['body'] = json_encode([
+            $input
+        ]);
+
+        return $response;
+    }
+
+    private function notFoundResponse($message)
     {
         $response['status_code_header'] = 'HTTP/1.1 404 Not Found';
-        $response['body'] = 'erro';
+        $response['body'] = json_encode([
+            $message
+        ]);
         return $response;
     }
 }

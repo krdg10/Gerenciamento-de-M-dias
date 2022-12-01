@@ -3,6 +3,7 @@ require "../start.php";
 
 use Src\Imovel;
 use Src\Arquivo;
+use Src\User;
 // dar uma melhorada nesse código. nos outros do back tbm e revisar os do front.
 
 /*header("Access-Control-Allow-Origin: *");
@@ -134,6 +135,48 @@ if ($uri[1] == 'imovel') {
         exit();
     }
     $controller = new Arquivo($dbConnection, $requestMethod, $postId, $busca, $uri[2], $offset, $limit);
+    $controller->processRequest();
+} else if ($uri[1] == 'user') {
+    $email = null;
+    $password = null;
+    if ($uri[2] == 'login') {
+        if (!isset($_POST['password']) || !isset($_POST['email'])) {
+            $message = 'Without password or email';
+            header("HTTP/1.1 404 Not Found");
+            echo $message;
+            exit();
+        }
+        $email =  $_POST['email'];
+        $password = $_POST['password'];
+    } else if ($uri[2] == 'editPassword') {
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+        if (!isset($input['password']) || !isset($input['email']) || !isset($input['newPassword'])) {
+            $message = 'Without password or email';
+            header("HTTP/1.1 404 Not Found");
+            echo $message;
+            exit();
+        }
+    } else if ($uri[2] == 'newUser') {
+        if (!isset($_POST['password']) || !isset($_POST['email']) || !isset($_POST['type'])) {
+            $message = 'Withou password or email or type';
+            header("HTTP/1.1 404 Not Found");
+            echo $message;
+            exit();
+        }
+        $email =  $_POST['email'];
+        $password = $_POST['password'];
+    } else if ($uri[2] == 'deleteUser') {
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+        if (!isset($input['passwordAdm']) || !isset($input['emailAdm']) || !isset($input['emailUser'])) {
+            $message = 'Withou password or email or type';
+            header("HTTP/1.1 404 Not Found");
+            echo $message;
+            exit();
+        }
+    }
+
+
+    $controller = new User($dbConnection, $requestMethod, $uri[2], $email, $password);
     $controller->processRequest();
 } else {
     header("HTTP/1.1 404 Not Found");

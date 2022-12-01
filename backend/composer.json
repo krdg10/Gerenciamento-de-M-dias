@@ -1,10 +1,11 @@
 {
-    "require": {
-      "vlucas/phpdotenv": "^5.3"
-    },
-    "autoload": {
-      "psr-4": {
-        "Src\\": "src/"
-      }
+  "require": {
+    "vlucas/phpdotenv": "^5.3",
+    "firebase/php-jwt": "^6.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Src\\": "src/"
     }
   }
+}

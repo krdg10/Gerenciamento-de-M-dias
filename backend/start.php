@@ -9,6 +9,11 @@ $dotenv->safeLoad();
 $dbConnection = (new Database())->connet();
 $db = $_ENV['DB_DATABASE'];
 
+// https://programadoresdepre.com.br/sistema-de-login-com-php-e-mysql-pdo/
+// https://www.youtube.com/watch?v=Wv02i0yNVVs
+// https://www.botecodigital.dev.br/php/jwt-json-web-token-em-php/
+// https://imasters.com.br/back-end/entendendo-o-jwt
+// achei isso em 40 min... vamos de né. pelo menos nao fiquei a toa haha resto foi jogando e pá
 
 $query = "CREATE TABLE IF NOT EXISTS `$db`.`tags` (
     `id` INT NOT NULL AUTO_INCREMENT,
@@ -49,7 +54,7 @@ $query = "CREATE TABLE IF NOT EXISTS `$db`.`tags` (
   ENGINE = InnoDB
   DEFAULT CHARACTER SET = utf8
   COLLATE = utf8_bin;
-  
+
   CREATE TABLE IF NOT EXISTS `$db`.`arquivos` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `nome` VARCHAR(500) NOT NULL,
@@ -69,10 +74,21 @@ $query = "CREATE TABLE IF NOT EXISTS `$db`.`tags` (
       ON UPDATE NO ACTION)
   ENGINE = InnoDB
   DEFAULT CHARACTER SET = utf8
+  COLLATE = utf8_bin;
+
+  CREATE TABLE IF NOT EXISTS `imobibrasil`.`users` (
+    `email` VARCHAR(500) NOT NULL,
+    `password` VARCHAR(100) NOT NULL,
+    `data_edicao` DATETIME NULL,
+    `data_criacao` DATETIME NOT NULL,
+    `type` VARCHAR(45) NOT NULL DEFAULT 'user',
+    PRIMARY KEY (`email`))
+  ENGINE = InnoDB
+  DEFAULT CHARACTER SET = utf8
   COLLATE = utf8_bin;";
 
 try {
-    $dbConnection->exec($query);
+  $dbConnection->exec($query);
 } catch (\PDOException $e) {
-    exit($e->getMessage());
+  exit($e->getMessage());
 }

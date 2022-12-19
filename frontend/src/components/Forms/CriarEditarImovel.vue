@@ -5,7 +5,7 @@
       <FormulariodeImovel ref="formulario"></FormulariodeImovel>
       <div class="container my-5">
         <div class="row">
-          <div class="text-center">
+          <div class="text-center" v-if="this.$store.state.login.type == 'adm'">
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </div>
@@ -14,12 +14,14 @@
   </div>
 
   <div class="container" v-else>
-    <h4 class="my-3 text-center">Editar Imóvel</h4>
+    <h4 class="my-3 text-center" v-if="this.$store.state.login.type == 'adm'">Editar Imóvel</h4>
+    <h4 class="my-3 text-center" v-else>Detalhes do Imóvel</h4>
+
     <Form @submit="onCompleteEdit" :validation-schema="schema">
       <FormulariodeImovel ref="formulario" :imovel="displayImovel"></FormulariodeImovel>
       <div class="container my-5">
         <div class="row">
-          <div class="text-center">
+          <div class="text-center" v-if="this.$store.state.login.type == 'adm'">
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </div>
@@ -30,7 +32,7 @@
   <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
     pageToRedirect="listaImoveis" :showCloseButton="true" :redirectOrNot="redirectOrNot">
     <div class="modal-content">
-      <h1>{{modalMessage}}</h1>
+      <h1>{{ modalMessage }}</h1>
     </div>
   </Modal>
 </template>
@@ -82,12 +84,22 @@ export default {
         complemento: this.$refs.formulario.complemento,
         data_cadastro: this.getNow(),
       }
-      await axios({ url: 'http://localhost:8000/imovel/' + 'novo', data: imovel, method: 'POST' })
+
+      const headers = {
+        "Authorization": "Bearer " + this.$store.state.login.token,
+      };
+
+      await axios({ url: 'http://localhost:8000/imovel/' + 'novo', data: imovel, method: 'POST', headers: headers })
         .then(() => {
           this.redirectOrNot = true;
           this.modalMessage = 'Imóvel Criado com Sucesso!';
           this.toggleModal();
         }).catch(error => {
+          if (error.response.status == 401) {
+            this.$store.commit('isLoggedOff');
+            this.$router.push({ name: 'home' });
+            return;
+          }
           this.redirectOrNot = false;
           this.modalMessage = error.response.data;
           this.toggleModal();
@@ -111,7 +123,11 @@ export default {
         data_edicao: this.getNow(),
       }
 
-      await axios({ url: 'http://localhost:8000/imovel/' + 'editar' + '/' + imovel.id, data: imovel, method: 'PUT' })
+      const headers = {
+        "Authorization": "Bearer " + this.$store.state.login.token,
+      };
+
+      await axios({ url: 'http://localhost:8000/imovel/' + 'editar' + '/' + imovel.id, data: imovel, method: 'PUT', headers: headers })
         .then(() => {
           const payload = imovel;
           this.$store.commit('imovel', payload);
@@ -119,6 +135,11 @@ export default {
           this.modalMessage = 'Imóvel Editado com Sucesso!';
           this.toggleModal();
         }).catch(error => {
+          if (error.response.status == 401) {
+            this.$store.commit('isLoggedOff');
+            this.$router.push({ name: 'home' });
+            return;
+          }
           this.redirectOrNot = false;
           this.modalMessage = Object.values(error.response.data[0])[0][0];
           this.toggleModal();

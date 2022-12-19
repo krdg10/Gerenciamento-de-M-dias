@@ -8,7 +8,7 @@
                         v-model="semImovel" @change="changeList()">
                     <label class="form-check-label" for="flexSwitchCheckDefault2">Sem imóvel</label>
                 </div>
-                <div class="form-check form-switch" v-if="!semImovel">
+                <div class="form-check form-switch" v-if="!semImovel && this.$store.state.login.type == 'adm'">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
                         v-model="invalidesOrNot" @change="changeList()">
                     <label class="form-check-label" for="flexSwitchCheckDefault" v-if="invalidesOrNot">Ativos</label>
@@ -76,7 +76,7 @@
                 <a @click="redirect(displayImovelById(arquivo.imovel_id))" class="color-black"
                     v-if="arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'A'"><strong>Imovel
                         Associado</strong>: {{
-                        displayImovelById(arquivo.imovel_id).nome
+                                displayImovelById(arquivo.imovel_id).nome
                         }} <br></a>
                 <div v-else>
                     <a class="color-black color-black-without-hover" v-if="!arquivo.imovel_id">
@@ -84,7 +84,7 @@
                     </a>
                     <a class="color-black color-black-without-hover" v-else>
                         <strong>Imovel Associado</strong>: {{
-                        displayImovelById(arquivo.imovel_id).nome
+                                displayImovelById(arquivo.imovel_id).nome
                         }} <strong>(Deletado)</strong><br>
                     </a>
                 </div>
@@ -92,20 +92,23 @@
 
             </template>
             <template v-slot:card-footer v-if="invalidesOrNot">
-                <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')">Editar</button>
-                <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar</button>
+                <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')"
+                    v-if="this.$store.state.login.type == 'adm'"> Editar</button>
+                <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')"
+                    v-if="this.$store.state.login.type == 'adm'">Apagar</button>
             </template>
             <template v-slot:card-footer v-else>
                 <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')"
-                    v-if="!(arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'I')">Reativar</button>
+                    v-if="!(arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'I') && this.$store.state.login.type == 'adm'">Reativar</button>
                 <button class="btn btn-sm btn-primary" @click="openModal(arquivo, 'reactiveImovel')" v-else>Reativar
                     Imóvel do
-                    Documento</button>
-                <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')">Apagar
+                    Documento</button> <!-- v-else ver essa fita -->
+                <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')"
+                    v-if="this.$store.state.login.type == 'adm'">Apagar
                     Definitivamente</button>
             </template>
         </CardImovel>
-        <Pagination :offset="offset" :total="total" :limit="limit" :current="current+1" @change-page="changePage">
+        <Pagination :offset="offset" :total="total" :limit="limit" :current="current + 1" @change-page="changePage">
         </Pagination>
         <Modal @close="toggleModal" :modalActive="modalActive">
             <div v-if="modalDelete">
@@ -187,6 +190,7 @@ import axios from 'axios';
 
 library.add(faSearch, faFilePdf, faImage, faFileWord, faFileExcel)
 const arquivoUrl = 'http://localhost:8000/arquivo/';
+const imovelUrl = 'http://localhost:8000/imovel/';
 
 export default {
     data() {
@@ -248,7 +252,8 @@ export default {
                 tipo: this.tipoBusca,
                 status: status,
                 offset: this.offset,
-                limit: this.limit
+                limit: this.limit,
+                token: this.$store.state.login.token
             }
 
             this.$store.dispatch('buscaArquivo', payload)
@@ -262,10 +267,10 @@ export default {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
-                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos', token: this.$store.state.login.token });
                 }
                 else {
-                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Inativos' });
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Inativos', token: this.$store.state.login.token });
                 }
             }
             else {
@@ -310,7 +315,11 @@ export default {
 
         async apagarArquivo(id, tipo, method) {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-            await axios({ url: arquivoUrl + 'deletar' + tipo + '/' + id, method: method })
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
+
+            await axios({ url: arquivoUrl + 'deletar' + tipo + '/' + id, method: method, headers: headers })
                 .then(async () => {
                     if (tipo == 'Arquivo') {
                         if (this.semImovel) {
@@ -325,6 +334,13 @@ export default {
                     }
                     this.confirmation = true;
                 }).catch(error => {
+                    if (error.response.status == 401) {
+                        this.$store.commit('isLoggedOff');
+                        this.$router.push({ name: 'home' });
+                        this.toggleModal();
+                        return;
+                    }
+
                     console.log(error)
                 })
             this.$store.commit('isFetching', { status: false, message: '' });
@@ -332,11 +348,21 @@ export default {
 
         async reativarArquivo(id) {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-            await axios({ url: arquivoUrl + 'reativarArquivo' + '/' + id, method: 'PUT' })
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
+
+            await axios({ url: arquivoUrl + 'reativarArquivo' + '/' + id, method: 'PUT', headers: headers })
                 .then(async () => {
                     await this.recalculaDepoisRemoverDaLista('Inativos');
                     this.confirmation = true;
                 }).catch(error => {
+                    if (error.response.status == 401) {
+                        this.$store.commit('isLoggedOff');
+                        this.$router.push({ name: 'home' });
+                        this.toggleModal();
+                        return;
+                    }
                     console.log(error)
                 })
             this.$store.commit('isFetching', { status: false, message: '' });
@@ -344,13 +370,26 @@ export default {
 
         async reativarImovel(id) {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-            await this.$store.dispatch('reativarImovel', id)
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
+
+            await axios({ url: imovelUrl + 'reativarImovel' + '/' + id, method: 'PUT', headers: headers })
                 .then(async () => {
                     //this.loadArquivosInvalidos();
                     // await this.recalculaDepoisRemoverDaLista('Inativos');
                     await this.loadImoveisValidosEInvalidos();
                     this.confirmation = true;
-                }).catch(error => console.log(error));
+                }).catch(error => {
+                    if (error.response.status == 401) {
+                        this.$store.commit('isLoggedOff');
+                        this.$router.push({ name: 'home' });
+                        this.toggleModal();
+                        return;
+                    }
+                    console.log(error)
+                }
+                );
             this.$store.commit('isFetching', { status: false, message: '' });
         },
 
@@ -375,25 +414,36 @@ export default {
                 imovel: this.$refs.formulario.imovel,
                 data_edicao: this.getNow(),
             }
+
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-            await axios({ url: arquivoUrl + 'editar' + '/' + arquivo.id, data: arquivo, method: 'PUT' })
+            await axios({ url: arquivoUrl + 'editar' + '/' + arquivo.id, data: arquivo, method: 'PUT', headers: headers })
                 .then(async () => {
                     if (this.semImovel) {
                         if ((this.arquivoImovel == null || this.arquivoImovel == '') && (arquivo.imovel != null && arquivo.imovel != '')) {
                             await this.recalculaDepoisRemoverDaLista('semImovel');
                         }
                         else {
-                            await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'semImovel' });
+                            await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'semImovel', token: this.$store.state.login.token });
                         }
                     }
                     else {
-                        await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos' });
+                        await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos', token: this.$store.state.login.token });
                     }
                     this.edit = false;
                     this.$store.commit('isFetching', { status: false, message: '' });
                 }).catch(error => {
                     this.toggleModal();
                     let message;
+                    if (error.response.status == 401) {
+                        this.$store.commit('isLoggedOff');
+                        this.$router.push({ name: 'home' });
+                        this.toggleModal();
+                        return;
+                    }
+
                     if (typeof error.response.data == 'string') {
                         message = error.response.data;
                     }
@@ -449,7 +499,7 @@ export default {
                 await this.execSearchImovel();
             }
             else {
-                await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
             }
             this.$store.commit('isFetching', { status: false, message: '' });
         },
@@ -459,7 +509,7 @@ export default {
             this.offset = 0;
             this.current = 0;
             this.total = 0;
-            const resultado = await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+            const resultado = await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
             this.total = resultado.totalImoveis.totalImoveis;
         },
 
@@ -476,7 +526,7 @@ export default {
             else {
                 let resultado;
                 resultado =
-                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
                 this.total = resultado.totalImoveis.totalImoveis;
             }
         },
@@ -504,7 +554,7 @@ export default {
 
     async created() {
         this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-        await this.loadImoveisValidosEInvalidos();
+        await this.loadImoveisValidosEInvalidos(this.$store.state.login.token);
         if (this.propsSemImovel) {
             this.semImovel = true;
             await this.inicializaLista('semImovel');

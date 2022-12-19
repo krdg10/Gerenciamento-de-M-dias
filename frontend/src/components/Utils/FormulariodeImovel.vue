@@ -4,19 +4,19 @@
             <div class="mb-3">
                 <label for="nome" class="form-label">Nome:</label>
                 <Field type="text" class="form-control" id="nome" placeholder="Nome do Imóvel" name="nome"
-                    v-model="nome" required />
+                    v-model="nome" required :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="nome" />
             </div>
             <div class="mb-3">
                 <label for="preco" class="form-label">Preço:</label>
                 <Field type="number" class="form-control" id="preco" placeholder="Preço do Imóvel" name="preco"
-                    v-model="preco" required />
+                    v-model="preco" required :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="preco" />
             </div>
             <div class="mb-3">
                 <label for="descricao" class="form-label">Descrição:</label>
                 <Field as="textarea" type="text" class="form-control" id="descricao" placeholder="Descrição do imóvel"
-                    name="descricao" v-model="descricao" required />
+                    name="descricao" v-model="descricao" required :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="descricao" />
             </div>
         </div>
@@ -24,38 +24,38 @@
             <div class="mb-3">
                 <label for="cep" class="form-label">CEP:</label>
                 <Field type="text" class="form-control" id="cep" placeholder="CEP do imóvel" name="cep" v-model="cep"
-                    @keyup="searchCep()" required />
+                    @keyup="searchCep()" required :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="cep" />
             </div>
             <div class="mb-3">
                 <label for="rua" class="form-label">Rua:</label>
                 <Field type="text" class="form-control" id="rua" placeholder="Rua do imóvel" name="rua" v-model="rua"
-                    required />
+                    required :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="rua" />
             </div>
             <div class="mb-3">
                 <label for="bairro" class="form-label">Bairro:</label>
                 <Field type="text" class="form-control" id="bairro" placeholder="Bairro do imóvel" name="bairro"
-                    v-model="bairro" required />
+                    v-model="bairro" required :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="bairro" />
             </div>
             <div class="mb-3">
                 <label for="numero" class="form-label">Número:</label>
                 <Field type="text" class="form-control" id="numero" placeholder="Número do imóvel" name="numero"
-                    v-model="numero" required />
+                    v-model="numero" required :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="numero" />
             </div>
             <div class="mb-3">
                 <label for="cidade" class="form-label">Cidade:</label>
                 <Field type="text" class="form-control" id="cidade" placeholder="Cidade do imóvel" name="cidade"
-                    v-model="cidade" required />
+                    v-model="cidade" required :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="cidade" />
 
             </div>
             <div class="mb-3">
                 <label for="estado" class="form-label">Estado:</label>
                 <Field as="select" class="form-control" id="estado" placeholder="Estado do imóvel" name="estado"
-                    v-model="estado">
+                    v-model="estado" :disabled="this.$store.state.login.type != 'adm'">
                     <option value="" disabled selected>Selecione o estado do imóvel</option>
                     <option value="AC">Acre</option>
                     <option value="AL">Alagoas</option>
@@ -92,7 +92,8 @@
             <div class="mb-3">
                 <label for="complemento" class="form-label">Complemento:</label>
                 <Field type="text" class="form-control" id="complemento" placeholder="Complemento do imóvel"
-                    name="complemento" v-model="complemento" required />
+                    name="complemento" v-model="complemento" required
+                    :disabled="this.$store.state.login.type != 'adm'" />
                 <ErrorMessage name="complemento" />
 
             </div>

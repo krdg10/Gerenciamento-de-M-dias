@@ -4,6 +4,11 @@ namespace Src;
 
 include 'DataValidator/DataValidator.php';
 
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+use Throwable;
+
+
 class Arquivo
 {
 
@@ -84,6 +89,11 @@ class Arquivo
 
     private function getAllArquivos($status)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $query = "SELECT * FROM arquivos where ativo = '$status';";
 
         try {
@@ -100,6 +110,11 @@ class Arquivo
 
     private function getAllArquivosInPages($status, $offset, $limit)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         if ($status == 'semImovel') {
             $query = "SELECT * FROM arquivos where ativo = 'A' AND imovel_id IS NULL ORDER BY id LIMIT $limit OFFSET $offset;";
             $queryTotal = "SELECT COUNT(*) totalImoveis FROM arquivos where ativo = 'A' AND imovel_id IS NULL;";
@@ -126,6 +141,11 @@ class Arquivo
 
     private function getNumeroArquivosAtivosOuInativos($status)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $query = "SELECT count(*) numero FROM arquivos where ativo = '$status';";
 
         try {
@@ -142,6 +162,11 @@ class Arquivo
 
     private function getNumeroArquivosSemImovel()
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $query = "SELECT count(*) numero FROM arquivos where ativo = 'A' and imovel_id IS NULL;";
 
         try {
@@ -159,6 +184,11 @@ class Arquivo
 
     private function getArquivosByName($busca, $offset, $limit)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $keywords = $busca[0];
         $status = $busca[1];
         $query = "SELECT * FROM arquivos where LOWER(nome) LIKE LOWER('%$keywords%') and ativo = '$status' ORDER BY id LIMIT $limit OFFSET $offset;";
@@ -181,6 +211,11 @@ class Arquivo
 
     private function getArquivosByImovel($busca,  $offset, $limit)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $keywords = $busca[0];
         $status = $busca[1];
         $query = "SELECT * FROM arquivos where imovel_id = $keywords and ativo = '$status' ORDER BY id LIMIT $limit OFFSET $offset;";
@@ -204,6 +239,11 @@ class Arquivo
 
     private function getArquivo($id)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $result = $this->find($id, 'A');
         if (!$result) {
             return $this->notFoundResponse('Arquivo Inexistente');
@@ -227,8 +267,82 @@ class Arquivo
         }
     }
 
+    private function decodeToken($token)
+    {
+        try {
+            $decoded = JWT::decode($token, new Key($_SERVER['KEY'], 'HS256'));
+        } catch (Throwable $e) {
+            if ($e->getMessage() === 'Expired token') {
+                $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+                $response['body'] = json_encode(array('message' => 'Expired Token'));
+                return $response;
+            } else {
+                $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+                $response['body'] = json_encode(array('message' => $e->getMessage()));
+                return $response;
+            }
+        }
+        return $decoded;
+    }
+
+    public function validateToken()
+    {
+        $headers = apache_request_headers();
+        if (!$headers["Authorization"]) {
+            $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+            $response['body'] = json_encode(array('message' => 'Sem autenticação'));
+            return $response;
+        }
+        $authorization = $headers["Authorization"];
+        $token = str_replace('Bearer ', '', $authorization);
+        $decodedToken = $this->decodeToken($token);
+        return $decodedToken;
+    }
+
+    private function findEmail($email)
+    {
+        $query = "SELECT * FROM users WHERE email = '$email'";
+
+        try {
+            $statement = $this->db->prepare($query);
+            $statement->execute();
+            $result = $statement->fetch(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    private function verifyTokenAndEmail($requiresAdm)
+    {
+        $valideToken = $this->validateToken();
+        if (!is_object($valideToken)) {
+            return $valideToken;
+        }
+
+        $result = $this->findEmail($valideToken->email);
+        if (!$result) {
+            $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+            $response['body'] = json_encode(array('message' => 'Sem autenticação'));
+            return $response;
+        }
+        if ($requiresAdm) {
+            if ($result['type'] != "adm") {
+                $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+                $response['body'] = json_encode(array('message' => 'Sem autenticação'));
+                return $response;
+            }
+        }
+        return 'verdadeiro';
+    }
+
     private function createArquivo()
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         if (!$_POST || !$_FILES) {
             return $this->notFoundResponse('Erro no upload de arquivo');
         }
@@ -292,6 +406,11 @@ class Arquivo
 
     private function deletarOuReativarArquivo($tipo, $id)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $tipoBusca = 'A';
         if ($tipo == 'A') {
             $tipoBusca = 'I';
@@ -318,6 +437,11 @@ class Arquivo
 
     private function updateArquivo($id)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $result = $this->find($id, 'A');
         if (!$result) {
             return $this->notFoundResponse('Arquivo inexistente');
@@ -356,6 +480,11 @@ class Arquivo
 
     private function deletePermanente($id)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $query = "DELETE FROM arquivos WHERE id = $id";
 
         try {
@@ -383,9 +512,9 @@ class Arquivo
             ->set($typeOfDate, $input[$typeOfDate])->is_required()->is_date();
 
         if (isset($input['imovel_id']) && $input['imovel_id'] != '') {
-            $validate->set('imovel_id', $input['imovel_id'])->min_value('1')->is_num();
+            $validate->set('imovel_id', $input['imovel_id'])->min_value('0')->is_num();
         } else if (isset($input['imovel']) && $input['imovel'] != '') {
-            $validate->set('imovel_id', $input['imovel'])->min_value('1')->is_num();
+            $validate->set('imovel_id', $input['imovel'])->min_value('0')->is_num();
         }
 
         if ($validate->validate()) {

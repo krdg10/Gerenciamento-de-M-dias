@@ -10,9 +10,9 @@
         <button type="button" class="navbar-toggler me-4" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarCollapse">
+        <div class="collapse navbar-collapse" id="navbarCollapse" v-if="this.$store.state.login.isLoggedIn">
             <div class="navbar-nav ms-auto p-4 p-lg-0">
-                <div class="nav-item dropdown">
+                <div class="nav-item dropdown" v-if="this.$store.state.login.type == 'adm'">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarNovasMidias" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
                         Novas Mídias </a>
@@ -26,7 +26,7 @@
                 <div class="nav-item dropdown me-5-lg">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarMinhasMidias" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
-                        Minhas Mídias </a>
+                        Mídias </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarMinhasMidias">
                         <router-link class="nav-item nav-link text-center toToggleCollapse" to="/listaImoveis">Imoveis
                         </router-link>

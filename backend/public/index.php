@@ -140,7 +140,8 @@ if ($uri[1] == 'imovel') {
     $email = null;
     $password = null;
     if ($uri[2] == 'login') {
-        if (!isset($_POST['password']) || !isset($_POST['email'])) {
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+        if (!isset($input['password']) || !isset($input['email'])) {
             $message = 'Without password or email';
             header("HTTP/1.1 404 Not Found");
             echo $message;

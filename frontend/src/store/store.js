@@ -19,6 +19,7 @@ export const store = new Vuex.Store({
     quantidadeDeArquivosInativos: 0,
     quantidadeDeArquivosSemImovel: 0,
     isFetching: { status: false, message: '' },
+    login: { isLoggedIn: false, token: '', type: '' },
   },
 
   actions,

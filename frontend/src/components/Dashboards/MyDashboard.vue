@@ -90,11 +90,11 @@ export default {
 
     async created() {
         this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-        await this.loadQuantidadeImoveis('Ativos');
-        await this.loadQuantidadeImoveis('Inativos');
-        await this.loadQuantidadeArquivos('Inativos');
-        await this.loadQuantidadeArquivos('Ativos');
-        await this.loadQuantidadeArquivos('SemImovel');
+        await this.loadQuantidadeImoveis({nome: 'Ativos', token: this.$store.state.login.token});
+        await this.loadQuantidadeImoveis({nome: 'Inativos', token: this.$store.state.login.token});
+        await this.loadQuantidadeArquivos({nome: 'Inativos', token: this.$store.state.login.token});
+        await this.loadQuantidadeArquivos({nome: 'Ativos', token: this.$store.state.login.token});
+        await this.loadQuantidadeArquivos({nome: 'SemImovel', token: this.$store.state.login.token});
         this.$store.commit('isFetching', { status: false, message: '' });
     }
 }

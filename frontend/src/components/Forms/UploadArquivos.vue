@@ -36,7 +36,7 @@
     <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
         pageToRedirect="listaArquivos" :showCloseButton="true" :redirectOrNot="redirectOrNot">
         <div class="modal-content">
-            <h1>{{modalMessage}}</h1>
+            <h1>{{ modalMessage }}</h1>
         </div>
     </Modal>
 </template>
@@ -119,7 +119,10 @@ export default {
             formData.append('data_upload', this.getNow());
             formData.append('imovel_id', this.imovel);
 
-            const headers = { 'Content-Type': 'multipart/form-data' };
+
+            const headers = {
+                'Content-Type': 'multipart/form-data', "Authorization": "Bearer " + this.$store.state.login.token,
+            };
 
             await axios({ url: 'http://localhost:8000/arquivo/novoArquivo', data: formData, method: 'POST', headers: headers })
                 .then(() => {
@@ -128,6 +131,12 @@ export default {
                     this.toggleModal();
                 }).catch(error => {
                     this.redirectOrNot = false;
+                    // ver de deixar token nos cookies
+                    if (error.response.status == 401) {
+                        this.$store.commit('isLoggedOff');
+                        this.$router.push({ name: 'home' });
+                        return;
+                    }
                     if (typeof error.response.data == 'string') {
                         this.modalMessage = error.response.data;
                     }
@@ -166,7 +175,7 @@ export default {
 
     async created() {
         if (!this.imovelProps) {
-            await this.loadImoveis();
+            await this.loadImoveis(this.$store.state.login.token);
         }
     },
 };

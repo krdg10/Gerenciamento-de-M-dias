@@ -64,6 +64,20 @@ const isFetching = (state, object) => {
   state.isFetching.message = object.message;
 }
 
+const isLoggedIn = (state, object) => {
+  state.login.isLoggedIn = true;
+  state.login.type = object.type;
+  state.login.token = object.token;
+  console.log(state.login)
+}
+
+const isLoggedOff = (state) => {
+  state.login.isLoggedIn = false;
+  state.login.type = '';
+  state.login.token = '';
+  console.log(state.login)
+}
+
 export default {
   imoveis,
   imovel,
@@ -74,5 +88,7 @@ export default {
   quantidadeArquivosAtivos,
   quantidadeArquivosInativos,
   quantidadeArquivosSemImovel,
-  isFetching
+  isFetching,
+  isLoggedIn,
+  isLoggedOff
 };

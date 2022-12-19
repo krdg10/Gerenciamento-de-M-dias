@@ -4,6 +4,10 @@ namespace Src;
 
 include 'DataValidator/DataValidator.php';
 
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+use Throwable;
+
 class Imovel
 {
     private $db;
@@ -92,6 +96,11 @@ class Imovel
 
     private function getAllImovels($status)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.tags_id = tag.id;";
 
         if (!isset($status)) {
@@ -112,6 +121,11 @@ class Imovel
 
     private function getAllImovelsInPages($status, $offset, $limit, $tags)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $query = "SELECT imovel.*, tag.favorito, tag.importante, tag.urgente FROM imoveis imovel, tags tag where imovel.ativo = '$status' and imovel.tags_id = tag.id ORDER BY imovel.id LIMIT $limit OFFSET $offset;";
 
         $queryTotal = "SELECT COUNT(*) totalImoveis FROM imoveis where ativo = '$status';";
@@ -156,6 +170,11 @@ class Imovel
 
     private function getNumeroImoveisAtivosOuInativos($status)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $query = "SELECT count(*) numero FROM imoveis where ativo = '$status';";
 
         try {
@@ -173,6 +192,10 @@ class Imovel
 
     private function getImoveisByName($busca, $offset, $limit, $tags)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
 
         $keywords = $busca[0];
         $status = $busca[1];
@@ -220,6 +243,11 @@ class Imovel
 
     private function getImovel($id)
     {
+        $result = $this->verifyTokenAndEmail(false);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $result = $this->find($id, 'A', 'imoveis');
         if (!$result) {
             return $this->notFoundResponse('Imovel Inexistente');
@@ -229,8 +257,83 @@ class Imovel
         return $response;
     }
 
+
+    private function decodeToken($token)
+    {
+        try {
+            $decoded = JWT::decode($token, new Key($_SERVER['KEY'], 'HS256'));
+        } catch (Throwable $e) {
+            if ($e->getMessage() === 'Expired token') {
+                $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+                $response['body'] = json_encode(array('message' => 'Expired Token'));
+                return $response;
+            } else {
+                $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+                $response['body'] = json_encode(array('message' => $e->getMessage()));
+                return $response;
+            }
+        }
+        return $decoded;
+    }
+
+    public function validateToken()
+    {
+        $headers = apache_request_headers();
+        if (!$headers["Authorization"]) {
+            $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+            $response['body'] = json_encode(array('message' => 'Sem autenticação'));
+            return $response;
+        }
+        $authorization = $headers["Authorization"];
+        $token = str_replace('Bearer ', '', $authorization);
+        $decodedToken = $this->decodeToken($token);
+        return $decodedToken;
+    }
+
+    private function findEmail($email)
+    {
+        $query = "SELECT * FROM users WHERE email = '$email'";
+
+        try {
+            $statement = $this->db->prepare($query);
+            $statement->execute();
+            $result = $statement->fetch(\PDO::FETCH_ASSOC);
+            return $result;
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+    }
+
+    private function verifyTokenAndEmail($requiresAdm)
+    {
+        $valideToken = $this->validateToken();
+        if (!is_object($valideToken)) {
+            return $valideToken;
+        }
+
+        $result = $this->findEmail($valideToken->email);
+        if (!$result) {
+            $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+            $response['body'] = json_encode(array('message' => 'Sem autenticação'));
+            return $response;
+        }
+        if ($requiresAdm) {
+            if ($result['type'] != "adm") {
+                $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
+                $response['body'] = json_encode(array('message' => 'Sem autenticação'));
+                return $response;
+            }
+        }
+        return 'verdadeiro';
+    }
+
     private function createImovel()
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
         $validation = $this->validateImovel($input, 'POST');
         if (is_array($validation)) {
@@ -278,6 +381,11 @@ class Imovel
 
     private function updateImovel($id)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $result = $this->find($id, 'A', 'imoveis');
         if (!$result) {
             return $this->notFoundResponse('Imovel Inexistente');
@@ -317,6 +425,11 @@ class Imovel
 
     private function updateTag($id)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $result = $this->find($id, 'A', 'tags');
         if (!$result) {
             return $this->notFoundResponse('Tag Inexistente');
@@ -355,6 +468,11 @@ class Imovel
 
     private function deletarOuReativarImovel($tipo, $id)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $tipoBusca = 'A';
         if ($tipo == 'A') {
             $tipoBusca = 'I';
@@ -432,6 +550,10 @@ class Imovel
 
     private function deletePermanente($id)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
 
         $result = $this->find($id, 'I', 'imoveis');
         if (!$result) {
@@ -467,6 +589,11 @@ class Imovel
 
     private function desassociaDocumentos($id, $urlTrueOrFalse)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         $query = "UPDATE arquivos set imovel_id = null WHERE imovel_id = $id;";
 
 
@@ -486,6 +613,11 @@ class Imovel
 
     private function deletaDocumentos($id, $tipo, $urlTrueOrFalse)
     {
+        $result = $this->verifyTokenAndEmail(true);
+        if ($result != 'verdadeiro') {
+            return $result;
+        }
+
         if ($tipo == 'permanente') {
             $query = "DELETE FROM arquivos WHERE imovel_id = $id;";
         } else {

@@ -24,8 +24,11 @@ const loadArquivosSemImoveis = async ({ commit }) => {
         })
 };
 
-const loadImoveis = async ({ commit }) => {
-    return await axios({ url: imovelUrl + 'buscarTodosValidos', method: 'GET' })
+const loadImoveis = async ({ commit }, token) => {
+    const headers = {
+        "Authorization": "Bearer " + token,
+    };
+    return await axios({ url: imovelUrl + 'buscarTodosValidos', method: 'GET', headers: headers })
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
@@ -35,8 +38,12 @@ const loadImoveis = async ({ commit }) => {
         })
 };
 
-const loadImoveisValidosEInvalidos = async ({ commit }) => {
-    return await axios({ url: imovelUrl + 'buscarTodosValidosEInvalidos', method: 'GET' })
+const loadImoveisValidosEInvalidos = async ({ commit }, token) => {
+    const headers = {
+        "Authorization": "Bearer " + token,
+    };
+
+    return await axios({ url: imovelUrl + 'buscarTodosValidosEInvalidos', method: 'GET', headers: headers })
         .then(response => {
             const payloadImoveis = response.data;
             commit('imoveis', payloadImoveis);
@@ -48,7 +55,12 @@ const loadImoveisValidosEInvalidos = async ({ commit }) => {
 
 
 const buscaImovel = async ({ commit }, busca) => {
-    return await axios({ url: imovelUrl + 'busca' + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit, method: 'GET' })
+
+    const headers = {
+        "Authorization": "Bearer " + busca.token,
+    };
+
+    return await axios({ url: imovelUrl + 'busca' + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit, method: 'GET', headers: headers })
         .then(response => {
             const payloadImoveis = response.data.resultado;
             commit('imoveis', payloadImoveis);
@@ -61,7 +73,11 @@ const buscaImovel = async ({ commit }, busca) => {
 const buscaImovelFiltrado = async ({ commit }, busca) => {
     let tags = busca.tags;
 
-    return await axios({ url: imovelUrl + 'buscarTodosValidosComFiltro' + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit + '/' + tags.filterUrgent + '/' + tags.filterFav + '/' + tags.filterImportant, method: 'GET' })
+    const headers = {
+        "Authorization": "Bearer " + busca.token
+    };
+
+    return await axios({ url: imovelUrl + 'buscarTodosValidosComFiltro' + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit + '/' + tags.filterUrgent + '/' + tags.filterFav + '/' + tags.filterImportant, method: 'GET', headers: headers })
         .then(response => {
             const payloadImoveis = response.data.resultado;
             commit('imoveis', payloadImoveis);
@@ -79,7 +95,13 @@ const buscaArquivo = async ({ commit }, busca) => {
     else {
         url = 'buscaImovel';
     }
-    return await axios({ url: arquivoUrl + url + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit, method: 'GET' })
+
+
+    const headers = {
+        "Authorization": "Bearer " + busca.token
+    };
+
+    return await axios({ url: arquivoUrl + url + '/' + busca.keywords + '/' + busca.status + '/' + busca.offset + '/' + busca.limit, method: 'GET', headers: headers })
         .then(response => {
             const payloadArquivos = response.data.resultado;
             commit('arquivos', payloadArquivos);
@@ -90,7 +112,12 @@ const buscaArquivo = async ({ commit }, busca) => {
 };
 
 const alterarTag = async ({ commit }, payload) => {
-    return await axios({ url: imovelUrl + 'alterarTag' + '/' + payload.tagId, data: payload, method: 'PUT' })
+
+    const headers = {
+        "Authorization": "Bearer " + payload.token
+    };
+
+    return await axios({ url: imovelUrl + 'alterarTag' + '/' + payload.values.tagId, data: payload.values, method: 'PUT', headers: headers })
         .then(response => {
             commit('alterTag', payload);
             return response
@@ -100,10 +127,14 @@ const alterarTag = async ({ commit }, payload) => {
 };
 
 const loadQuantidadeImoveis = async ({ commit }, payload) => {
-    return await axios({ url: imovelUrl + 'numeroDe' + payload, method: 'GET' })
+    const headers = {
+        "Authorization": "Bearer " + payload.token
+    };
+
+    return await axios({ url: imovelUrl + 'numeroDe' + payload.nome, method: 'GET', headers: headers })
         .then(response => {
             const payloadImoveis = response.data.numero;
-            commit('quantidadeImoveis' + payload, payloadImoveis);
+            commit('quantidadeImoveis' + payload.nome, payloadImoveis);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -111,10 +142,14 @@ const loadQuantidadeImoveis = async ({ commit }, payload) => {
 };
 
 const loadQuantidadeArquivos = async ({ commit }, payload) => {
-    return await axios({ url: arquivoUrl + 'numeroDe' + payload, method: 'GET' })
+    const headers = {
+        "Authorization": "Bearer " + payload.token
+    };
+
+    return await axios({ url: arquivoUrl + 'numeroDe' + payload.nome, method: 'GET', headers: headers })
         .then(response => {
             const payloadArquivos = response.data.numero;
-            commit('quantidadeArquivos' + payload, payloadArquivos);
+            commit('quantidadeArquivos' + payload.nome, payloadArquivos);
             return response.data
         }).catch(error => {
             console.log(error)
@@ -147,7 +182,12 @@ const loadImoveisPorPagina = async ({ commit }, payload) => {
     let offset = payload.offset;
     let limit = payload.limit;
     let status = payload.status; // Ativo ou Inativo
-    return await axios({ url: imovelUrl + 'imoveisPaginados' + status + '/' + offset + '/' + limit, method: 'GET' })
+
+    const headers = {
+        "Authorization": "Bearer " + payload.token,
+    };
+
+    return await axios({ url: imovelUrl + 'imoveisPaginados' + status + '/' + offset + '/' + limit, method: 'GET', headers: headers })
         .then(response => {
             const payloadImoveis = response.data.resultado;
             commit('imoveis', payloadImoveis);
@@ -163,7 +203,12 @@ const loadImoveisPorPaginaFiltrados = async ({ commit }, payload) => {
     let limit = payload.limit;
     let tags = payload.tags;
 
-    return await axios({ url: imovelUrl + 'imoveisPaginadosComFiltro' + '/' + offset + '/' + limit + '/' + tags.filterUrgent + '/' + tags.filterFav + '/' + tags.filterImportant, method: 'GET' })
+    const headers = {
+        "Authorization": "Bearer " + payload.token,
+    };
+
+
+    return await axios({ url: imovelUrl + 'imoveisPaginadosComFiltro' + '/' + offset + '/' + limit + '/' + tags.filterUrgent + '/' + tags.filterFav + '/' + tags.filterImportant, method: 'GET', headers: headers })
         .then(response => {
             const payloadImoveis = response.data.resultado;
             commit('imoveis', payloadImoveis);
@@ -183,8 +228,11 @@ const loadArquivosPorPagina = async ({ commit }, payload) => {
     else {
         url = 'arquivosPaginados' + payload.status;
     }
+    const headers = {
+        "Authorization": "Bearer " + payload.token,
+    };
 
-    return await axios({ url: arquivoUrl + url + '/' + offset + '/' + limit, method: 'GET' })
+    return await axios({ url: arquivoUrl + url + '/' + offset + '/' + limit, method: 'GET', headers: headers })
         .then(response => {
             const payloadArquivos = response.data.resultado;
             commit('arquivos', payloadArquivos);

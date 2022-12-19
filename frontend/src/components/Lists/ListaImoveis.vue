@@ -1,6 +1,6 @@
 <template>
     <LoadingSection v-if="isFetching.status"></LoadingSection>
-    <div class="container margin-barra my-3"> 
+    <div class="container margin-barra my-3">
         <h4 v-if="invalidesOrNot">
             <Transition name="bounce" mode="out-in">
                 <font-awesome-icon icon="fa-solid fa-exclamation" class="static" @click="changeTagFilter('importante')"
@@ -25,7 +25,7 @@
         </h4>
         <div class="row">
             <div class="col-md-5 col-4">
-                <div class="form-check form-switch">
+                <div class="form-check form-switch" v-if="this.$store.state.login.type == 'adm'">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
                         v-model="invalidesOrNot" @click="changeList()">
                     <label class="form-check-label" for="flexSwitchCheckDefault" v-if="invalidesOrNot">Ativos</label>
@@ -47,6 +47,7 @@
             </div>
         </div>
     </div>
+    <h4 class="my-3 text-center">Lista de Imóveis</h4>
     <div class="container mb-6" v-if="displayListaImoveis.length == 0">
         <h4 v-if="invalidesOrNot">Sem imóveis cadastrados</h4>
         <h4 v-else>Sem imóveis inativos</h4>
@@ -60,18 +61,20 @@
                             <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)"
                                 v-if="imovel.nome.length < 21">
                                 {{
-                                imovel.nome }}
+                                        imovel.nome
+                                }}
                             </h3>
                             <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)" v-else>
                                 {{
-                                imovel.nome.substring(0, 20) + "..." }}
+                                        imovel.nome.substring(0, 20) + "..."
+                                }}
                             </h3>
                         </div>
                         <div class="col-3" v-if="invalidesOrNot">
                             <h3 class="d-flex justify-content-center">
                                 <Transition name="bounce" mode="out-in">
                                     <font-awesome-icon icon="fa-solid fa-exclamation" class="static"
-                                        v-if=" imovel.importante == 0"
+                                        v-if="imovel.importante == 0"
                                         @click="addTag(imovel.id, 'importante', imovel.importante, imovel.tags_id)" />
                                     <font-awesome-icon icon="fa-solid fa-exclamation" class="static impIcon" v-else
                                         @click="addTag(imovel.id, 'importante', imovel.importante, imovel.tags_id)" />
@@ -94,7 +97,7 @@
                             </h3>
                         </div>
                         <div class="col-1">
-                            <div class="dropdown" v-if="invalidesOrNot">
+                            <div class="dropdown" v-if="invalidesOrNot && this.$store.state.login.type == 'adm'">
                                 <h3 class="d-flex justify-content-center">
                                     <font-awesome-icon icon="fa-solid fa-bars" class="dropdown-toggle" type="button"
                                         id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
@@ -121,15 +124,17 @@
 
             <template v-slot:card-footer v-if="invalidesOrNot">
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
-                <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')">Apagar</button>
+                <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')"
+                    v-if="this.$store.state.login.type == 'adm'">Apagar</button>
             </template>
             <template v-slot:card-footer v-else>
                 <button class="btn btn-sm btn-success" @click="openModal(imovel, 'reativar')">Reativar</button>
-                <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')">Apagar
+                <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')"
+                    v-if="this.$store.state.login.type == 'adm'">Apagar
                     Definitivamente</button>
             </template>
         </CardImovel>
-        <Pagination :offset="offset" :total="total" :current="current+1" :limit="limit" @change-page="changePage">
+        <Pagination :offset="offset" :total="total" :current="current + 1" :limit="limit" @change-page="changePage">
         </Pagination>
         <Modal @close="toggleModal" :modalActive="modalActive" :showCloseButton="true">
             <div v-if="modalDelete">
@@ -138,7 +143,7 @@
                         <h1>Imóvel apagado com sucesso</h1>
                     </div>
                     <div class="modal-content" v-if="confirmation && modalDesassocia">
-                        <h1 class="pre">{{modalDesassocia}}</h1>
+                        <h1 class="pre">{{ modalDesassocia }}</h1>
                     </div>
                     <div v-if="!confirmation && !modalDesassocia">
                         <div v-if="!tipoDeDelete" class="modal-content">
@@ -156,7 +161,7 @@
                         </div>
                     </div>
                     <div class="modal-content" v-if="!confirmation && modalDesassocia">
-                        <h1 class="mb-5">{{modalDesassocia}} <b class="pre">{{ imovelNome }}</b>?</h1>
+                        <h1 class="mb-5">{{ modalDesassocia }} <b class="pre">{{ imovelNome }}</b>?</h1>
                         <button class="btn btn-sm btn-danger" @click="desassociarDocumentos(imovelId)"
                             v-if="modalDesassocia == 'Deseja realmente desassociar todos os documentos do '">Desassociar
                             Todos
@@ -279,7 +284,8 @@ export default {
                 keywords: this.keywords,
                 status: status,
                 offset: this.offset,
-                limit: this.limit
+                limit: this.limit,
+                token: this.$store.state.login.token
             }
 
             this.$store.dispatch('buscaImovel', payload).then(response => {
@@ -338,7 +344,12 @@ export default {
             this.toggleModal();
 
         },
-
+        // teoricamente tudo do crud tá ok no back.
+        // ver o que falta no front, ir colocando as headers e ir testando
+        // ja testei tudo ok... testar casos errados
+        // ver de por token nos cookies.
+        // ver negocio de tipagem... exibir algumas coisas só pra adm e tal. fazer um user nao adm pra testes
+        // fazer tela de criar usuario. decidir se só adm vai ter ou n 
 
         async recalculaDepoisRemoverDaLista(status) {
             if ((this.total - 1) / this.limit == Math.floor(this.total / this.limit) && (this.current == Math.floor(this.total / this.limit))
@@ -351,7 +362,7 @@ export default {
                 if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
                     let resultado;
 
-                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A' });
+                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A', token: this.$store.state.login.token });
                     this.total = resultado.totalImoveis.totalImoveis;
                 }
                 else {
@@ -364,11 +375,11 @@ export default {
 
                 if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
                     resultado =
-                        await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags });
+                        await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags, token: this.$store.state.login.token });
                 }
                 else {
                     resultado =
-                        await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                        await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
                 }
 
                 this.total = resultado.totalImoveis.totalImoveis;
@@ -379,8 +390,11 @@ export default {
         async apagarImovel(id, tipo, tipoDelete, method) {
             let payload = { id: id, tipoDelete: tipoDelete };
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
 
-            await axios({ url: imovelUrl + 'deletar' + tipo + '/' + id, data: payload, method: method })
+            await axios({ url: imovelUrl + 'deletar' + tipo + '/' + id, data: payload, method: method, headers: headers })
                 .then(async () => {
                     let status = 'Inativos';
                     if (tipo == 'Imovel') {
@@ -397,7 +411,11 @@ export default {
 
         async reativarImovel(id) {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-            await axios({ url: imovelUrl + 'reativarImovel' + '/' + id, method: 'PUT' })
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
+
+            await axios({ url: imovelUrl + 'reativarImovel' + '/' + id, method: 'PUT', headers: headers })
                 .then(async () => {
                     await this.recalculaDepoisRemoverDaLista('Inativos');
                     this.confirmation = true;
@@ -408,7 +426,8 @@ export default {
         },
 
         async addTag(imovelId, type, value, tagId) {
-            let payload = { imovelId: imovelId, type: type, value: this.changeTagValue(value), hora: this.getNow(), tagId: tagId }
+            let values = { imovelId: imovelId, type: type, value: this.changeTagValue(value), hora: this.getNow(), tagId: tagId }
+            let payload = { values: values, token: this.$store.state.login.token }
 
             await this.$store.dispatch('alterarTag', payload)
                 .then(async () => {
@@ -419,8 +438,11 @@ export default {
         },
 
         async desassociarDocumentos(id) {
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-            await axios({ url: imovelUrl + 'desassociarTodosDocumentos' + '/' + id, method: 'PUT' })
+            await axios({ url: imovelUrl + 'desassociarTodosDocumentos' + '/' + id, method: 'PUT', headers: headers })
                 .then(() => {
                     this.modalDesassocia = 'Documentos do imóvel desassociados com sucesso';
                     this.confirmation = true;
@@ -432,8 +454,12 @@ export default {
         },
 
         async apagarDocumentos(id) {
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
+
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-            await axios({ url: imovelUrl + 'deletarTodosDocumentosAssociados' + '/' + id, method: 'PUT' })
+            await axios({ url: imovelUrl + 'deletarTodosDocumentosAssociados' + '/' + id, method: 'PUT', headers: headers })
                 .then(() => {
                     this.modalDesassocia = 'Documentos do imóvel apagados com sucesso';
                     this.confirmation = true;
@@ -546,17 +572,17 @@ export default {
             let resultado;
             if (tags) {
                 if (this.busca) {
-                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A' })
+                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A', token: this.$store.state.login.token })
                 }
                 else {
-                    resultado = await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags });
+                    resultado = await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags, token: this.$store.state.login.token });
                 }
             }
             else {
                 this.tags.filterFav = 0;
                 this.tags.filterImportant = 0;
                 this.tags.filterUrgent = 0;
-                resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status });
+                resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
             }
             this.total = resultado.totalImoveis.totalImoveis;
         }

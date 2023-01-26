@@ -5,7 +5,8 @@
       <FormulariodeImovel ref="formulario"></FormulariodeImovel>
       <div class="container my-5">
         <div class="row">
-          <div class="text-center" v-if="this.$store.state.login.type == 'adm'">
+          <div class="text-center"
+            v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </div>
@@ -14,14 +15,16 @@
   </div>
 
   <div class="container" v-else>
-    <h4 class="my-3 text-center" v-if="this.$store.state.login.type == 'adm'">Editar Imóvel</h4>
+    <h4 class="my-3 text-center"
+      v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">Editar Imóvel</h4>
     <h4 class="my-3 text-center" v-else>Detalhes do Imóvel</h4>
 
     <Form @submit="onCompleteEdit" :validation-schema="schema">
       <FormulariodeImovel ref="formulario" :imovel="displayImovel"></FormulariodeImovel>
       <div class="container my-5">
         <div class="row">
-          <div class="text-center" v-if="this.$store.state.login.type == 'adm'">
+          <div class="text-center"
+            v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">
             <button type="submit" class="btn btn-primary">Submit</button>
           </div>
         </div>

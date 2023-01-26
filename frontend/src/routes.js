@@ -34,7 +34,14 @@ router.beforeEach((to, from, next) => {
     next('/')
   }
   else if (to.matched.some(record => record.meta.requiresAuthAdm)) {
-    if (store.state.login.isLoggedIn && store.state.login.type == 'adm') {
+    if (store.state.login.isLoggedIn && (store.state.login.type == 'adm' || store.state.login.type == 'master')) {
+      next()
+      return
+    }
+    next('/')
+  }
+  else if (to.matched.some(record => record.meta.requiresAuthMaster)) {
+    if (store.state.login.isLoggedIn && store.state.login.type == 'master') {
       next()
       return
     }

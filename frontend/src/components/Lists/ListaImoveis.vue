@@ -25,7 +25,8 @@
         </h4>
         <div class="row">
             <div class="col-md-5 col-4">
-                <div class="form-check form-switch" v-if="this.$store.state.login.type == 'adm'">
+                <div class="form-check form-switch"
+                    v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
                         v-model="invalidesOrNot" @click="changeList()">
                     <label class="form-check-label" for="flexSwitchCheckDefault" v-if="invalidesOrNot">Ativos</label>
@@ -97,7 +98,8 @@
                             </h3>
                         </div>
                         <div class="col-1">
-                            <div class="dropdown" v-if="invalidesOrNot && this.$store.state.login.type == 'adm'">
+                            <div class="dropdown"
+                                v-if="invalidesOrNot && this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">
                                 <h3 class="d-flex justify-content-center">
                                     <font-awesome-icon icon="fa-solid fa-bars" class="dropdown-toggle" type="button"
                                         id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
@@ -125,12 +127,12 @@
             <template v-slot:card-footer v-if="invalidesOrNot">
                 <button class="btn btn-sm btn-success" @click="redirect(imovel)">Detalhes</button>
                 <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')"
-                    v-if="this.$store.state.login.type == 'adm'">Apagar</button>
+                    v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">Apagar</button>
             </template>
             <template v-slot:card-footer v-else>
                 <button class="btn btn-sm btn-success" @click="openModal(imovel, 'reativar')">Reativar</button>
                 <button class="btn btn-sm btn-danger" @click="openModal(imovel, 'delete')"
-                    v-if="this.$store.state.login.type == 'adm'">Apagar
+                    v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">Apagar
                     Definitivamente</button>
             </template>
         </CardImovel>

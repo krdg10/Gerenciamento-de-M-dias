@@ -8,7 +8,8 @@
                         v-model="semImovel" @change="changeList()">
                     <label class="form-check-label" for="flexSwitchCheckDefault2">Sem imóvel</label>
                 </div>
-                <div class="form-check form-switch" v-if="!semImovel && this.$store.state.login.type == 'adm'">
+                <div class="form-check form-switch"
+                    v-if="!semImovel && this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault"
                         v-model="invalidesOrNot" @change="changeList()">
                     <label class="form-check-label" for="flexSwitchCheckDefault" v-if="invalidesOrNot">Ativos</label>
@@ -93,18 +94,19 @@
             </template>
             <template v-slot:card-footer v-if="invalidesOrNot">
                 <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')"
-                    v-if="this.$store.state.login.type == 'adm'"> Editar</button>
+                    v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">
+                    Editar</button>
                 <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')"
-                    v-if="this.$store.state.login.type == 'adm'">Apagar</button>
+                    v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">Apagar</button>
             </template>
             <template v-slot:card-footer v-else>
                 <button class="btn btn-sm btn-success" @click="openModal(arquivo, 'edit')"
-                    v-if="!(arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'I') && this.$store.state.login.type == 'adm'">Reativar</button>
+                    v-if="!(arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'I') && this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">Reativar</button>
                 <button class="btn btn-sm btn-primary" @click="openModal(arquivo, 'reactiveImovel')" v-else>Reativar
                     Imóvel do
                     Documento</button> <!-- v-else ver essa fita -->
                 <button class="btn btn-sm btn-danger" @click="openModal(arquivo, 'delete')"
-                    v-if="this.$store.state.login.type == 'adm'">Apagar
+                    v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">Apagar
                     Definitivamente</button>
             </template>
         </CardImovel>

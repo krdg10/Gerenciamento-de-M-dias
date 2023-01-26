@@ -12,7 +12,8 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse" v-if="this.$store.state.login.isLoggedIn">
             <div class="navbar-nav ms-auto p-4 p-lg-0">
-                <div class="nav-item dropdown" v-if="this.$store.state.login.type == 'adm'">
+                <div class="nav-item dropdown"
+                    v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarNovasMidias" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
                         Novas Mídias </a>

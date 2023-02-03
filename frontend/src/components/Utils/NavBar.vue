@@ -12,6 +12,17 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse" v-if="this.$store.state.login.isLoggedIn">
             <div class="navbar-nav ms-auto p-4 p-lg-0">
+                <div class="nav-item dropdown" v-if="this.$store.state.login.type == 'master'">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarNovasMidias" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Usuários </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarNovasMidias">
+                        <router-link class="nav-item nav-link text-center toToggleCollapse" to="/listaUsers">Lista de
+                            Usuários
+                        </router-link>
+
+                    </ul>
+                </div>
                 <div class="nav-item dropdown"
                     v-if="this.$store.state.login.type == 'adm' || this.$store.state.login.type == 'master'">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarNovasMidias" role="button"

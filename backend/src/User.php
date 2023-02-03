@@ -34,29 +34,32 @@ class User
     private $db;
     private $requestMethod;
     private $url;
-    private $email;
-    private $password;
+    private $offset;
+    private $limit;
 
 
-    public function __construct($db, $requestMethod, $url, $email, $password)
+    public function __construct($db, $requestMethod, $url, $offset, $limit)
     {
         $this->db = $db;
         $this->requestMethod = $requestMethod;
         $this->url = $url;
-        $this->email = $email;
-        $this->password = $password;
+        $this->offset = $offset;
+        $this->limit = $limit;
     }
 
     public function processRequest()
     {
         switch ($this->requestMethod) {
             case 'GET':
+                if ($this->url == 'listUsers') {
+                    $response = $this->getUsers($this->offset, $this->limit);
+                }
                 break;
             case 'POST':
                 if ($this->url == 'login') {
                     $response = $this->login();
                 } else if ($this->url == 'newUser') {
-                    $response = $this->createUser($this->email, $this->password);
+                    $response = $this->createUser();
                 } else {
                     //
                 }
@@ -65,7 +68,7 @@ class User
                 if ($this->url == 'editPassword') {
                     $response = $this->editPassword();
                 } else {
-                    //
+                    $response = $this->alterRole();
                 }
                 break;
             case 'DELETE':
@@ -83,18 +86,58 @@ class User
         }
     }
 
-
-
-    private function createUser($email, $password)
+    private function getUsers($offset, $limit)
     {
-        $validation = $this->validateUser($_POST);
+        // colocar limit e offset
+        // colocar um v-for no listaUsers
+        // ver de paginar... ou não sei se isso precisa. ai nesse caso n teria limit nem offset... vamos ver
+        // ai lá criar opções de editar tipo de user e deletar
+
+
+        // tbm criar um form pra criar users. apenar master
+        // talvez fazer isso logo pra ter adm e normal pra testar
+        // na vdd... criar uma janela normal "cadastrar" pra novos users e tal. E a partir dela, o master pode dar adm. economiza passos
+
+        // home: cadastrar. ai cadastra, loga e tal como notadm. e ai master pode conceder adm. pica.
+        $token = $this->validateToken();
+
+        $result = $this->findEmail($token->email);
+        if ($result["type"] != 'master') {
+            return $this->notFoundResponse('Not found');
+        }
+        
+
+        $query = "SELECT email, type, data_edicao, data_criacao FROM users where type <> 'master' ORDER BY email LIMIT $limit OFFSET $offset;";
+        $queryTotal = "SELECT COUNT(*) totalUsers FROM users  where type <> 'master';";
+
+        try {
+            $statement = $this->db->query($query);
+            $result = $statement->fetchAll(\PDO::FETCH_ASSOC);
+            $statement = $this->db->query($queryTotal);
+            $total =  $statement->fetchAll(\PDO::FETCH_ASSOC);
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+        $object = (object) ['totalUsers' => $total[0], 'resultado' => $result];
+
+        $response['status_code_header'] = 'HTTP/1.1 200 OK';
+        $response['body'] = json_encode($object);
+
+        return $response;
+    }
+
+    private function createUser()
+    {
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+
+        $validation = $this->validateUser($input);
 
         if (is_array($validation)) {
             return $this->returnValidationErrors($validation);
         }
 
 
-        $result = $this->findEmail($email);
+        $result = $this->findEmail($input['email']);
         if ($result) {
             return $this->notFoundResponse('Email já utilizado');
         }
@@ -105,28 +148,76 @@ class User
             $data = $_POST['data_criacao'];
         };
 
-        $type = $_POST['type'];
 
         $query = "INSERT INTO users (password, email, data_criacao, type) VALUES(:password, :email, :data, :type);";
 
-        $passwordHashed = password_hash($password, PASSWORD_DEFAULT);
+        $passwordHashed = password_hash($input['password'], PASSWORD_DEFAULT);
 
         try {
             $statement = $this->db->prepare($query);
             $statement->execute(array(
                 'password' => $passwordHashed,
-                'email'  => $email,
+                'email'  => $input['email'],
                 'data' => $data,
-                'type' => $type
+                'type' => 'notadm'
+            ));
+            $statement->rowCount();
+        } catch (\PDOException $e) {
+            exit($e->getMessage());
+        }
+
+        $token = $this->createToken($input['email']);
+        $response['status_code_header'] = 'HTTP/1.1 201 Created';
+        $response['body'] = json_encode(array(
+            'message' => 'User created',
+            'token' => $token,
+            'type' => 'notadm'
+        ));
+        return $response;
+    }
+
+    private function alterRole()
+    {
+        $token = $this->validateToken();
+
+        $result = $this->findEmail($token->email);
+        if ($result["type"] != 'master') {
+            return $this->notFoundResponse('Not found');
+        }
+
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+
+        if ($input['email'] == $token->email) {
+            return $this->notFoundResponse('Impossível realizar solicitação');
+        }
+        $newRole = 'notadm';
+
+        if ($input['type'] == 'notadm') {
+            $newRole = 'adm';
+        }
+
+        if (!isset($input['data_edicao'])) {
+            $data = date("Y-m-d h:i:s");
+        } else {
+            $data = $input['data_edicao'];
+        };
+
+        $query = "UPDATE users set type = :type, data_edicao = :data where email = :email;";
+
+        try {
+            $statement = $this->db->prepare($query);
+            $statement->execute(array(
+                'type' => $newRole,
+                'email'  => $input['email'],
+                'data' => $data
             ));
             $statement->rowCount();
         } catch (\PDOException $e) {
             exit($e->getMessage());
         }
         $response['status_code_header'] = 'HTTP/1.1 201 Created';
-        $response['body'] = json_encode(array('message' => 'User Created'));
+        $response['body'] = json_encode(array('message' => 'Type Updated', 'newType' => $newRole));
         return $response;
-        // talvez no final fazer um login
     }
 
     private function editPassword()

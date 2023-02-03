@@ -5,6 +5,7 @@ import DeuRuim from './components/Utils/DeuRuim.vue'
 import ListaImoveis from './components/Lists/ListaImoveis.vue'
 import ListaArquivos from './components/Lists/ListaArquivos.vue'
 import FormularioArquivo from './components/Forms/UploadArquivos.vue'
+import ListaUsers from './components/Lists/ListaUsers.vue'
 import { store } from './store/store';
 
 //const Dashboard = () => import('./components/Dashboards/Dashboard.vue');
@@ -16,6 +17,7 @@ const routes = [
   { path: '/listaImoveis', name: 'listaImoveis', component: ListaImoveis, meta: { requiresAuth: true } },
   { path: '/listaArquivos', name: 'listaArquivos', component: ListaArquivos, props: true, meta: { requiresAuth: true } },
   { path: '/novoArquivo', name: 'novoArquivo', component: FormularioArquivo, meta: { requiresAuthAdm: true } },
+  { path: '/listaUsers', name: 'listaUsers', component: ListaUsers, meta: { requiresAuthMaster: true } },
   { path: '/:pathMatch(.*)*', component: DeuRuim }
 
 ];

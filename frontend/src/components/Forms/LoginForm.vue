@@ -1,4 +1,21 @@
 <template>
+    <!--  colocar um form check aqui pra Login e Novo... ai já até economizo mais passos ainda. vamos ver -->
+    <div class="container">
+
+        <div class="row">
+            <div class="col-md-6 col-5">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault2"
+                        v-model="login" @change="!login">
+                </div>
+
+            </div>
+            <div class="col-md-6 col-5">
+                <h1 v-if="login">Login</h1>
+                <h1 v-else>New User</h1>
+            </div>
+        </div>
+    </div>
     <div class="container">
         <Form @submit="onCompleteLogin" :validation-schema="schema">
             <div class="mb-3 mt-3">
@@ -46,7 +63,8 @@ export default {
             email: '',
             password: '',
             modalMessage: '',
-            redirectOrNot: false
+            redirectOrNot: false,
+            login: true
         }
     },
 
@@ -68,9 +86,15 @@ export default {
                 email: this.email,
                 password: this.password,
             }
-            console.log(login)
+            var url;
+            if (this.login) {
+                url = 'http://localhost:8000/user/login';
+            }
+            else {
+                url = 'http://localhost:8000/user/newUser';
 
-            await axios({ url: 'http://localhost:8000/user/login', data: login, method: 'POST' })
+            }
+            await axios({ url: url, data: login, method: 'POST' })
                 .then(response => {
                     console.log(response.data)
                     this.modalMessage = 'Login realizado com sucesso!';
@@ -81,9 +105,10 @@ export default {
                     // Por exemplo... na hora de cadastrar novo imovel, enviar token junto e validar lá no back.
                     // tbm criar form de criar user.
                 }).catch(error => {
-                    this.modalMessage = error.response.data[0];
+                    this.modalMessage = error.response.data;
                     this.toggleModal();
                 })
+
 
         }
     },

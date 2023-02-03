@@ -8,6 +8,32 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Throwable;
 
+// guardar login e token nos cookies
+// testes
+/* formulario de novo usuário
+Criei usuario master pro krdg10... tem que ver se nao vai dar BO na hora de fazer as coisas com master, nao adaptei. Se der, é só onde tá "adm" colocar == master tbm
+
+ ele é o unico com acesso a tela de newUser, resto bloqueia
+
+ aqueles campos, tipo o "criar" que aparece só pra adm, colocar pra aparecer pra adm && master
+ pode criar adm e normal
+
+ e aaah, mudar pros redirect ser pro pagenotfound e não pra home. melhor
+
+*/
+// logout
+// https://www.learmoreseekmore.com/2021/04/part-1-vuejs-jwt-auth-cookie-access-token-usage.html 
+// acho que o tchan ta nesse trecho:
+// 	  payload,{withCredentials: true, credentials: 'include'})
+// ver de dar uma testada
+// https://fareedidris.medium.com/cookie-based-authentication-using-flask-and-vue-js-part-2-bd2b47545466
+
+// preferencialmente começar pelos cookies, se nao fazer outra coisa
+// qualquer coisa ver de usar localStorage
+// é... to entendendo nao. talvez fazer tudo, e ai fazer pelo localStorage e tal e tentar ver de mudar pro cookies dps. só pra terminar logo 
+// e partir pro genshin ne
+
+// falta pouco... com um esforcinho termino esse ano. e ai genshin flutter e outros projetos talvez com maria
 
 class Arquivo
 {

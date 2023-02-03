@@ -1,4 +1,6 @@
 <template>
+    <LoadingSection v-if="isFetching"></LoadingSection>
+
     <div class="container">
         <div class="table-responsive">
             <table class="table">
@@ -21,12 +23,17 @@
                 </tbody>
             </table>
         </div>
+        <Pagination :offset="offset" :total="total" :limit="limit" :current="current + 1" @change-page="changePage">
+        </Pagination>
     </div>
 </template>
 
 <script>
 import axios from 'axios';
-// fazer paginação aqui 
+import Pagination from "../Utils/PaginationOfLists.vue"
+import LoadingSection from "../Utils/LoadingSection.vue";
+
+
 // criar trocar de senha e excluir minha conta.
 // depois disso... login persistente, cookies e tal
 
@@ -35,17 +42,25 @@ export default {
     data() {
         return {
             users: [],
-            
+            offset: 0,
+            limit: 10,
+            total: 0,
+            current: 0,
         }
     },
+
+    components: { Pagination, LoadingSection },
+
+
     methods: {
         async getAllUsers() {
             const headers = {
                 "Authorization": "Bearer " + this.$store.state.login.token,
             };
-            await axios({ url: 'http://localhost:8000/user/listUsers/', method: 'GET', headers: headers })
+            await axios({ url: 'http://localhost:8000/user/listUsers/' + this.offset + '/' + this.limit, method: 'GET', headers: headers })
                 .then(response => {
                     this.users = response.data.resultado;
+                    this.total = response.data.totalUsers.totalUsers;
                 }).catch(error => {
                     if (error.response.status == 401) {
                         this.$store.commit('isLoggedOff');
@@ -72,7 +87,26 @@ export default {
                         return;
                     }
                 })
-        }
+        },
+
+        async changePage(value) {
+
+            if (this.current == value) {
+                return;
+            }
+            else if (this.current > value) {
+                this.offset = this.offset - (this.limit * (this.current - value));
+            }
+            else if (this.current < value) {
+                this.offset = this.offset + (this.limit * (value - this.current));
+            }
+            this.current = value;
+            this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
+
+            await this.getAllUsers();
+
+            this.$store.commit('isFetching', { status: false, message: '' });
+        },
     },
 
     async created() {

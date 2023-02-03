@@ -139,7 +139,7 @@ if ($uri[1] == 'imovel') {
 } else if ($uri[1] == 'user') {
     $email = null;
     $password = null;
-    if ($uri[2] == 'login') {
+    if ($uri[2] == 'login' || $uri[2] == 'newUser') {
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
         if (!isset($input['password']) || !isset($input['email'])) {
             $message = 'Without password or email';
@@ -157,15 +157,6 @@ if ($uri[1] == 'imovel') {
             echo $message;
             exit();
         }
-    } else if ($uri[2] == 'newUser') {
-        if (!isset($_POST['password']) || !isset($_POST['email']) || !isset($_POST['type'])) {
-            $message = 'Withou password or email or type';
-            header("HTTP/1.1 404 Not Found");
-            echo $message;
-            exit();
-        }
-        $email =  $_POST['email'];
-        $password = $_POST['password'];
     } else if ($uri[2] == 'deleteUser') {
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
         if (!isset($input['passwordAdm']) || !isset($input['emailAdm']) || !isset($input['emailUser'])) {
@@ -174,10 +165,30 @@ if ($uri[1] == 'imovel') {
             echo $message;
             exit();
         }
+    } else if ($uri[2] == 'alterRole') {
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+        if (!isset($input['email']) || !isset($input['type'])) {
+            $message = 'Without role or email';
+            header("HTTP/1.1 404 Not Found");
+            echo $message;
+            exit();
+        }
+    } else if ($uri[2] == 'listUsers') {
+        if (!isset($uri[3]) || !isset($uri[4])) {
+            header("HTTP/1.1 404 Not Found");
+            echo 'Pagina nao encontrada';
+            exit();
+        }
+        $offset = (int) $uri[3];
+        $limit = (int) $uri[4];
+    } else {
+        header("HTTP/1.1 404 Not Found");
+        echo 'Pagina nao encontrada';
+        exit();
     }
 
 
-    $controller = new User($dbConnection, $requestMethod, $uri[2], $email, $password);
+    $controller = new User($dbConnection, $requestMethod, $uri[2], $offset, $limit);
     $controller->processRequest();
 } else {
     header("HTTP/1.1 404 Not Found");

@@ -25,18 +25,20 @@
             </div>
         </Form>
 
-        <div class="container">
-            <div class="text-center">
-                <button type="submit" class="btn btn-danger">Apagar Conta</button>
-            </div>
+    </div>
+
+    <div class="container my-5">
+        <div class="text-center">
+            <button type="submit" class="btn btn-danger" @click="openModal()">Apagar Conta</button>
         </div>
-
-
     </div>
     <Modal @close="toggleModal" :modalActive="modalActive" :redirectToAnotherPage="$router.push"
         pageToRedirect="listaArquivos" :showCloseButton="true" :redirectOrNot="redirectOrNot">
         <div class="modal-content">
             <h1>{{ modalMessage }}</h1>
+            <div class="text-center" v-if="deleteModal">
+                <button type="submit" class="btn btn-danger" @click="deleteMyUser()">Apagar Conta</button>
+            </div>
         </div>
     </Modal>
 </template>
@@ -56,6 +58,7 @@ export default {
             newPassword: '',
             modalMessage: '',
             redirectOrNot: false,
+            deleteModal: false
         }
     },
 
@@ -95,12 +98,31 @@ export default {
                     this.modalMessage = error.response.data;
                     this.toggleModal()
                 })
+        },
+
+        async deleteMyUser() {
+            this.deleteModal = false;
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
+
+            await axios({ url: 'http://localhost:8000/user/deleteMyUser', headers: headers, method: 'DELETE' })
+                .then(response => {
+                    this.modalMessage = response.data;
+                    this.$store.commit('isLoggedOff');
+                    this.$router.push({ name: 'home' });
+                   
+                }).catch(error => {
+                    this.modalMessage = error.response.data;
+                })
+
+        },
+
+        openModal() {
+            this.modalMessage = 'Deseja realmente apagar sua conta?';
+            this.deleteModal = true;
+            this.toggleModal();
         }
-        // edit password.
-        // deletar conta
-        // edit password acho que tá suave o back, deleter vou ter que refazer.
-        // edit password pega as duas senhas, valida se as duas senhas estão lá, se tiver, compara as duas. acho que da pra fazer isso com o vee, pega o token e o email do token
-        // delete só pega o token e faz os trabalhos se o token for valido e n for master
     },
 
     computed: {

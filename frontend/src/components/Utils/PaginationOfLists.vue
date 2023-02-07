@@ -1,11 +1,11 @@
 <template>
     <div class="pagination justify-content-center my-5">
         <button v-for="(page, index) in pages" :key="page" class="item"
-            v-bind:class="{ 'current': page === current, 'noCurrent': page !== current, 'd-none': page != current && page != current-1 && page != current + 1 && page != last && page != 1  }"
+            v-bind:class="{ 'current': page === current, 'noCurrent': page !== current, 'd-none': page != current && page != current - 1 && page != current + 1 && page != last && page != 1 }"
             @click="changePage(index)">
-            <font-awesome-icon v-if="page==current+1" icon="fa-solid fa-chevron-right"> </font-awesome-icon>
-            <font-awesome-icon v-if="page==current-1" icon="fa-solid fa-chevron-left"> </font-awesome-icon>
-            <a v-if="page!=current-1 && page!= current+1"> {{ page }}</a>
+            <font-awesome-icon v-if="page == current + 1" icon="fa-solid fa-chevron-right"> </font-awesome-icon>
+            <font-awesome-icon v-if="page == current - 1" icon="fa-solid fa-chevron-left"> </font-awesome-icon>
+            <a v-if="page != current - 1 && page != current + 1"> {{ page }}</a>
         </button>
     </div>
 </template>

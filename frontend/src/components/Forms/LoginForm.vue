@@ -1,14 +1,11 @@
 <template>
-    <!--  colocar um form check aqui pra Login e Novo... ai já até economizo mais passos ainda. vamos ver -->
     <div class="container">
-
         <div class="row">
             <div class="col-md-6 col-5">
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckDefault2"
                         v-model="login" @change="!login">
                 </div>
-
             </div>
             <div class="col-md-6 col-5">
                 <h1 v-if="login">Login</h1>
@@ -100,16 +97,10 @@ export default {
                     this.modalMessage = 'Login realizado com sucesso!';
                     this.toggleModal();
                     this.$store.commit('isLoggedIn', { type: response.data.type, token: response.data.token });
-                    // de boa isso aqui. Só depois ver de guardar nos cookies.
-                    // Agora... fazer validação com token na hora de carregar as coisas. Aqui e no back.
-                    // Por exemplo... na hora de cadastrar novo imovel, enviar token junto e validar lá no back.
-                    // tbm criar form de criar user.
                 }).catch(error => {
                     this.modalMessage = error.response.data;
                     this.toggleModal();
                 })
-
-
         }
     },
 

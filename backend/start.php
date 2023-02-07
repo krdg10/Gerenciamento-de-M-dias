@@ -9,12 +9,6 @@ $dotenv->safeLoad();
 $dbConnection = (new Database())->connet();
 $db = $_ENV['DB_DATABASE'];
 
-// https://programadoresdepre.com.br/sistema-de-login-com-php-e-mysql-pdo/
-// https://www.youtube.com/watch?v=Wv02i0yNVVs
-// https://www.botecodigital.dev.br/php/jwt-json-web-token-em-php/
-// https://imasters.com.br/back-end/entendendo-o-jwt
-// achei isso em 40 min... vamos de né. pelo menos nao fiquei a toa haha resto foi jogando e pá
-
 $query = "CREATE TABLE IF NOT EXISTS `$db`.`tags` (
     `id` INT NOT NULL AUTO_INCREMENT,
     `importante` TINYINT NULL DEFAULT 0,
@@ -85,7 +79,9 @@ $query = "CREATE TABLE IF NOT EXISTS `$db`.`tags` (
     PRIMARY KEY (`email`))
   ENGINE = InnoDB
   DEFAULT CHARACTER SET = utf8
-  COLLATE = utf8_bin;";
+  COLLATE = utf8_bin;
+  
+  INSERT INTO `users`(`email`, `password`, `data_criacao`) VALUES ('admin@admin.com', '$2y$10$bsceR2xMkkpBR9Z8RqiOWuEh8/6c9mwHos.tb3n.u.gi.yMfa3snu', '2020-12-12');";
 
 try {
   $dbConnection->exec($query);

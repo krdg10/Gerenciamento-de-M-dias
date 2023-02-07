@@ -9,7 +9,9 @@
                         <th scope="col">#</th>
                         <th scope="col">Email</th>
                         <th scope="col">Type</th>
-                        <th scope="col">Action</th>
+                        <th scope="col">Change Type</th>
+                        <th scope="col">Delete Account</th>
+
                     </tr>
                 </thead>
                 <tbody>
@@ -19,6 +21,7 @@
                         <td> {{ user.type }}</td>
                         <td> <a class="btn" v-if="user.type == 'notadm'" @click="changeRole(user)">Tornar ADM</a> <a
                                 class="btn" v-else @click="changeRole(user)">Tirar ADM</a></td>
+                        <td> <a class="btn" @click="deleteAccount(user)">Deletar</a> </td>
                     </tr>
                 </tbody>
             </table>
@@ -32,10 +35,7 @@
 import axios from 'axios';
 import Pagination from "../Utils/PaginationOfLists.vue"
 import LoadingSection from "../Utils/LoadingSection.vue";
-
-
-// criar trocar de senha e excluir minha conta.
-// depois disso... login persistente, cookies e tal
+import { mapState } from "vuex";
 
 
 export default {
@@ -47,6 +47,13 @@ export default {
             total: 0,
             current: 0,
         }
+    },
+
+
+    computed: {
+        ...mapState([
+            "isFetching",
+        ]),
     },
 
     components: { Pagination, LoadingSection },
@@ -80,6 +87,26 @@ export default {
             await axios({ url: 'http://localhost:8000/user/alterRole', data: payload, method: 'PUT', headers: headers })
                 .then(response => {
                     user.type = response.data.newType;
+                }).catch(error => {
+                    if (error.response.status == 401) {
+                        this.$store.commit('isLoggedOff');
+                        this.$router.push({ name: 'home' });
+                        return;
+                    }
+                })
+        },
+
+        async deleteAccount(user) {
+            const headers = {
+                "Authorization": "Bearer " + this.$store.state.login.token,
+            };
+            let payload = {
+                email: user.email,
+            }
+            await axios({ url: 'http://localhost:8000/user/deleteUser', data: payload, method: 'DELETE', headers: headers })
+                .then(async (response) => {
+                    console.log(response)
+                    await this.getAllUsers();
                 }).catch(error => {
                     if (error.response.status == 401) {
                         this.$store.commit('isLoggedOff');

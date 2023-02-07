@@ -5,7 +5,7 @@
                 <br><br><br>
                 <div class="container">
                     <div class="content-center">
-                        <h1 v-if="isFetching.message">{{isFetching.message}}</h1>
+                        <h1 v-if="isFetching.message">{{ isFetching.message }}</h1>
                         <h1 v-else>Carregando...<span class="fas fa-spinner fa-pulse"></span></h1>
                     </div>
                 </div>

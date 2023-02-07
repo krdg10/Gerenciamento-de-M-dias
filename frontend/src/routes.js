@@ -6,6 +6,7 @@ import ListaImoveis from './components/Lists/ListaImoveis.vue'
 import ListaArquivos from './components/Lists/ListaArquivos.vue'
 import FormularioArquivo from './components/Forms/UploadArquivos.vue'
 import ListaUsers from './components/Lists/ListaUsers.vue'
+import EditarPerfil from './components/Forms/TrocarSenha.vue'
 import { store } from './store/store';
 
 //const Dashboard = () => import('./components/Dashboards/Dashboard.vue');
@@ -18,8 +19,8 @@ const routes = [
   { path: '/listaArquivos', name: 'listaArquivos', component: ListaArquivos, props: true, meta: { requiresAuth: true } },
   { path: '/novoArquivo', name: 'novoArquivo', component: FormularioArquivo, meta: { requiresAuthAdm: true } },
   { path: '/listaUsers', name: 'listaUsers', component: ListaUsers, meta: { requiresAuthMaster: true } },
+  { path: '/editarPerfil', name: 'editarPerfil', component: EditarPerfil, meta: { requiresAuth: true } },
   { path: '/:pathMatch(.*)*', component: DeuRuim }
-
 ];
 
 const router = VueRouter.createRouter({
@@ -33,21 +34,21 @@ router.beforeEach((to, from, next) => {
       next()
       return
     }
-    next('/')
+    next('/naoexiste')
   }
   else if (to.matched.some(record => record.meta.requiresAuthAdm)) {
     if (store.state.login.isLoggedIn && (store.state.login.type == 'adm' || store.state.login.type == 'master')) {
       next()
       return
     }
-    next('/')
+    next('/naoexiste')
   }
   else if (to.matched.some(record => record.meta.requiresAuthMaster)) {
     if (store.state.login.isLoggedIn && store.state.login.type == 'master') {
       next()
       return
     }
-    next('/')
+    next('/naoexiste')
   }
   else {
     next()

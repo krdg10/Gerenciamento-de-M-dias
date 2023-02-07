@@ -1,5 +1,4 @@
 import { defineRule, configure } from 'vee-validate';
-//import { required, email, numeric, digits, max, min, min_value, max_value, integer, regex, required_if } from '@vee-validate/rules';
 import { required, max, numeric, min_value, digits, email, min } from '@vee-validate/rules';
 import pt_BR from '@vee-validate/i18n/dist/locale/pt_BR.json';
 import { localize } from '@vee-validate/i18n';

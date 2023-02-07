@@ -62,12 +62,12 @@
                             <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)"
                                 v-if="imovel.nome.length < 21">
                                 {{
-                                        imovel.nome
+                                    imovel.nome
                                 }}
                             </h3>
                             <h3 class="card-title col" style="'display:flex'" @click="redirect(imovel)" v-else>
                                 {{
-                                        imovel.nome.substring(0, 20) + "..."
+                                    imovel.nome.substring(0, 20) + "..."
                                 }}
                             </h3>
                         </div>
@@ -297,7 +297,6 @@ export default {
                 this.$store.commit('isFetching', { status: true, message: error })
             )
         },
-        // procurar se busca estiver com filtro. o que fazer
         async procuraImovel() {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
 
@@ -346,12 +345,6 @@ export default {
             this.toggleModal();
 
         },
-        // teoricamente tudo do crud tá ok no back.
-        // ver o que falta no front, ir colocando as headers e ir testando
-        // ja testei tudo ok... testar casos errados
-        // ver de por token nos cookies.
-        // ver negocio de tipagem... exibir algumas coisas só pra adm e tal. fazer um user nao adm pra testes
-        // fazer tela de criar usuario. decidir se só adm vai ter ou n 
 
         async recalculaDepoisRemoverDaLista(status) {
             if ((this.total - 1) / this.limit == Math.floor(this.total / this.limit) && (this.current == Math.floor(this.total / this.limit))
@@ -473,8 +466,6 @@ export default {
         },
 
         async changeTagFilter(tipo) {
-            // ver se tiver em busca e se tiver com filtro. O que fazer.
-            // começar daqui.
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (tipo == 'urgente') {
                 this.tags.filterUrgent = this.changeTagValue(this.tags.filterUrgent);

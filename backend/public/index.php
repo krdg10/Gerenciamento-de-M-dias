@@ -4,7 +4,6 @@ require "../start.php";
 use Src\Imovel;
 use Src\Arquivo;
 use Src\User;
-// dar uma melhorada nesse código. nos outros do back tbm e revisar os do front.
 
 /*header("Access-Control-Allow-Origin: *");
 header("Content-Type: application/json; charset=UTF-8");
@@ -151,20 +150,13 @@ if ($uri[1] == 'imovel') {
         $password = $_POST['password'];
     } else if ($uri[2] == 'editPassword') {
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-        if (!isset($input['password']) || !isset($input['email']) || !isset($input['newPassword'])) {
-            $message = 'Without password or email';
+        if (!isset($input['password']) || !isset($input['newPassword'])) {
+            $message = 'Without passwords';
             header("HTTP/1.1 404 Not Found");
             echo $message;
             exit();
         }
-    } else if ($uri[2] == 'deleteUser') {
-        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
-        if (!isset($input['passwordAdm']) || !isset($input['emailAdm']) || !isset($input['emailUser'])) {
-            $message = 'Withou password or email or type';
-            header("HTTP/1.1 404 Not Found");
-            echo $message;
-            exit();
-        }
+    } else if ($uri[2] == 'deleteMyUser') {
     } else if ($uri[2] == 'alterRole') {
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
         if (!isset($input['email']) || !isset($input['type'])) {
@@ -181,12 +173,19 @@ if ($uri[1] == 'imovel') {
         }
         $offset = (int) $uri[3];
         $limit = (int) $uri[4];
+    } else if ($uri[2] == 'deleteUser') {
+        $input = (array) json_decode(file_get_contents('php://input'), TRUE);
+        if (!isset($input['email'])) {
+            $message = 'Without email';
+            header("HTTP/1.1 404 Not Found");
+            echo $message;
+            exit();
+        }
     } else {
         header("HTTP/1.1 404 Not Found");
         echo 'Pagina nao encontrada';
         exit();
     }
-
 
     $controller = new User($dbConnection, $requestMethod, $uri[2], $offset, $limit);
     $controller->processRequest();

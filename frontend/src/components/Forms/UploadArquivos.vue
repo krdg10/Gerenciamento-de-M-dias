@@ -131,7 +131,6 @@ export default {
                     this.toggleModal();
                 }).catch(error => {
                     this.redirectOrNot = false;
-                    // ver de deixar token nos cookies
                     if (error.response.status == 401) {
                         this.$store.commit('isLoggedOff');
                         this.$router.push({ name: 'home' });

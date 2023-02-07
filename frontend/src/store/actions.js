@@ -181,7 +181,7 @@ const loadImoveisInvalidos = async ({ commit }) => {
 const loadImoveisPorPagina = async ({ commit }, payload) => {
     let offset = payload.offset;
     let limit = payload.limit;
-    let status = payload.status; // Ativo ou Inativo
+    let status = payload.status;
 
     const headers = {
         "Authorization": "Bearer " + payload.token,

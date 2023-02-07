@@ -13,10 +13,10 @@
         <div class="collapse navbar-collapse" id="navbarCollapse" v-if="this.$store.state.login.isLoggedIn">
             <div class="navbar-nav ms-auto p-4 p-lg-0">
                 <div class="nav-item dropdown" v-if="this.$store.state.login.type == 'master'">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarNovasMidias" role="button"
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarUsers" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
                         Usuários </a>
-                    <ul class="dropdown-menu" aria-labelledby="navbarNovasMidias">
+                    <ul class="dropdown-menu" aria-labelledby="navbarUsers">
                         <router-link class="nav-item nav-link text-center toToggleCollapse" to="/listaUsers">Lista de
                             Usuários
                         </router-link>
@@ -35,7 +35,7 @@
                             Arquivo</router-link>
                     </ul>
                 </div>
-                <div class="nav-item dropdown me-5-lg">
+                <div class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarMinhasMidias" role="button"
                         data-bs-toggle="dropdown" aria-expanded="false">
                         Mídias </a>
@@ -46,8 +46,34 @@
                         </router-link>
                     </ul>
                 </div>
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarMinhaConta" role="button"
+                        data-bs-toggle="dropdown" aria-expanded="false">
+                        Minha Conta </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarMinhasMidias">
+                        <router-link class="nav-item nav-link text-center toToggleCollapse" id="navbarMinhaConta"
+                            to="/editarPerfil">Editar
+                        </router-link>
+                        <a class="nav-item nav-link text-center toToggleCollapse" @click="logout()">Logout
+                        </a>
+                    </ul>
+                </div>
+
             </div>
         </div>
     </nav>
 
 </template>
+
+<script>
+
+export default {
+    methods: {
+        logout() {
+            this.$store.commit('isLoggedOff');
+            this.$router.push({ name: 'home' });
+        }
+    }
+}
+
+</script>

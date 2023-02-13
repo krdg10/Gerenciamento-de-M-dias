@@ -77,7 +77,7 @@
                 <a @click="redirect(displayImovelById(arquivo.imovel_id))" class="color-black"
                     v-if="arquivo.imovel_id && displayImovelById(arquivo.imovel_id).ativo == 'A'"><strong>Imovel
                         Associado</strong>: {{
-                                displayImovelById(arquivo.imovel_id).nome
+                            displayImovelById(arquivo.imovel_id).nome
                         }} <br></a>
                 <div v-else>
                     <a class="color-black color-black-without-hover" v-if="!arquivo.imovel_id">
@@ -85,7 +85,7 @@
                     </a>
                     <a class="color-black color-black-without-hover" v-else>
                         <strong>Imovel Associado</strong>: {{
-                                displayImovelById(arquivo.imovel_id).nome
+                            displayImovelById(arquivo.imovel_id).nome
                         }} <strong>(Deletado)</strong><br>
                     </a>
                 </div>

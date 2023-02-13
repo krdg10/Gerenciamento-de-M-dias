@@ -32,6 +32,8 @@ class User
             case 'GET':
                 if ($this->url == 'listUsers') {
                     $response = $this->getUsers($this->offset, $this->limit);
+                } else if ($this->url == 'verifyToken') {
+                    $response = $this->verifyToken();
                 }
                 break;
             case 'POST':
@@ -344,6 +346,23 @@ class User
 
         $encode = JWT::encode($payload, $_ENV['KEY'], 'HS256');
         return $encode;
+    }
+
+    private function verifyToken()
+    {
+        $token = $this->validateToken();
+
+        $result = $this->findEmail($token->email);
+        if (!$result) {
+            return $this->notFoundResponse('Email inexistente');
+        }
+
+        $response['status_code_header'] = 'HTTP/1.1 201 Created';
+        $response['body'] = json_encode(array(
+            'message' => 'Valid Token', 'type' => $result["type"]
+        ));
+
+        return $response;
     }
 
     private function decodeToken($token)

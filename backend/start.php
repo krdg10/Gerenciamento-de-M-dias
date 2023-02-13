@@ -81,7 +81,7 @@ $query = "CREATE TABLE IF NOT EXISTS `$db`.`tags` (
   DEFAULT CHARACTER SET = utf8
   COLLATE = utf8_bin;
   
-  INSERT INTO `users`(`email`, `password`, `data_criacao`) VALUES ('admin@admin.com', '$2y$10$bsceR2xMkkpBR9Z8RqiOWuEh8/6c9mwHos.tb3n.u.gi.yMfa3snu', '2020-12-12');";
+  INSERT INTO `users`(`email`, `password`, `data_criacao`, `type`) VALUES ('admin@admin.com', '$2y$10$wKZa.aImLNN3BkFsAWIpmOhHaoqXUq53K5b82A/81HA1acqeTin9y', '2020-12-12', 'master');";
 
 try {
   $dbConnection->exec($query);

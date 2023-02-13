@@ -1,3 +1,5 @@
+import VueCookies from 'vue-cookies'
+
 const imoveis = (state, payloadImoveis) => {
   state.imoveis = Object.values(payloadImoveis);
 }
@@ -68,6 +70,9 @@ const isLoggedIn = (state, object) => {
   state.login.isLoggedIn = true;
   state.login.type = object.type;
   state.login.token = object.token;
+  VueCookies.set('isLoggedIn', 'true')
+  VueCookies.set('type', object.type)
+  VueCookies.set('token', object.token)
   console.log(state.login)
 }
 
@@ -75,6 +80,9 @@ const isLoggedOff = (state) => {
   state.login.isLoggedIn = false;
   state.login.type = '';
   state.login.token = '';
+  VueCookies.set('isLoggedIn', 'false')
+  VueCookies.set('type', 'false')
+  VueCookies.set('token', 'false')
   console.log(state.login)
 }
 

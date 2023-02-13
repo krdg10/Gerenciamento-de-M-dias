@@ -318,7 +318,7 @@ class Imovel
             return $response;
         }
         if ($requiresAdm) {
-            if ($result['type'] != "adm") {
+            if ($result['type'] != "adm" && $result['type'] != "master") {
                 $response['status_code_header'] = 'HTTP/1.1 401 Unathourized';
                 $response['body'] = json_encode(array('message' => 'Sem autenticação'));
                 return $response;

@@ -156,7 +156,7 @@ if ($uri[1] == 'imovel') {
             echo $message;
             exit();
         }
-    } else if ($uri[2] == 'deleteMyUser') {
+    } else if ($uri[2] == 'deleteMyUser' || $uri[2] == 'verifyToken') {
     } else if ($uri[2] == 'alterRole') {
         $input = (array) json_decode(file_get_contents('php://input'), TRUE);
         if (!isset($input['email']) || !isset($input['type'])) {

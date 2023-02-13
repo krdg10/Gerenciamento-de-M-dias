@@ -8,8 +8,8 @@ import FormularioArquivo from './components/Forms/UploadArquivos.vue'
 import ListaUsers from './components/Lists/ListaUsers.vue'
 import EditarPerfil from './components/Forms/TrocarSenha.vue'
 import { store } from './store/store';
-
-//const Dashboard = () => import('./components/Dashboards/Dashboard.vue');
+import axios from 'axios';
+import VueCookies from 'vue-cookies'
 
 
 const routes = [
@@ -29,6 +29,7 @@ const router = VueRouter.createRouter({
 })
 
 router.beforeEach((to, from, next) => {
+  verifyToken();
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (store.state.login.isLoggedIn) {
       next()
@@ -55,48 +56,27 @@ router.beforeEach((to, from, next) => {
   }
 })
 
-/*router.beforeEach((to, from, next) => {
-  if(to.matched.some(record => record.meta.requiresAuth)){
-    if(store.getters.isLoggedIn){
-      next()
-      return
-    }
-    next('/')
-  }
-  else if(to.matched.some(record => record.meta.requiresNotAuth)){
-    if(store.getters.isLoggedIn){
-      next('/dashboard')
-      return
-    }
-    next()
-  }
-  else if(to.matched.some(record => record.meta.requiresAuthJuridica)){
-    if(store.getters.isLoggedIn && store.getters.typeUser==='JURIDICA'){
-      next()
-      return
-    }
-    if(store.getters.isLoggedIn){
-      next('/dashboard')
-      return
-    }
-    next('/')
-  }
-  else if(to.matched.some(record => record.meta.requiresAuthFisica)){
-    if(store.getters.isLoggedIn && store.getters.typeUser==='FISICA'){
-      next()
-      return
-    }
-    if(store.getters.isLoggedIn){
-      next('/dashboard')
-      return
-    }
-    next('/')
-  }
-  else{
-    next()
-  }
-})*/
+async function verifyToken() {
 
+  const headers = {
+    "Authorization": "Bearer " + VueCookies.get('token'),
+  };
+
+  await axios({ url: 'http://localhost:8000/user/verifyToken', headers: headers, method: 'GET' })
+    .then(response => {
+      VueCookies.set('isLoggedIn', 'true')
+      VueCookies.set('type', response.data.type)
+      store.state.login.isLoggedIn = true;
+      store.state.login.type = response.data.type;
+      store.state.login.token = VueCookies.get('token');
+    }).catch(error => {
+      console.log(error)
+      VueCookies.set('isLoggedIn', 'false')
+      VueCookies.set('type', 'false')
+      VueCookies.set('token', 'false')
+    })
+
+}
 
 
 export default router

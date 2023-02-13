@@ -287,7 +287,7 @@ export default {
                 status: status,
                 offset: this.offset,
                 limit: this.limit,
-                token: this.$store.state.login.token
+                token: this.$cookies.get('token')
             }
 
             this.$store.dispatch('buscaImovel', payload).then(response => {
@@ -357,7 +357,7 @@ export default {
                 if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
                     let resultado;
 
-                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A', token: this.$store.state.login.token });
+                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A', token: this.$cookies.get('token') });
                     this.total = resultado.totalImoveis.totalImoveis;
                 }
                 else {
@@ -370,11 +370,11 @@ export default {
 
                 if (this.tags.filterFav == 1 || this.tags.filterImportant == 1 || this.tags.filterUrgent == 1) {
                     resultado =
-                        await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags, token: this.$store.state.login.token });
+                        await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags, token: this.$cookies.get('token') });
                 }
                 else {
                     resultado =
-                        await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
+                        await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$cookies.get('token') });
                 }
 
                 this.total = resultado.totalImoveis.totalImoveis;
@@ -386,7 +386,7 @@ export default {
             let payload = { id: id, tipoDelete: tipoDelete };
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             await axios({ url: imovelUrl + 'deletar' + tipo + '/' + id, data: payload, method: method, headers: headers })
@@ -407,7 +407,7 @@ export default {
         async reativarImovel(id) {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             await axios({ url: imovelUrl + 'reativarImovel' + '/' + id, method: 'PUT', headers: headers })
@@ -422,7 +422,7 @@ export default {
 
         async addTag(imovelId, type, value, tagId) {
             let values = { imovelId: imovelId, type: type, value: this.changeTagValue(value), hora: this.getNow(), tagId: tagId }
-            let payload = { values: values, token: this.$store.state.login.token }
+            let payload = { values: values, token: this.$cookies.get('token') }
 
             await this.$store.dispatch('alterarTag', payload)
                 .then(async () => {
@@ -434,7 +434,7 @@ export default {
 
         async desassociarDocumentos(id) {
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await axios({ url: imovelUrl + 'desassociarTodosDocumentos' + '/' + id, method: 'PUT', headers: headers })
@@ -450,7 +450,7 @@ export default {
 
         async apagarDocumentos(id) {
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
@@ -565,17 +565,17 @@ export default {
             let resultado;
             if (tags) {
                 if (this.busca) {
-                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A', token: this.$store.state.login.token })
+                    resultado = await this.buscaImovelFiltrado({ offset: this.offset, limit: this.limit, tags: this.tags, keywords: this.keywords, status: 'A', token: this.$cookies.get('token') })
                 }
                 else {
-                    resultado = await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags, token: this.$store.state.login.token });
+                    resultado = await this.loadImoveisPorPaginaFiltrados({ offset: this.offset, limit: this.limit, tags: this.tags, token: this.$cookies.get('token') });
                 }
             }
             else {
                 this.tags.filterFav = 0;
                 this.tags.filterImportant = 0;
                 this.tags.filterUrgent = 0;
-                resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
+                resultado = await this.loadImoveisPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$cookies.get('token') });
             }
             this.total = resultado.totalImoveis.totalImoveis;
         }

@@ -62,7 +62,7 @@ export default {
     methods: {
         async getAllUsers() {
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
             await axios({ url: 'http://localhost:8000/user/listUsers/' + this.offset + '/' + this.limit, method: 'GET', headers: headers })
                 .then(response => {
@@ -78,7 +78,7 @@ export default {
         },
         async changeRole(user) {
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
             let payload = {
                 type: user.type,
@@ -98,14 +98,13 @@ export default {
 
         async deleteAccount(user) {
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
             let payload = {
                 email: user.email,
             }
             await axios({ url: 'http://localhost:8000/user/deleteUser', data: payload, method: 'DELETE', headers: headers })
-                .then(async (response) => {
-                    console.log(response)
+                .then(async () => {
                     await this.getAllUsers();
                 }).catch(error => {
                     if (error.response.status == 401) {

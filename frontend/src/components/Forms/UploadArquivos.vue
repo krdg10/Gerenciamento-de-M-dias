@@ -121,7 +121,7 @@ export default {
 
 
             const headers = {
-                'Content-Type': 'multipart/form-data', "Authorization": "Bearer " + this.$store.state.login.token,
+                'Content-Type': 'multipart/form-data', "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             await axios({ url: 'http://localhost:8000/arquivo/novoArquivo', data: formData, method: 'POST', headers: headers })
@@ -174,7 +174,7 @@ export default {
 
     async created() {
         if (!this.imovelProps) {
-            await this.loadImoveis(this.$store.state.login.token);
+            await this.loadImoveis(this.$cookies.get('token'));
         }
     },
 };

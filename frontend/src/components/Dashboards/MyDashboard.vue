@@ -37,8 +37,8 @@
             </CardImovel>
             <CardImovel class="border-left-primary shadow h-100 col-sm-12">
                 <template v-slot:card-header>
-                    <router-link v-if="displayQuantidadeDeArquivosSemImovel>0"
-                        :to="{ name: 'listaArquivos', params: {propsSemImovel: true } }" class="color-black">
+                    <router-link v-if="displayQuantidadeDeArquivosSemImovel > 0"
+                        :to="{ name: 'listaArquivos', params: { propsSemImovel: true } }" class="color-black">
                         <h3>Arquivos Ativos Sem Imóvel Associado</h3>
                     </router-link>
                     <h3 v-else class="color-black color-black-without-hover">Arquivos Ativos Sem Imóvel Associado</h3>
@@ -49,8 +49,8 @@
                     <h2 class="text-center my-3">{{ displayQuantidadeDeArquivosSemImovel }}</h2>
                 </template>
                 <template v-slot:card-footer>
-                    <router-link v-if="displayQuantidadeDeArquivosSemImovel>0"
-                        :to="{ name: 'listaArquivos', params: {propsSemImovel: true } }" class="btn btn-lg btn-primary">
+                    <router-link v-if="displayQuantidadeDeArquivosSemImovel > 0"
+                        :to="{ name: 'listaArquivos', params: { propsSemImovel: true } }" class="btn btn-lg btn-primary">
                         Ver Mais<span class="fa fa-eye"></span>
                     </router-link>
                 </template>
@@ -90,11 +90,11 @@ export default {
 
     async created() {
         this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-        await this.loadQuantidadeImoveis({nome: 'Ativos', token: this.$store.state.login.token});
-        await this.loadQuantidadeImoveis({nome: 'Inativos', token: this.$store.state.login.token});
-        await this.loadQuantidadeArquivos({nome: 'Inativos', token: this.$store.state.login.token});
-        await this.loadQuantidadeArquivos({nome: 'Ativos', token: this.$store.state.login.token});
-        await this.loadQuantidadeArquivos({nome: 'SemImovel', token: this.$store.state.login.token});
+        await this.loadQuantidadeImoveis({ nome: 'Ativos', token: this.$cookies.get('token') });
+        await this.loadQuantidadeImoveis({ nome: 'Inativos', token: this.$cookies.get('token') });
+        await this.loadQuantidadeArquivos({ nome: 'Inativos', token: this.$cookies.get('token') });
+        await this.loadQuantidadeArquivos({ nome: 'Ativos', token: this.$cookies.get('token') });
+        await this.loadQuantidadeArquivos({ nome: 'SemImovel', token: this.$cookies.get('token') });
         this.$store.commit('isFetching', { status: false, message: '' });
     }
 }

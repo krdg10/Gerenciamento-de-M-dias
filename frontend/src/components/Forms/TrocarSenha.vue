@@ -83,7 +83,7 @@ export default {
             }
 
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             await axios({ url: 'http://localhost:8000/user/editPassword', data: payload, headers: headers, method: 'PUT' })
@@ -103,7 +103,7 @@ export default {
         async deleteMyUser() {
             this.deleteModal = false;
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             await axios({ url: 'http://localhost:8000/user/deleteMyUser', headers: headers, method: 'DELETE' })
@@ -111,7 +111,7 @@ export default {
                     this.modalMessage = response.data;
                     this.$store.commit('isLoggedOff');
                     this.$router.push({ name: 'home' });
-                   
+
                 }).catch(error => {
                     this.modalMessage = error.response.data;
                 })

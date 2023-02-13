@@ -255,7 +255,7 @@ export default {
                 status: status,
                 offset: this.offset,
                 limit: this.limit,
-                token: this.$store.state.login.token
+                token: this.$cookies.get('token')
             }
 
             this.$store.dispatch('buscaArquivo', payload)
@@ -269,10 +269,10 @@ export default {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             if (this.keywords.length == 0) {
                 if (this.invalidesOrNot) {
-                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos', token: this.$store.state.login.token });
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos', token: this.$cookies.get('token') });
                 }
                 else {
-                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Inativos', token: this.$store.state.login.token });
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Inativos', token: this.$cookies.get('token') });
                 }
             }
             else {
@@ -318,7 +318,7 @@ export default {
         async apagarArquivo(id, tipo, method) {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             await axios({ url: arquivoUrl + 'deletar' + tipo + '/' + id, method: method, headers: headers })
@@ -351,7 +351,7 @@ export default {
         async reativarArquivo(id) {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             await axios({ url: arquivoUrl + 'reativarArquivo' + '/' + id, method: 'PUT', headers: headers })
@@ -373,7 +373,7 @@ export default {
         async reativarImovel(id) {
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
 
             await axios({ url: imovelUrl + 'reativarImovel' + '/' + id, method: 'PUT', headers: headers })
@@ -418,7 +418,7 @@ export default {
             }
 
             const headers = {
-                "Authorization": "Bearer " + this.$store.state.login.token,
+                "Authorization": "Bearer " + this.$cookies.get('token'),
             };
             this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
             await axios({ url: arquivoUrl + 'editar' + '/' + arquivo.id, data: arquivo, method: 'PUT', headers: headers })
@@ -428,11 +428,11 @@ export default {
                             await this.recalculaDepoisRemoverDaLista('semImovel');
                         }
                         else {
-                            await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'semImovel', token: this.$store.state.login.token });
+                            await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'semImovel', token: this.$cookies.get('token') });
                         }
                     }
                     else {
-                        await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos', token: this.$store.state.login.token });
+                        await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: 'Ativos', token: this.$cookies.get('token') });
                     }
                     this.edit = false;
                     this.$store.commit('isFetching', { status: false, message: '' });
@@ -501,7 +501,7 @@ export default {
                 await this.execSearchImovel();
             }
             else {
-                await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
+                await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$cookies.get('token') });
             }
             this.$store.commit('isFetching', { status: false, message: '' });
         },
@@ -511,7 +511,7 @@ export default {
             this.offset = 0;
             this.current = 0;
             this.total = 0;
-            const resultado = await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
+            const resultado = await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$cookies.get('token') });
             this.total = resultado.totalImoveis.totalImoveis;
         },
 
@@ -528,7 +528,7 @@ export default {
             else {
                 let resultado;
                 resultado =
-                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$store.state.login.token });
+                    await this.loadArquivosPorPagina({ offset: this.offset, limit: this.limit, status: status, token: this.$cookies.get('token') });
                 this.total = resultado.totalImoveis.totalImoveis;
             }
         },
@@ -556,7 +556,7 @@ export default {
 
     async created() {
         this.$store.commit('isFetching', { status: true, message: 'Carregando...' });
-        await this.loadImoveisValidosEInvalidos(this.$store.state.login.token);
+        await this.loadImoveisValidosEInvalidos(this.$cookies.get('token'));
         if (this.propsSemImovel) {
             this.semImovel = true;
             await this.inicializaLista('semImovel');

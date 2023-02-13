@@ -89,7 +89,7 @@ export default {
       }
 
       const headers = {
-        "Authorization": "Bearer " + this.$store.state.login.token,
+        "Authorization": "Bearer " + this.$cookies.get('token'),
       };
 
       await axios({ url: 'http://localhost:8000/imovel/' + 'novo', data: imovel, method: 'POST', headers: headers })
@@ -127,7 +127,7 @@ export default {
       }
 
       const headers = {
-        "Authorization": "Bearer " + this.$store.state.login.token,
+        "Authorization": "Bearer " + this.$cookies.get('token'),
       };
 
       await axios({ url: 'http://localhost:8000/imovel/' + 'editar' + '/' + imovel.id, data: imovel, method: 'PUT', headers: headers })

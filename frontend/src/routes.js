@@ -28,14 +28,15 @@ const router = VueRouter.createRouter({
   routes: routes,
 })
 
-router.beforeEach((to, from, next) => {
-  verifyToken();
+router.beforeEach(async (to, from, next) => {
+  await verifyToken();
+
   if (to.matched.some(record => record.meta.requiresAuth)) {
     if (store.state.login.isLoggedIn) {
       next()
       return
     }
-    next('/naoexiste')
+    next('/')
   }
   else if (to.matched.some(record => record.meta.requiresAuthAdm)) {
     if (store.state.login.isLoggedIn && (store.state.login.type == 'adm' || store.state.login.type == 'master')) {
@@ -68,9 +69,10 @@ async function verifyToken() {
       VueCookies.set('type', response.data.type)
       store.state.login.isLoggedIn = true;
       store.state.login.type = response.data.type;
-      store.state.login.token = VueCookies.get('token');
     }).catch(error => {
       console.log(error)
+      store.state.login.isLoggedIn = false;
+      store.state.login.type = '';
       VueCookies.set('isLoggedIn', 'false')
       VueCookies.set('type', 'false')
       VueCookies.set('token', 'false')

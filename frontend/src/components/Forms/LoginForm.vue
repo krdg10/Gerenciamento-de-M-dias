@@ -93,7 +93,6 @@ export default {
             }
             await axios({ url: url, data: login, method: 'POST' })
                 .then(response => {
-                    console.log(response.data)
                     this.modalMessage = 'Login realizado com sucesso!';
                     this.toggleModal();
                     this.$store.commit('isLoggedIn', { type: response.data.type, token: response.data.token });
